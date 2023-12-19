@@ -1,0 +1,508 @@
+library(PhiSpaceR)
+library(ggplot2)
+
+rm(list=ls()); gc()
+setwd("~/PhiSpace")
+# source("loadFun.R")
+dat_dir <- "/data/projects/punim0613/JiaDong/PhiSpace/"
+source("~/PhiSpace/MATLAB_colScale.R")
+source("Case1/Rosa_cols.R")
+
+## Load data
+Rosa0 <- readRDS(paste0(dat_dir, "output/Case1/query_Rosa_sub.rds"))
+reference0 <- readRDS(paste0(dat_dir,"data/stemformatics/ref_dc.rds"))
+
+### Put following in wrapper
+## Define phenotypes
+phenotypes <- c("Cell Type", "Sample Source")
+YY <- codeY(reference0, phenotypes)
+diction <-
+  data.frame(
+    labs = colnames(YY),
+    phenotypeCategory =
+      rep(phenotypes,
+          apply(colData(reference0)[,phenotypes], 2, function(x) length(unique(x)))
+          )
+  )
+
+## Common genes and rank transform
+temp <- keepCommonGenes(reference0, Rosa0)
+reference <- temp[[1]]
+query <- temp[[2]]
+rm(temp); gc()
+reference <- RankTransf(reference, "data", sparse = F)
+query <- RankTransf(query, "counts")
+
+#### PhiSpace (previously known as NPint ----------------------------------------
+## Importance scores
+NPintsAssay <- "rank"
+regMethod <- "PLS"
+(ncomp <- ncol(YY))
+reg_re <- mvr(t(assay(reference, NPintsAssay)), YY, ncomp, method = regMethod)
+impScores <- reg_re$coefficients[,,ncomp]
+if(F){
+  Nselect <- 95
+} else {
+  Nselect <- nrow(impScores)
+}
+atlas_re <- SuperPC(re = NULL,
+                    reference = reference,
+                    # labelName = YrefName,
+                    YY = YY,
+                    ncomp = ncomp,
+                    Nselect = Nselect,
+                    impScores = impScores,
+                    assayName = NPintsAssay,
+                    regMethod = regMethod)
+atlas_re$selectFeat %>% length()
+phenoAssay <- t(assay(reference, NPintsAssay))
+YrefHat <- phenotype(phenoAssay, atlas_re, assayName = NPintsAssay)$Yhat
+YrefHat_norm <- normPhiScores(YrefHat)
+
+## Project query
+phenoAssay <- t(assay(query, NPintsAssay))
+NPintsScore <- phenotype(phenoAssay, atlas_re, assayName = NPintsAssay)$Yhat
+NPintsScore_norm <- normPhiScores(NPintsScore)
+
+## Classification
+if(F){
+  YtrainName <- "Cell Type"
+  selectedTypes <- unique(colData(reference)[, YtrainName])
+  NPintsSub <- NPintsScore_norm[,selectedTypes]
+  classCellType <- getClass(NPintsSub)
+
+  selectedTypes <- unique(reference$`Sample Source`)
+  NPintsSub <- NPintsScore_norm[,selectedTypes]
+  classSource <- getClass(NPintsSub)
+
+  plotSankey3(classCellType, query$mainTypes, classSource)
+
+  if(F){
+    selectedTypes <- unique(reference$`Tissue Type`)
+    NPintsSub <- NPintsScore_norm[,selectedTypes]
+    classTissue <- getClass(NPintsSub)
+
+    classCellType1 <- as.character(
+      FNN::knn(YrefHat_norm,
+               NPintsScore_norm,
+               k = 1,
+               cl = colData(reference)[, YtrainName])
+    )
+    classCellType3 <- as.character(
+      FNN::knn(YrefHat_norm,
+               NPintsScore_norm,
+               k = 3,
+               cl = colData(reference)[, YtrainName])
+    )
+    lda_fit <- MASS::lda(YrefHat_norm, colData(reference)[,YtrainName])
+    predL <- predict(lda_fit, NPintsScore_norm)
+    classCellTypeL <- as.character(predL$class)
+
+
+    plotSankey3(classCellType1, query$mainTypes, classSource)
+    plotSankey3(classCellType3, query$mainTypes, classSource)
+    plotSankey3(classCellTypeL, query$mainTypes, classSource)
+  }
+}
+
+
+
+## Heatmaps
+if(T){
+  if(F){
+    ## LDA probabilities for heatmap
+    postProbs <- lapply(
+      1:length(phenotypes),
+      function(i){
+        YtrainName <- phenotypes[i]
+        lda_fit <- MASS::lda(YrefHat_norm, colData(reference)[,YtrainName])
+        predL <- predict(lda_fit, NPintsScore_norm)
+        out <- predL$posterior
+        return(out)
+      }
+    )
+    postProbs <- do.call(cbind, postProbs)
+
+    ## Using postProbs
+    plot_dat0 <-
+      postProbs %>%
+      as.data.frame()
+    lvls <- c("DC1", "DC2", "pDC", "HEF", "Day3", "Day6", "Day9_DP", "Day9_SP")
+    plot_dat <-
+      plot_dat0 %>%
+      mutate(label = factor(query$mainTypes, levels = lvls))  %>%
+      arrange(label) %>%
+      mutate(id = 1:nrow(plot_dat0))
+    plot_dat %>%
+      pivot_longer(! c(label, id), names_to = "typeNames", values_to = "score") %>%
+      mutate(phenotypeCategory = translateLabel(
+        text = typeNames, dictionary = diction, dFrom = "labs", dTo = "phenotypeCategory"
+      )) %>%
+      mutate(typeNames = factor(typeNames, levels = unique(typeNames))) %>%
+      ggplot(aes(x = typeNames, y = id, fill = score, scales = "free_y")) +
+      geom_tile() +
+      facet_grid(label ~ phenotypeCategory, scales = "free", space = "free", switch = "y") +
+      scale_fill_viridis_c() +
+      theme(
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        strip.text.y.left = element_text(angle = 0),
+        axis.text.x = element_text(angle = 45)
+      )
+  }
+
+
+  ## Heatmap using scores
+  lvls <- sapply(1:length(phenotypes),
+                 function(x){
+                   sort(unique(colData(reference)[,phenotypes[x]]))
+                 }) %>%
+    do.call(c, .)
+  plot_dat0 <-
+    NPintsScore_norm[,lvls] %>%
+    as.data.frame()
+  lvls <- c("DC1", "DC2", "pDC", "HEF", "Day3", "Day6", "Day9_DP", "Day9_SP")
+  plot_dat <-
+    plot_dat0 %>%
+    mutate(label = factor(query$mainTypes, levels = lvls))  %>%
+    arrange(label) %>%
+    mutate(id = 1:nrow(plot_dat0))
+  plot_dat %>%
+    pivot_longer(! c(label, id), names_to = "typeNames", values_to = "score") %>%
+    mutate(phenotypeCategory = translateLabel(
+      text = typeNames, dictionary = diction, dFrom = "labs", dTo = "phenotypeCategory"
+    )) %>%
+    mutate(typeNames = factor(typeNames, levels = unique(typeNames))) %>%
+    ggplot(aes(x = typeNames, y = id, fill = score, scales = "free_y")) +
+    geom_tile() +
+    facet_grid(label ~ phenotypeCategory, scales = "free", space = "free", switch = "y") +
+    scale_fill_gradientn(colours = MATLAB_cols) +
+    theme(
+      axis.text.y = element_blank(),
+      axis.ticks.y = element_blank(),
+      strip.text.y.left = element_text(angle = 0),
+      axis.text.x = element_text(angle = 0),
+      axis.title = element_blank()
+    )
+}
+
+
+## Rename labels
+if(T){
+  plot_dat0 <-
+    NPintsScore_norm %>%
+    as.data.frame()
+  lvls <- c("DC1", "DC2", "pDC", "HEF", "Day3", "Day6", "Day9_DP", "Day9_SP")
+  plot_dat <-
+    plot_dat0 %>%
+    mutate(label = factor(query$mainTypes, levels = lvls))  %>%
+    arrange(label) %>%
+    mutate(id = 1:nrow(plot_dat0))
+  plot_dat <- plot_dat[colnames(query),]
+  # Days
+  days <- rep("control", length(query$celltype))
+  idx <- grepl("Day3", query$celltype, fixed = TRUE)
+  days[idx] <- "Day3"
+  idx <- grepl("Day6", query$celltype, fixed = TRUE)
+  days[idx] <- "Day6"
+  idx <- grepl("Day9", query$celltype, fixed = TRUE)
+  days[idx] <- "Day9"
+  # Donor
+  donors <- rep("A", length(query$celltype))
+  idx <- grepl("_B", query$celltype, fixed = TRUE)
+  donors[idx] <- "B"
+  idx <- grepl("_C", query$celltype, fixed = TRUE)
+  donors[idx] <- "C"
+  # Cell type (HEF or DC)
+  ctype <- rep("in_vitro", length(query$celltype))
+  idx <- grepl("HEF", query$celltype, fixed = TRUE)
+  ctype[idx] <- "HEF"
+  idx <- grepl("PDC", query$celltype, fixed = TRUE)
+  ctype[idx] <- "pDC"
+  idx <- grepl("DC1", query$celltype, fixed = TRUE)
+  ctype[idx] <- "DC1"
+  idx <- grepl("DC2", query$celltype, fixed = TRUE)
+  ctype[idx] <- "DC2"
+  # full labels
+  fullLabel <- query$mainTypes
+  fullLabel[fullLabel %in% c("Day9_DP", "Day9_SP")] <- "Day9"
+  plot_dat <- plot_dat %>%
+    mutate(days = factor(days, levels = c("control", "Day3", "Day6", "Day9")),
+           donors = donors,
+           celltype = factor(ctype, levels = c("in_vitro", "HEF", "pDC", "DC1", "DC2")),
+           fullLabel = factor(fullLabel, levels = c("HEF", "pDC", "DC1", "DC2", "Day3", "Day6", "Day9")))
+}
+
+# cDC1 and mono identities by day
+if(T){
+  # p1<-
+    plot_dat %>%
+    arrange(days) %>%
+    ggplot() +
+    geom_point(aes(x = cDC1, y = in_vitro, color = fullLabel), size = 2, shape = 4, stroke = 1.5) +
+    scale_color_manual(values = cols, name = "cell type") +
+    xlab("DC1") + ylab("in vitro")
+  # manualCol <- c(RColorBrewer::brewer.pal(3, "Set2"))
+  # p2 <-
+  #   plot_dat %>%
+  #   arrange(donors) %>%
+  #   ggplot() +
+  #   geom_point(aes(x = cDC1, y = in_vitro, color = donors), size = 2) +
+  #   scale_color_manual(values = manualCol)
+  # manualCol <- c("gray", c("#FEE5D9", "#7570B3", "#1B9E77","#D95F02"))
+  # p3 <-
+  #   plot_dat %>%
+  #   arrange(celltype) %>%
+  #   ggplot() +
+  #   geom_point(aes(x = cDC1, y = in_vitro, color = celltype), size = 2, shape = 4) +
+  #   scale_color_manual(values = manualCol)
+  # p1 + p3 + plot_layout(nrow=2)
+}
+
+
+# Cell scatter + loading
+if(F){
+  pc_re <- getPC(YrefHat_norm, ncomp = ncol(YrefHat_norm))
+  plot_query <-
+    scale(NPintsScore_norm, center = pc_re$reg_re$Xmeans, scale = F) %*%
+    pc_re$loadings %>%
+    as.data.frame()
+  plot_query <-
+    plot_query[rownames(plot_dat), ] %>%
+    mutate(label = plot_dat$label)
+  plot_load <- pc_re$loadings %>%
+    as.data.frame()
+  plot_load <- plot_load %>%
+    mutate(phenoCategory = translateLabel(
+      text = rownames(plot_load), dictionary = diction, dFrom = "labs", dTo = "phenotypeCategory"
+    ))
+
+  if(F){
+    manualCol <- c(brewer.pal(3, "Dark2"), brewer.pal(5, "Reds"))
+    outPlots <- matrixPlot(plot_query,
+                           comp_idx = 1:5, groupKey = "label", manualCol = manualCol)
+    outPlots <- matrixPlot(plot_query,
+                           comp_idx = 6:10, groupKey = "label", manualCol = manualCol)
+    outPlots <- matrixPlot(plot_query,
+                           comp_idx = 11:15, groupKey = "label", manualCol = manualCol)
+    pdf(file = "loadings.pdf")
+    matrixBiPlot(plot_load, comp_idx = 1:5, groupKey = "phenoCategory", fontSize = 2, manualCol = mixOmics::color.mixo(1:3))
+    dev.off()
+  }
+}
+
+## 3d interactive plot
+refLabName <- "Cell Type"
+queryLabName <- "mainTypes"
+refCol <- brewer.pal(length(unique(colData(reference)[,refLabName])), "Dark2")
+
+symbs <- c(
+  ex_vivo = "diamond",
+  in_vitro = "square",
+  in_vivo = "circle",
+  `in_vivo (HuMouse)` = "circle-open"
+)
+# PCA of phSpace
+if(T){
+  pc_re <- getPC(YrefHat_norm, ncomp = ncol(YrefHat_norm))
+  plot_ref <- pc_re$scores %>% as.data.frame()
+  plot_query <-
+    scale(NPintsScore_norm, center = pc_re$reg_re$Xmeans, scale = F) %*%
+    pc_re$loadings %>%
+    as.data.frame()
+  plot_query <-
+    plot_query[rownames(plot_dat), ] %>%
+    mutate(label = plot_dat$label)
+  plot_load <- pc_re$loadings %>%
+    as.data.frame()
+  plot_load <- plot_load %>%
+    mutate(phenoCategory = translateLabel(
+      text = rownames(plot_load), dictionary = diction, dFrom = "labs", dTo = "phenotypeCategory"
+    ))
+  plot_query %>%
+    plot_ly(x = ~comp1,
+            y = ~comp2,
+            z = ~comp3,
+            colors = cols) %>%
+    add_markers(color = colData(query)[,queryLabName],
+                marker = list(size = 5)) %>%
+    add_text(
+      data = plot_load,
+      text = rownames(plot_load)
+    )
+  # query_plotly
+  # saveRDS(query_plotly, "output/Case1/Rosa_NPintsMap_plotly.rds")
+
+  # Both
+  refLabName <- "Cell Type"
+  refLabs <- colData(reference)[,refLabName]
+  refSymbol <- colData(reference)[,"Sample Source"]
+  queryLabs <- colData(query)[,queryLabName]
+  plot_ref %>%
+    plot_ly(x = ~comp1,
+            y = ~comp2,
+            z = ~comp3,
+            colors = cols,
+            symbols = symbs) %>%
+    add_markers(color = refLabs,
+                symbol = refSymbol,
+                marker = list(size = 5)) %>%
+    # add_text(
+    #   data = plot_load,
+    #   text = rownames(plot_load)
+    # ) %>%
+    add_markers(data = plot_query,
+                color = queryLabs,
+                marker = list(size = 4, symbol = "x")
+    )
+
+
+  ## Ref only
+  if(F){
+    plot_ph <- c(phenotypes, "Platform Category")
+    ref_plotly <- vector("list", length(plot_ph))
+    names(ref_plotly) <- plot_ph
+    for(i in 1:length(plot_ph)){
+      refLabName <- plot_ph[i]
+      ref_plotly[[i]] <-
+        pc_re$scores %>%
+        as.data.frame() %>%
+        plot_ly(x = ~comp1,
+                y = ~comp2,
+                # z = ~comp3,
+                colors = cols) %>%
+        add_markers(color = colData(reference)[,refLabName],
+                    colors = cols,
+                    marker = list(size = 5))
+    }
+    # ref_plotly[[1]]
+  }
+
+  # Query score PCA
+  if(F){
+    score_ref <- YrefHat_norm
+    score_query <- NPintsScore_norm
+    pc_re <- getPC(score_query %>% normCols(), ncomp = ncol(score_ref))
+    plot_query <- pc_re$scores %>% as.data.frame()
+    plot_query <-
+      plot_query[rownames(plot_dat), ] %>%
+      mutate(label = plot_dat$label)
+    plot_load <- pc_re$loadings %>%
+      as.data.frame()
+    plot_load <- plot_load %>%
+      mutate(phenoCategory = translateLabel(
+        text = rownames(plot_load), dictionary = diction, dFrom = "labs", dTo = "phenotypeCategory"
+      ))
+    plot_query %>%
+      plot_ly(x = ~comp1,
+              y = ~comp2,
+              # z = ~comp3,
+              colors = cols) %>%
+      add_markers(color = colData(query)[,queryLabName],
+                  marker = list(size = 5)) %>%
+      add_text(
+        data = plot_load,
+        text = rownames(plot_load)
+      )
+  }
+}
+
+
+## MDS
+if(F){
+  refLabName <- "Cell Type"
+  refLabs <- colData(reference)[,refLabName]
+  queryLabs <- colData(query)[,queryLabName]
+  combData <- rbind(YrefHat_norm, NPintsScore_norm)
+  mod_fit <-
+    cmdscale(
+      dist(combData, method = "maximum"),
+      k = 3
+    )
+  colnames(mod_fit) <- paste0("comp", 1:3)
+  plot_ref <- mod_fit[colnames(reference), ] %>% as.data.frame()
+  plot_query <- mod_fit[colnames(query), ] %>% as.data.frame()
+  plot_ref %>%
+    plot_ly(x = ~comp1,
+            y = ~comp2,
+            z = ~comp3,
+            colors = cols) %>%
+    add_markers(color = refLabs,
+                marker = list(size = 5)) %>%
+    add_markers(data = plot_query,
+                color = queryLabs,
+                marker = list(size = 5, symbol = "x")
+    )
+}
+
+
+#-----------------------------
+if(F){
+  postProbs_ref <- lapply(
+    1:length(phenotypes),
+    function(i){
+      YtrainName <- phenotypes[i]
+      lda_fit <- MASS::lda(YrefHat_norm, colData(reference)[,YtrainName])
+      predL <- predict(lda_fit, YrefHat_norm)
+      out <- predL$posterior
+      return(out)
+    }
+  )
+  postProbs_ref <- do.call(cbind, postProbs_ref)
+  pc_pp_ref <- getPC(postProbs_ref, ncomp = 3)
+  plot_pp_query <-
+    scale(postProbs, center = pc_pp_ref$reg_re$Xmeans, scale = F) %*%
+    pc_pp_ref$loadings %>%
+    as.data.frame()
+  query_pp_plotly <- plot_pp_query %>%
+    plot_ly(x = ~comp1,
+            y = ~comp2,
+            z = ~comp3,
+            colors = cols) %>%
+    add_markers(color = colData(query)[,queryLabName],
+                marker = list(size = 5))
+  query_pp_plotly
+
+}
+if(F){
+  # Compared to Stemformatics (TODO: check, currently not the same as website)
+  stem_ref <- readRDS("output/Case1/ref_dc.rds")
+  # stem_ref <-
+  #   stem_ref[
+  #     rownames(stem_ref)[rowData(stem_ref)[,"inclusion"] == "True"],
+  #   ]
+  stem_ref <- RankTransf(stem_ref, "data")
+  pc_stem_re <- getPC(t(assay(stem_ref, "rank")), ncomp = 3)
+  stem_plotly <- vector("list", length(plot_ph))
+  names(stem_plotly) <- plot_ph
+  for(i in 1:length(plot_ph)){
+    refLabName <- plot_ph[i]
+    stem_plotly[[i]] <-
+      pc_stem_re$scores %>%
+      as.data.frame() %>%
+      plot_ly(x = ~comp1,
+              y = ~comp2,
+              z = ~comp3,
+              colors = cols) %>%
+      add_markers(color = colData(stem_ref)[,refLabName],
+                  colors = cols,
+                  marker = list(size = 5))
+  }
+  stem_plotly[[1]]
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,89 @@
+library(devtools)
+# create_package("PhiSpaceR")
+# use_mit_license()
+
+
+# Attach all defined functions
+setwd("~/PhiSpace/PhiSpace")
+load_all()
+
+
+# Create or modify R functions
+use_r("codeY")
+use_r("svdspc.fit.R") # Internal
+use_r("pls.fit.R") # Internal
+use_r("mvr")
+use_r("getPC")
+use_r("utils") # Internal, containing several small functions
+use_r("normPhiScores")
+use_r("rcTransf")
+use_r("zeroFeatQC")
+use_r("translateLabel")
+use_r("keepCommonGenes")
+use_r("phenotype") # Internal
+use_r("getClass")
+use_r("as.sparse.matrix.R")
+use_r("RankTransf")
+use_r("plotSankey")
+use_r("plotSankey3")
+use_r("pseudoBulk")
+# use_r("viz")
+
+use_r("classErr") # Internal
+use_r("getErr") # Internal
+use_r("getErrNselect")
+use_r("superPC") # Internal
+use_r("CVTuneNcomp") # Internal
+use_r("CVTuneNselect") # Internal
+
+
+## Dependencies
+use_package("methods")
+use_package("stats")
+use_package("rARPACK")
+use_package("SummarizedExperiment")
+use_package("plyr")
+use_package("SingleCellExperiment")
+use_package("networkD3")
+use_package("dplyr")
+use_package("ggplot2")
+use_package("magrittr")
+use_package("ggrepel")
+use_package("patchwork")
+use_package("tidyr")
+use_package("Matrix")
+use_package("ComplexHeatmap")
+
+## Import functions
+use_import_from("magrittr", "%>%")
+
+# For a separate viz package
+# use_package("ks")
+# use_package("ggpubr")
+# use_package("cowplot")
+# use_package("gridExtra")
+
+## rename function
+rename_files("codeY", "codeY")
+
+
+## Edit readme file
+use_readme_rmd()
+build_readme()
+
+# Check and compiel package
+# test()
+document()
+check()
+
+## Commit
+use_git()
+use_github()
+
+install()
+
+
+###
+X <- matrix(rnorm(12), 4, 3)
+X
+RTassay(X)
