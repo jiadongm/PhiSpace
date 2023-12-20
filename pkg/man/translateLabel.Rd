@@ -9,6 +9,9 @@ translateLabel(text, dictionary, dFrom = "label.fine", dTo = "label.main")
 \arguments{
 \item{dTo}{}
 }
+\value{
+A vector containing translated labels.
+}
 \description{
 Translate cell type labels from finer to coarser according to a dictionary.
 }

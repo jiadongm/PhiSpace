@@ -2,13 +2,16 @@
 % Please edit documentation in R/zeroFeatQC.R
 \name{zeroFeatQC}
 \alias{zeroFeatQC}
-\title{Minimal quality control: remove features with all zero values.}
+\title{Minimal quality control (QC): remove features with all zero values.}
 \usage{
 zeroFeatQC(sce, assayName = "counts")
 }
 \arguments{
 \item{assayName}{}
 }
+\value{
+An updated SingleCellExperiment object after minimal QC.
+}
 \description{
-Minimal quality control: remove features with all zero values.
+Minimal quality control (QC): remove features with all zero values.
 }

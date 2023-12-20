@@ -5,7 +5,17 @@
 #' @param center
 #' @param scale
 #'
-#' @return
+#' @return A list containing
+#' \item{scores}{Score matrix for X.}
+#' \item{loadings}{Laoding matrix for X.}
+#' \item{sdev}{}
+#' \item{totVar}{}
+#' \item{props}{}
+#' \item{accuProps}{}
+#' \item{ncomp}{}
+#' \item{selectFeat}{}
+#' \item{reg_re}{}
+#'
 #' @export
 getPC <- function(X, ncomp, center = TRUE, scale = FALSE){
   Xmeans <- colMeans(X)

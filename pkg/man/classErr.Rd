@@ -11,6 +11,11 @@ classErr(classQuery, classOriginal, labPerSample = NULL)
 \arguments{
 \item{labPerSample}{}
 }
+\value{
+A list containing:
+\item{err}{}
+\item{byClassErrs}{}
+}
 \description{
 Calculate classification errors.
 

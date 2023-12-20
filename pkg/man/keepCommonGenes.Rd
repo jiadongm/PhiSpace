@@ -9,6 +9,9 @@ keepCommonGenes(reference, query, dots2hyphen = F)
 \arguments{
 \item{dots2hyphen}{}
 }
+\value{
+A list containing updated SingleCellExperiment obejcts with matching features.
+}
 \description{
 Keep common genes of two SingleCellExperiment objects.
 }

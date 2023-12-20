@@ -4,7 +4,8 @@
 #' @param query
 #' @param dots2hyphen
 #'
-#' @return
+#' @return A list containing updated SingleCellExperiment obejcts with matching features.
+#'
 #' @export
 keepCommonGenes <- function(reference, query, dots2hyphen = F){
   if(dots2hyphen){

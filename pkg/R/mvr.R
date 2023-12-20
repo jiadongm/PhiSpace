@@ -9,7 +9,21 @@
 #' @param center
 #' @param scale
 #'
-#' @return
+#' @return A list containing
+#' \item{coefficients}{Regression coefficient matrices.}
+#' \item{scores}{Score matrix for X.}
+#' \item{loadings}{Laoding matrix for X.}
+#' \item{Yloadings}{Loading matrix for Y.}
+#' \item{projection}{}
+#' \item{Xmeans}{}
+#' \item{Ymeans}{}
+#' \item{fitted.values}{}
+#' \item{residuals}{}
+#' \item{Xvar}{}
+#' \item{Xtotvar}{}
+#' \item{ncomp}{}
+#' \item{method}{}
+#'
 #' @export
 mvr <- function(X, Y, ncomp, method = c("PCA", "PLS"), center = T, scale = F){
 

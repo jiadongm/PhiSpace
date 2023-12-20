@@ -9,6 +9,9 @@ RTassay(X)
 \arguments{
 \item{X}{A cell by gene matrix.}
 }
+\value{
+Rank transformed cell by gene matrix.
+}
 \description{
 Apply rank transform to a gene by cell matrix.
 }

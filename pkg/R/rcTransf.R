@@ -4,7 +4,8 @@
 #' @param assayName
 #' @param targetAssay
 #'
-#' @return
+#' @return A SingleCellExperiment object containing a new assay after relative counts normalisation.
+#'
 #' @export
 rcTransf <- function(sce, assayName = "counts", targetAssay = "data"){
 

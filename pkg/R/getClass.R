@@ -3,7 +3,8 @@
 #' @param X
 #' @param labPerSample
 #'
-#' @return
+#' @return A vector contaning labels.
+#'
 #' @export
 getClass <- function(X, labPerSample = NULL){
 

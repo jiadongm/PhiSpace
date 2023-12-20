@@ -5,7 +5,8 @@
 #' @param dFrom
 #' @param dTo
 #'
-#' @return
+#' @return A vector containing translated labels.
+#'
 #' @export
 translateLabel <- function(text, dictionary, dFrom = "label.fine", dTo = "label.main"){
   translated <- plyr::mapvalues(text,

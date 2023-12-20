@@ -9,6 +9,18 @@ getPC(X, ncomp, center = TRUE, scale = FALSE)
 \arguments{
 \item{scale}{}
 }
+\value{
+A list containing
+\item{scores}{Score matrix for X.}
+\item{loadings}{Laoding matrix for X.}
+\item{sdev}{}
+\item{totVar}{}
+\item{props}{}
+\item{accuProps}{}
+\item{ncomp}{}
+\item{selectFeat}{}
+\item{reg_re}{}
+}
 \description{
 Principal component analysis (PCA) based on partial singular value decomposition (SVD).
 }

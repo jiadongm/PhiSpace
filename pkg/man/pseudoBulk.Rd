@@ -17,6 +17,9 @@ pseudoBulk(
 \arguments{
 \item{YY}{}
 }
+\value{
+An updated \code{SingleCellExpeirment} object with a pseudobulk assay
+}
 \description{
 Converting single cells to pseudo-bulks.
 }

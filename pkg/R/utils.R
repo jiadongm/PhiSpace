@@ -2,7 +2,7 @@
 #'
 #' @param X A cell by gene matrix.
 #'
-#' @return
+#' @return Rank transformed cell by gene matrix.
 #'
 RTassay <- function(X){
   X <- methods::as(X, "dMatrix")
@@ -17,7 +17,9 @@ RTassay <- function(X){
 #' @param classOriginal
 #' @param labPerSample
 #'
-#' @return
+#' @return A list containing:
+#' \item{err}{}
+#' \item{byClassErrs}{}
 #'
 classErr <- function(classQuery, classOriginal, labPerSample = NULL){
 
@@ -91,7 +93,7 @@ classErr <- function(classQuery, classOriginal, labPerSample = NULL){
 #' @param x
 #' @param n
 #'
-#' @return
+#' @return A partition of index vector `x` to `n` folds.
 #'
 split2 <- function(x, n){
   split(x, cut(seq_along(x), n, labels = FALSE))

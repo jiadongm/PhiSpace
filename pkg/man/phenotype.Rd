@@ -9,6 +9,11 @@ phenotype(assayToProj, atlas_re, assayName = "rank", scale = FALSE)
 \arguments{
 \item{scale}{}
 }
+\value{
+A list containing
+\item{Yhat}{}
+\item{Proj}{}
+}
 \description{
 Soft phenotyping of query assay.
 }

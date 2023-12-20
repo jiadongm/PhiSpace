@@ -9,6 +9,22 @@ mvr(X, Y, ncomp, method = c("PCA", "PLS"), center = T, scale = F)
 \arguments{
 \item{scale}{}
 }
+\value{
+A list containing
+\item{coefficients}{Regression coefficient matrices.}
+\item{scores}{Score matrix for X.}
+\item{loadings}{Laoding matrix for X.}
+\item{Yloadings}{Loading matrix for Y.}
+\item{projection}{}
+\item{Xmeans}{}
+\item{Ymeans}{}
+\item{fitted.values}{}
+\item{residuals}{}
+\item{Xvar}{}
+\item{Xtotvar}{}
+\item{ncomp}{}
+\item{method}{}
+}
 \description{
 Simplified version of \code{pls::mvr}, using computationally faster versions of PCA and PLS.
 }

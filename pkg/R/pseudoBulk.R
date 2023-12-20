@@ -8,7 +8,8 @@
 #' @param nPool
 #' @param YY
 #'
-#' @return
+#' @return An updated `SingleCellExpeirment` object with a pseudobulk assay
+#'
 #' @export
 pseudoBulk <- function(query,
                        clusterid,
@@ -108,6 +109,6 @@ pseudoBulk <- function(query,
 
 
   message(paste('\n Sparsity after imputation is', round(mean(outData == 0),3)))
-  sce
+  return(sce)
 
 }

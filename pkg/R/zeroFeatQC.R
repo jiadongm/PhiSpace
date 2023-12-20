@@ -1,9 +1,10 @@
-#' Minimal quality control: remove features with all zero values.
+#' Minimal quality control (QC): remove features with all zero values.
 #'
 #' @param sce
 #' @param assayName
 #'
-#' @return
+#' @return An updated SingleCellExperiment object after minimal QC.
+#'
 #' @export
 zeroFeatQC <- function(sce, assayName = "counts"){
 

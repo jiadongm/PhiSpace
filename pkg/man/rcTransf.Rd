@@ -9,6 +9,9 @@ rcTransf(sce, assayName = "counts", targetAssay = "data")
 \arguments{
 \item{targetAssay}{}
 }
+\value{
+A SingleCellExperiment object containing a new assay after relative counts normalisation.
+}
 \description{
 Relative counts normalisation.
 }

@@ -9,6 +9,9 @@ as.sparse.matrix(X)
 \arguments{
 \item{X}{}
 }
+\value{
+Sparse matrix version of \code{X}
+}
 \description{
 Convert a matrix to sparse metrix.
 }

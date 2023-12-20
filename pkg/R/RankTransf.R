@@ -1,11 +1,12 @@
-#' Rank transform of a SingleCellExperiment object.
+#' Rank transform of a `SingleCellExperiment` object.
 #'
 #' @param sce
 #' @param assayname
 #' @param targetAssay
 #' @param sparse
 #'
-#' @return
+#' @return An updated `SingleCellExperiment` object with a rank transformed assay.
+#'
 #' @export
 RankTransf <- function(sce, assayname = 'counts', targetAssay = 'rank', sparse = TRUE){
 

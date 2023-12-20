@@ -4,7 +4,7 @@
 #' @param class2
 #' @param fontsize
 #'
-#' @return
+#'
 #' @export
 plotSankey <- function(class1, class2, fontsize = 12){
 

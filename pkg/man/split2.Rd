@@ -9,6 +9,9 @@ split2(x, n)
 \arguments{
 \item{n}{}
 }
+\value{
+A partition of index vector \code{x} to \code{n} folds.
+}
 \description{
 Create partitions of data for cross-validation.
 }

@@ -9,6 +9,9 @@ getClass(X, labPerSample = NULL)
 \arguments{
 \item{labPerSample}{}
 }
+\value{
+A vector contaning labels.
+}
 \description{
 Dicretise soft annotation to labels.
 }

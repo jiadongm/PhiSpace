@@ -9,6 +9,9 @@ normPhiScores(X, method = c("col", "row"))
 \arguments{
 \item{method}{}
 }
+\value{
+A matrix normalised by row or by column.
+}
 \description{
 The by-row normalisation is the same as \code{SingleR:::.trim_byLabel_and_normalize_scores}.
 }

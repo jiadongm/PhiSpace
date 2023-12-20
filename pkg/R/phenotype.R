@@ -5,7 +5,9 @@
 #' @param assayName
 #' @param scale
 #'
-#' @return
+#' @return A list containing
+#' \item{Yhat}{}
+#' \item{Proj}{}
 phenotype <- function(assayToProj, atlas_re, assayName = 'rank', scale = FALSE){
 
   ncomp <- atlas_re$ncomp

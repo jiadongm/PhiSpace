@@ -5,7 +5,8 @@
 #' @param X
 #' @param method
 #'
-#' @return
+#' @return A matrix normalised by row or by column.
+#'
 #' @export
 normPhiScores <- function(X, method = c("col", "row")){
   method <- match.arg(method)

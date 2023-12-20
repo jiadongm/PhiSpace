@@ -2,13 +2,16 @@
 % Please edit documentation in R/RankTransf.R
 \name{RankTransf}
 \alias{RankTransf}
-\title{Rank transform of a SingleCellExperiment object.}
+\title{Rank transform of a \code{SingleCellExperiment} object.}
 \usage{
 RankTransf(sce, assayname = "counts", targetAssay = "rank", sparse = TRUE)
 }
 \arguments{
 \item{sparse}{}
 }
+\value{
+An updated \code{SingleCellExperiment} object with a rank transformed assay.
+}
 \description{
-Rank transform of a SingleCellExperiment object.
+Rank transform of a \code{SingleCellExperiment} object.
 }
