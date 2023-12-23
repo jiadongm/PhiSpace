@@ -7,7 +7,15 @@
 plotSankey3(class1, class2, class3, add = TRUE, fontsize = 12)
 }
 \arguments{
-\item{fontsize}{}
+\item{class1}{Vector.}
+
+\item{class2}{Vector.}
+
+\item{class3}{Vector.}
+
+\item{add}{Logic.}
+
+\item{fontsize}{Numeric.}
 }
 \description{
 Plot Sankey diagram for three hard classification results.

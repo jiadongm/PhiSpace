@@ -7,7 +7,9 @@
 normPhiScores(X, method = c("col", "row"))
 }
 \arguments{
-\item{method}{}
+\item{X}{Matrix.}
+
+\item{method}{Character.}
 }
 \value{
 A matrix normalised by row or by column.

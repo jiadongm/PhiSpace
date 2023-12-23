@@ -13,9 +13,9 @@ RTassay <- function(X){
 
 #' Calcualte classification errors.
 #'
-#' @param classQuery
-#' @param classOriginal
-#' @param labPerSample
+#' @param classQuery Character vector.
+#' @param classOriginal Character vector.
+#' @param labPerSample Integer.
 #'
 #' @return A list containing:
 #' \item{err}{}
@@ -90,8 +90,8 @@ classErr <- function(classQuery, classOriginal, labPerSample = NULL){
 
 #' Create partitions of data for cross-validation.
 #'
-#' @param x
-#' @param n
+#' @param x Vector.
+#' @param n Integer.
 #'
 #' @return A partition of index vector `x` to `n` folds.
 #'

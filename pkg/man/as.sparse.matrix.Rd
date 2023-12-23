@@ -7,7 +7,7 @@
 as.sparse.matrix(X)
 }
 \arguments{
-\item{X}{}
+\item{X}{Matrix.}
 }
 \value{
 Sparse matrix version of \code{X}

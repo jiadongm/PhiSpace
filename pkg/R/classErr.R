@@ -1,8 +1,8 @@
 #' Calculate classification errors.
 #'
-#' @param classQuery
-#' @param classOriginal
-#' @param labPerSample
+#' @param classQuery Vector.
+#' @param classOriginal Vector.
+#' @param labPerSample Integer.
 #'
 #' @return
 classErr <- function(classQuery, classOriginal, labPerSample = NULL){

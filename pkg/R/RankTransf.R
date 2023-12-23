@@ -1,9 +1,9 @@
 #' Rank transform of a `SingleCellExperiment` object.
 #'
-#' @param sce
-#' @param assayname
-#' @param targetAssay
-#' @param sparse
+#' @param sce `SingleCellExperiment` object.
+#' @param assayname Character.
+#' @param targetAssay Character.
+#' @param sparse Logic.
 #'
 #' @return An updated `SingleCellExperiment` object with a rank transformed assay.
 #'

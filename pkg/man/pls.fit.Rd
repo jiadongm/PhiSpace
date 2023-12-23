@@ -4,24 +4,20 @@
 \alias{pls.fit}
 \title{Title}
 \usage{
-pls.fit(X, Y, ncomp, center = TRUE, stripped = FALSE)
+pls.fit(X, Y, ncomp)
 }
 \arguments{
-\item{stripped}{}
+\item{X}{Matrix. Scaled predictor matrix}
+
+\item{Y}{Matrix. Scaled response matrix}
+
+\item{ncomp}{Integer.}
+
+\item{center}{Logic.}
 }
 \value{
 A list containing
 \item{coefficients}{Regression coefficient matrices.}
-\item{scores}{Score matrix for X.}
-\item{loadings}{Laoding matrix for X.}
-\item{Yloadings}{Loading matrix for Y.}
-\item{projection}{}
-\item{Xmeans}{}
-\item{Ymeans}{}
-\item{fitted.values}{}
-\item{residuals}{}
-\item{Xvar}{}
-\item{Xtotvar}{}
 }
 \description{
 Same as \code{pls::kernelpls.fit}, but replacing a full eigen decomposition by a partial one via \code{rARPACK::eigs_sym}.

@@ -1,7 +1,7 @@
 #' Minimal quality control (QC): remove features with all zero values.
 #'
-#' @param sce
-#' @param assayName
+#' @param sce SingleCellExperiment object.
+#' @param assayName Character.
 #'
 #' @return An updated SingleCellExperiment object after minimal QC.
 #'

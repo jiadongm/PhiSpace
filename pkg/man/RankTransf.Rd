@@ -7,7 +7,13 @@
 RankTransf(sce, assayname = "counts", targetAssay = "rank", sparse = TRUE)
 }
 \arguments{
-\item{sparse}{}
+\item{sce}{\code{SingleCellExperiment} object.}
+
+\item{assayname}{Character.}
+
+\item{targetAssay}{Character.}
+
+\item{sparse}{Logic.}
 }
 \value{
 An updated \code{SingleCellExperiment} object with a rank transformed assay.

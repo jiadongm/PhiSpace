@@ -9,7 +9,11 @@ classErr(classQuery, classOriginal, labPerSample = NULL)
 classErr(classQuery, classOriginal, labPerSample = NULL)
 }
 \arguments{
-\item{labPerSample}{}
+\item{classQuery}{Character vector.}
+
+\item{classOriginal}{Character vector.}
+
+\item{labPerSample}{Integer.}
 }
 \value{
 A list containing:

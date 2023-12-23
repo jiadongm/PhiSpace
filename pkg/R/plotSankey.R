@@ -1,8 +1,8 @@
 #' Plot Sankey diagram for two classification results.
 #'
-#' @param class1
-#' @param class2
-#' @param fontsize
+#' @param class1 Vector.
+#' @param class2 Vector.
+#' @param fontsize Numeric.
 #'
 #'
 #' @export

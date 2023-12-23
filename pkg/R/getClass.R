@@ -1,7 +1,7 @@
 #' Dicretise soft annotation to labels.
 #'
-#' @param X
-#' @param labPerSample
+#' @param X Matrix.
+#' @param labPerSample Integer.
 #'
 #' @return A vector contaning labels.
 #'

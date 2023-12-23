@@ -1,12 +1,12 @@
 #' Converting single cells to pseudo-bulks.
 #'
-#' @param query
-#' @param clusterid
-#' @param assay
-#' @param size.factor
-#' @param pool.factor
-#' @param nPool
-#' @param YY
+#' @param query `SingleCellExpeirment` object.
+#' @param clusterid Character.
+#' @param assay Character.
+#' @param size.factor Numeric.
+#' @param pool.factor Numeric.
+#' @param nPool Integer.
+#' @param YY Matrix.
 #'
 #' @return An updated `SingleCellExpeirment` object with a pseudobulk assay
 #'

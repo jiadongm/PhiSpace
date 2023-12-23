@@ -2,8 +2,10 @@
 "_PACKAGE"
 
 ## usethis namespace: start
-#' @importFrom magrittr %>%
-#' @import SummarizedExperiment
 #' @import SingleCellExperiment
+#' @import SummarizedExperiment
+#' @import Matrix
+#' @importFrom magrittr %>%
+#' @importFrom zeallot %<-%
 ## usethis namespace: end
 NULL

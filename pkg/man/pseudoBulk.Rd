@@ -15,7 +15,19 @@ pseudoBulk(
 )
 }
 \arguments{
-\item{YY}{}
+\item{query}{\code{SingleCellExpeirment} object.}
+
+\item{clusterid}{Character.}
+
+\item{assay}{Character.}
+
+\item{size.factor}{Numeric.}
+
+\item{pool.factor}{Numeric.}
+
+\item{nPool}{Integer.}
+
+\item{YY}{Matrix.}
 }
 \value{
 An updated \code{SingleCellExpeirment} object with a pseudobulk assay

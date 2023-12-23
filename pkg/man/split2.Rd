@@ -7,7 +7,9 @@
 split2(x, n)
 }
 \arguments{
-\item{n}{}
+\item{x}{Vector.}
+
+\item{n}{Integer.}
 }
 \value{
 A partition of index vector \code{x} to \code{n} folds.

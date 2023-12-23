@@ -5,7 +5,6 @@
 #' @param method Which coding to use, either (-1,1) or (0,1).
 #'
 #' @return
-#'
 #' \item{YY}{A dummy variable matrix encoding discrete annotation}
 #'
 #' @export

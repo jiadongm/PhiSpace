@@ -7,7 +7,9 @@
 getClass(X, labPerSample = NULL)
 }
 \arguments{
-\item{labPerSample}{}
+\item{X}{Matrix.}
+
+\item{labPerSample}{Integer.}
 }
 \value{
 A vector contaning labels.

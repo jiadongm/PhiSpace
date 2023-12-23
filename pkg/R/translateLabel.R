@@ -1,9 +1,9 @@
 #' Translate cell type labels from finer to coarser according to a dictionary.
 #'
-#' @param text
-#' @param dictionary
-#' @param dFrom
-#' @param dTo
+#' @param text Character vector.
+#' @param dictionary Data frame.
+#' @param dFrom Character.
+#' @param dTo Character.
 #'
 #' @return A vector containing translated labels.
 #'

@@ -11,7 +11,7 @@ getErr(
   XXtest,
   YYtest,
   labPerSample = NULL,
-  selectFeat = NULL,
+  selectedFeat = NULL,
   regMethod = "PLS",
   assayName = "rank",
   mode = "supervised",
@@ -19,7 +19,30 @@ getErr(
 )
 }
 \arguments{
-\item{normYY}{}
+\item{ncompGrid}{Vector.}
+
+\item{XX}{Matrix.}
+
+\item{YY}{Matrix.}
+
+\item{XXtest}{Matrix.}
+
+\item{YYtest}{Matrix.}
+
+\item{labPerSample}{Integer.}
+
+\item{selectedFeat}{Vector.}
+
+\item{regMethod}{Character.}
+
+\item{assayName}{Character.}
+
+\item{mode}{Character.}
+
+\item{normYY}{Logic.}
+}
+\value{
+A list
 }
 \description{
 Compute different errors for cross-validation.

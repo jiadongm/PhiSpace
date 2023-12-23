@@ -2,43 +2,40 @@
 #'
 #' Simplified version of `pls::mvr`, using computationally faster versions of PCA and PLS.
 #'
-#' @param X
-#' @param Y
-#' @param ncomp
-#' @param method
-#' @param center
-#' @param scale
+#' @param X Matrix.
+#' @param Y Matrix.
+#' @param ncomp Integer.
+#' @param method Character.
+#' @param center Logic.
+#' @param scale Logic.
 #'
 #' @return A list containing
 #' \item{coefficients}{Regression coefficient matrices.}
-#' \item{scores}{Score matrix for X.}
-#' \item{loadings}{Laoding matrix for X.}
-#' \item{Yloadings}{Loading matrix for Y.}
-#' \item{projection}{}
 #' \item{Xmeans}{}
 #' \item{Ymeans}{}
-#' \item{fitted.values}{}
-#' \item{residuals}{}
-#' \item{Xvar}{}
-#' \item{Xtotvar}{}
 #' \item{ncomp}{}
 #' \item{method}{}
 #'
 #' @export
 mvr <- function(X, Y, ncomp, method = c("PCA", "PLS"), center = T, scale = F){
 
-  if(scale){
-    X <- scale(X, center = F, scale = T)
-  }
+
+  Y <- scale(Y, center = center, scale = FALSE)
+  X <- scale(X, center = center, scale = scale)
 
   fitFunc <- switch(method,
                     PCA = svdspc.fit,
                     PLS = pls.fit
   )
 
-  out <- fitFunc(X, Y, ncomp, center = center)
+  out <- fitFunc(X, Y, ncomp)
   out$ncomp <- ncomp
   out$method <- method
+  out$center <- center
+  out$scale <- scale
+  out$Xmeans <- attr(X, "scaled:center")
+  out$Xscals <- attr(X, "scaled:scale")
+  out$Ymeans <- attr(Y, "scaled:center")
 
   return(out)
 }

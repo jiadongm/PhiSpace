@@ -1,6 +1,6 @@
 #' Convert a matrix to sparse metrix.
 #'
-#' @param X
+#' @param X Matrix.
 #'
 #' @return Sparse matrix version of `X`
 #'

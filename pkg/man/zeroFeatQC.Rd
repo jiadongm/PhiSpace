@@ -7,7 +7,9 @@
 zeroFeatQC(sce, assayName = "counts")
 }
 \arguments{
-\item{assayName}{}
+\item{sce}{SingleCellExperiment object.}
+
+\item{assayName}{Character.}
 }
 \value{
 An updated SingleCellExperiment object after minimal QC.

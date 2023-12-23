@@ -2,25 +2,36 @@
 % Please edit documentation in R/superPC.R
 \name{SuperPC}
 \alias{SuperPC}
-\title{Compute regression model.}
+\title{Compute regression model using selected features.}
 \usage{
 SuperPC(
-  re = NULL,
-  reference = NULL,
-  YY = NULL,
-  labelName = NULL,
-  ncomp = NULL,
-  Nselect = NULL,
-  impScores = NULL,
-  selectFeat = NULL,
+  reference,
+  YY,
+  ncomp,
+  selectedFeat = NULL,
   assayName = "logcounts",
-  regMethod = "PCA",
-  labelCode = "-1,1"
+  regMethod = c("PCA", "PLS"),
+  scale = FALSE
 )
 }
 \arguments{
-\item{labelCode}{}
+\item{reference}{SingleCellExperiment object. The reference}
+
+\item{YY}{Resonse matrix}
+
+\item{ncomp}{Integer. Number of components}
+
+\item{selectedFeat}{Character. Vector containing selected feature names}
+
+\item{assayName}{Which assay in reference to use for prediction}
+
+\item{regMethod}{Character. Regression method to use, either PCA or PLS.}
+
+\item{scale}{Logic. Scale the predictor matrix or not}
+}
+\value{
+A list containing regression input and output.
 }
 \description{
-Compute regression model.
+Compute regression model using selected features.
 }

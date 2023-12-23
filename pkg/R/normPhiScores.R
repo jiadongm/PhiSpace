@@ -2,8 +2,8 @@
 #'
 #' The by-row normalisation is the same as `SingleR:::.trim_byLabel_and_normalize_scores`.
 #'
-#' @param X
-#' @param method
+#' @param X Matrix.
+#' @param method Character.
 #'
 #' @return A matrix normalised by row or by column.
 #'

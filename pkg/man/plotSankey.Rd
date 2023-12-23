@@ -7,7 +7,11 @@
 plotSankey(class1, class2, fontsize = 12)
 }
 \arguments{
-\item{fontsize}{}
+\item{class1}{Vector.}
+
+\item{class2}{Vector.}
+
+\item{fontsize}{Numeric.}
 }
 \description{
 Plot Sankey diagram for two classification results.

@@ -1,22 +1,22 @@
 #' Compute different errors for cross-validation.
 #'
-#' @param ncompGrid
-#' @param XX
-#' @param YY
-#' @param XXtest
-#' @param YYtest
-#' @param labPerSample
-#' @param selectFeat
-#' @param regMethod
-#' @param assayName
-#' @param mode
-#' @param normYY
+#' @param ncompGrid Vector.
+#' @param XX Matrix.
+#' @param YY Matrix.
+#' @param XXtest Matrix.
+#' @param YYtest Matrix.
+#' @param labPerSample Integer.
+#' @param selectedFeat Vector.
+#' @param regMethod Character.
+#' @param assayName Character.
+#' @param mode Character.
+#' @param normYY Logic.
 #'
-#' @return
+#' @return A list
 getErr <- function(ncompGrid,
                    XX, YY, XXtest, YYtest,
                    labPerSample = NULL,
-                   selectFeat = NULL,
+                   selectedFeat = NULL,
                    regMethod = 'PLS',
                    assayName = 'rank',
                    mode = "supervised",
@@ -24,18 +24,18 @@ getErr <- function(ncompGrid,
 {
 
   ## Rank transform again after feature selection
-  if(!is.null(selectFeat)){
-    selectFeat <- selectFeat
+  if(!is.null(selectedFeat)){
+    selectedFeat <- selectedFeat
   } else {
-    selectFeat <- colnames(XX)
+    selectedFeat <- colnames(XX)
   }
 
   if(assayName == 'rank'){
-    XX_RT <- RTassay(XX[, selectFeat])
-    XXtest_RT <- RTassay(XXtest[, selectFeat])
+    XX_RT <- RTassay(XX[, selectedFeat])
+    XXtest_RT <- RTassay(XXtest[, selectedFeat])
   } else {
-    XX_RT <- XX[, selectFeat]
-    XXtest_RT <- XXtest[, selectFeat]
+    XX_RT <- XX[, selectedFeat]
+    XXtest_RT <- XXtest[, selectedFeat]
   }
 
   Nselect <- ncol(XX_RT)

@@ -4,10 +4,24 @@
 \alias{phenotype}
 \title{Soft phenotyping of query assay.}
 \usage{
-phenotype(assayToProj, atlas_re, assayName = "rank", scale = FALSE)
+phenotype(
+  phenoAssay,
+  atlas_re,
+  assayName = "rank",
+  scaleMethod = c("byQuery", "byRef"),
+  scale = FALSE
+)
 }
 \arguments{
-\item{scale}{}
+\item{phenoAssay}{Matrix. Query assay to phenotype.}
+
+\item{atlas_re}{List.}
+
+\item{assayName}{Character.}
+
+\item{scaleMethod}{Character.}
+
+\item{scale}{Logic.}
 }
 \value{
 A list containing

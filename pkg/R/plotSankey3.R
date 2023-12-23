@@ -1,10 +1,10 @@
 #' Plot Sankey diagram for three hard classification results.
 #'
-#' @param class1
-#' @param class2
-#' @param class3
-#' @param add
-#' @param fontsize
+#' @param class1 Vector.
+#' @param class2 Vector.
+#' @param class3 Vector.
+#' @param add Logic.
+#' @param fontsize Numeric.
 #'
 #' @export
 plotSankey3 <- function(class1, class2, class3, add = TRUE, fontsize = 12){
@@ -61,10 +61,10 @@ plotSankey3 <- function(class1, class2, class3, add = TRUE, fontsize = 12){
   sankeyLinks$IDtarget <- match(sankeyLinks$target, sankeyNodes$name)-1
 
   p <-
-    networkD3::sankeyNetwork(Links = sankeyLinks, Nodes = sankeyNodes,
-                             Source = "IDsource", Target = "IDtarget",
-                             Value = "value", NodeID = "name",
-                             sinksRight = FALSE, fontSize = fontsize)
+    suppressMessages(networkD3::sankeyNetwork(Links = sankeyLinks, Nodes = sankeyNodes,
+                                              Source = "IDsource", Target = "IDtarget",
+                                              Value = "value", NodeID = "name",
+                                              sinksRight = FALSE, fontSize = fontsize))
   print(p)
 
   # return(list(er12 = er_re12$err, er23 = er_re23$err))

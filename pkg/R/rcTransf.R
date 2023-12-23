@@ -1,8 +1,8 @@
 #' Relative counts normalisation.
 #'
-#' @param sce
-#' @param assayName
-#' @param targetAssay
+#' @param sce SingleCellExperiment object.
+#' @param assayName Character.
+#' @param targetAssay Character.
 #'
 #' @return A SingleCellExperiment object containing a new assay after relative counts normalisation.
 #'

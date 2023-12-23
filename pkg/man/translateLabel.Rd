@@ -7,7 +7,13 @@
 translateLabel(text, dictionary, dFrom = "label.fine", dTo = "label.main")
 }
 \arguments{
-\item{dTo}{}
+\item{text}{Character vector.}
+
+\item{dictionary}{Data frame.}
+
+\item{dFrom}{Character.}
+
+\item{dTo}{Character.}
 }
 \value{
 A vector containing translated labels.
