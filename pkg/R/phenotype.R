@@ -3,7 +3,6 @@
 #' @param phenoAssay Matrix. Query assay to phenotype.
 #' @param atlas_re List.
 #' @param assayName Character.
-#' @param scale Logic.
 #' @param scaleMethod Character.
 #'
 #' @return A list containing
@@ -12,8 +11,8 @@
 phenotype <- function(phenoAssay,
                       atlas_re,
                       assayName = 'rank',
-                      scaleMethod = c("byQuery", "byRef"),
-                      scale = FALSE){
+                      scaleMethod = c("byQuery", "byRef")){
+
 
   scaleMethod <- match.arg(scaleMethod)
 
@@ -30,21 +29,21 @@ phenotype <- function(phenoAssay,
 
 
   if(scaleMethod == "byQuery"){
-    XX <- scale(XX, center = TRUE, scale = scale)
+    XX_cent <- scale(XX, center = atlas_re$center, scale = atlas_re$scale)
   } else {
-    if(scale){
-      XX <- scale(XX,
-                  scale = atlas_re$reg_re$Xscals,
-                  center = atlas_re$reg_re$Xmeans)
+    if(atlas_re$scale){
+      XX_cent <- scale(XX,
+                       scale = atlas_re$reg_re$Xscals,
+                       center = atlas_re$reg_re$Xmeans)
     } else {
-      XX_cent <- scale(XX_cent,
+      XX_cent <- scale(XX,
                        scale = F,
                        center = atlas_re$reg_re$Xmeans)
 
     }
   }
 
-  Yhat <- scale(XX %*% Bhat,
+  Yhat <- scale(XX_cent %*% Bhat,
                 scale = F,
                 center = -atlas_re$reg_re$Ymeans)
 

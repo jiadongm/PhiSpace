@@ -6,40 +6,37 @@
 \usage{
 getErr(
   ncompGrid,
-  XX,
-  YY,
+  XXtrain,
+  YYtrain,
   XXtest,
   YYtest,
-  labPerSample = NULL,
+  center = TRUE,
+  scale = FALSE,
   selectedFeat = NULL,
   regMethod = "PLS",
-  assayName = "rank",
-  mode = "supervised",
-  normYY = F
+  assayName = "rank"
 )
 }
 \arguments{
 \item{ncompGrid}{Vector.}
 
-\item{XX}{Matrix.}
+\item{XXtrain}{Matrix.}
 
-\item{YY}{Matrix.}
+\item{YYtrain}{Matrix.}
 
 \item{XXtest}{Matrix.}
 
 \item{YYtest}{Matrix.}
 
-\item{labPerSample}{Integer.}
+\item{center}{Logic.}
+
+\item{scale}{Logic.}
 
 \item{selectedFeat}{Vector.}
 
 \item{regMethod}{Character.}
 
 \item{assayName}{Character.}
-
-\item{mode}{Character.}
-
-\item{normYY}{Logic.}
 }
 \value{
 A list

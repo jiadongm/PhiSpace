@@ -7,7 +7,13 @@
 getPC(X, ncomp, center = TRUE, scale = FALSE)
 }
 \arguments{
-\item{scale}{}
+\item{X}{Matrix.}
+
+\item{ncomp}{Integer.}
+
+\item{center}{Logic.}
+
+\item{scale}{Logic.}
 }
 \value{
 A list containing

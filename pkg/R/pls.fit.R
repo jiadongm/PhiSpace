@@ -5,7 +5,6 @@
 #' @param X Matrix. Scaled predictor matrix
 #' @param Y Matrix. Scaled response matrix
 #' @param ncomp Integer.
-#' @param center Logic.
 #'
 #' @return A list containing
 #' \item{coefficients}{Regression coefficient matrices.}
@@ -14,7 +13,8 @@ pls.fit <-
   {
     X <- as.matrix(X)
     Y <- as.matrix(Y)
-    dimnames(X) <- dimnames(Y) <- NULL
+    dnX <- dimnames(X)
+    dnY <- dimnames(Y)
     nobj <- dim(X)[1]
     npred <- dim(X)[2]
     nresp <- dim(Y)[2]
@@ -53,8 +53,20 @@ pls.fit <-
       R[, a] <- r.a
       P[, a] <- p.a
       tQ[a, ] <- q.a
+
       B[, , a] <- R[, 1:a, drop = FALSE] %*% tQ[1:a, , drop = FALSE]
+
     }
+
+    objnames <- dnX[[1]]
+    if (is.null(objnames)) objnames <- dnY[[1]]
+    prednames <- dnX[[2]]
+    respnames <- dnY[[2]]
+    compnames <- paste0("comp", 1:ncomp)
+    nCompnames <- paste(1:ncomp, "comps")
+    dimnames(B) <- list(prednames, respnames, nCompnames)
+
+
 
     return(
       list(coefficients = B)

@@ -1,117 +1,82 @@
 #' Compute different errors for cross-validation.
 #'
 #' @param ncompGrid Vector.
-#' @param XX Matrix.
-#' @param YY Matrix.
+#' @param XXtrain Matrix.
+#' @param YYtrain Matrix.
 #' @param XXtest Matrix.
 #' @param YYtest Matrix.
-#' @param labPerSample Integer.
 #' @param selectedFeat Vector.
 #' @param regMethod Character.
 #' @param assayName Character.
-#' @param mode Character.
-#' @param normYY Logic.
+#' @param center Logic.
+#' @param scale Logic.
 #'
 #' @return A list
 getErr <- function(ncompGrid,
-                   XX, YY, XXtest, YYtest,
-                   labPerSample = NULL,
+                   XXtrain, YYtrain, XXtest, YYtest,
+                   center = TRUE,
+                   scale = FALSE,
                    selectedFeat = NULL,
                    regMethod = 'PLS',
-                   assayName = 'rank',
-                   mode = "supervised",
-                   normYY = F)
+                   assayName = 'rank')
 {
 
-  ## Rank transform again after feature selection
-  if(!is.null(selectedFeat)){
-    selectedFeat <- selectedFeat
-  } else {
-    selectedFeat <- colnames(XX)
-  }
+  if(is.null(selectedFeat)) selectedFeat <- colnames(XXtrain)
+
 
   if(assayName == 'rank'){
-    XX_RT <- RTassay(XX[, selectedFeat])
+    XX_RT <- RTassay(XXtrain[, selectedFeat])
     XXtest_RT <- RTassay(XXtest[, selectedFeat])
   } else {
-    XX_RT <- XX[, selectedFeat]
+    XX_RT <- XXtrain[, selectedFeat]
     XXtest_RT <- XXtest[, selectedFeat]
   }
 
-  Nselect <- ncol(XX_RT)
+  nfeat <- ncol(XX_RT)
+
+  XX_RT_cent <- scale(XX_RT, center = center, scale = scale)
 
   ## Regression using largest ncomp in grid (for selection)
   ncomp <- max(ncompGrid)
-  precond_re2 <- mvr(XX_RT, YY,
-                     ncomp = min(ncomp, Nselect),
-                     method = regMethod)
-  BhatAll2 <- precond_re2$coefficients
+  BhatAll <- mvr(XX_RT_cent, YYtrain,
+                 ncomp = min(ncomp, nfeat),
+                 method = regMethod,
+                 center = FALSE, scale = FALSE)$coefficients
 
   ## Calculate errors
-  if(ncomp <= Nselect){
+  if(ncomp <= nfeat){
     ncompV <- ncompGrid
   } else {
-    ncompV <- seq(1, Nselect, length.out = length(ncompGrid))
+    ncompV <- seq(1, nfeat, length.out = length(ncompGrid))
   }
   YYtest <- as.matrix(YYtest)
 
 
-  if(normYY){
-    classOrigin <- getClass(normPhiScores(YYtest), labPerSample = labPerSample)
-  } else {
-    classOrigin <- getClass(YYtest, labPerSample = labPerSample)
-  }
 
-  if(mode == "supervised"){
-    out <-
-      sapply(ncompV,
-             function(ncomp){
-               Bhat2 <- BhatAll2[,,ncomp]
-               XXtestCent <- scale(XXtest_RT,
-                                   scale = F,
-                                   center = colMeans(XX_RT))
-               Yhat <- scale(XXtestCent %*% Bhat2,
-                             scale = F,
-                             center = -colMeans(as.matrix(YY)))
+  out <-
+    sapply(ncompV,
+           function(ncomp){
 
-               classQuery <- getClass(Yhat, labPerSample)
-               classQueryNorm <- getClass(normPhiScores(Yhat), labPerSample)
+             Bhat <- BhatAll[,,ncomp]
 
-
-               Ers <- c(norm(abs(YYtest-Yhat), type = 'F')/norm(abs(YYtest), type = 'F'),
-                        norm(abs(YYtest-Yhat), type = 'I'),
-                        classErr(classQueryNorm, classOrigin, labPerSample)$err,
-                        classErr(classQuery, classOrigin, labPerSample)$err
-               )
-               names(Ers) <- c("Frob ratio",
-                               "inf norm",
-                               'overall_norm', 'balanced_norm',
-                               'overall', 'balanced')
-
-               return(Ers)
+             if(scale){
+               scal <- attr(XX_RT_cent, "scaled:scale")
+             } else {
+               scal <- FALSE
              }
-      )
-  } else {
-    out <-
-      sapply(ncompV,
-             function(ncomp){
-               Bhat2 <- BhatAll2[,,ncomp]
-               XXtestCent <- scale(XXtest_RT,
-                                   scale = F,
-                                   center = colMeans(XX_RT))
-               Yhat <- scale(XXtestCent %*% Bhat2,
-                             scale = F,
-                             center = -colMeans(YY))
 
-               Ers <- c(norm(abs(YYtest-Yhat), type = 'F')/norm(abs(YYtest), type = 'F'),
-                        norm(abs(YYtest-Yhat), type = 'I'))
-               names(Ers) <- c("Frob ratio",
-                               "inf norm")
+             XXtestCent <- scale(XXtest_RT,
+                                 scale = scal,
+                                 center = attr(XX_RT_cent, "scaled:center") )
+             Yhat <- scale(XXtestCent %*% Bhat,
+                           scale = F,
+                           center = -colMeans(YYtrain))
 
-               return(Ers)
-             }
-      )
-  }
+             Ers <- norm(abs(YYtest-Yhat), type = 'F')/norm(abs(YYtest), type = 'F')
+
+             return(Ers)
+           }
+    )
 
 
   return(out)

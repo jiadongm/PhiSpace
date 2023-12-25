@@ -16,6 +16,8 @@ classErr(classQuery, classOriginal, labPerSample = NULL)
 \item{labPerSample}{Integer.}
 }
 \value{
+A list.
+
 A list containing:
 \item{err}{}
 \item{byClassErrs}{}

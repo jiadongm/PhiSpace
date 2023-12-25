@@ -20,7 +20,7 @@
 mvr <- function(X, Y, ncomp, method = c("PCA", "PLS"), center = T, scale = F){
 
 
-  Y <- scale(Y, center = center, scale = FALSE)
+  Y <- scale(Y, center = TRUE, scale = FALSE)
   X <- scale(X, center = center, scale = scale)
 
   fitFunc <- switch(method,

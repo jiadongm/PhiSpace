@@ -8,8 +8,7 @@ phenotype(
   phenoAssay,
   atlas_re,
   assayName = "rank",
-  scaleMethod = c("byQuery", "byRef"),
-  scale = FALSE
+  scaleMethod = c("byQuery", "byRef")
 )
 }
 \arguments{
@@ -20,8 +19,6 @@ phenotype(
 \item{assayName}{Character.}
 
 \item{scaleMethod}{Character.}
-
-\item{scale}{Logic.}
 }
 \value{
 A list containing

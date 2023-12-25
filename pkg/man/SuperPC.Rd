@@ -11,6 +11,7 @@ SuperPC(
   selectedFeat = NULL,
   assayName = "logcounts",
   regMethod = c("PCA", "PLS"),
+  center = TRUE,
   scale = FALSE
 )
 }
@@ -26,6 +27,8 @@ SuperPC(
 \item{assayName}{Which assay in reference to use for prediction}
 
 \item{regMethod}{Character. Regression method to use, either PCA or PLS.}
+
+\item{center}{Logic.}
 
 \item{scale}{Logic. Scale the predictor matrix or not}
 }

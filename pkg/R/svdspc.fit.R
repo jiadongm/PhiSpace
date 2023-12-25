@@ -12,6 +12,8 @@ svdspc.fit <-
   function (X, Y, ncomp) {
     X <- as.matrix(X)
     Y <- as.matrix(Y)
+    dnX <- dimnames(X)
+    dnY <- dimnames(Y)
     nobj <- dim(X)[1]
     npred <- dim(X)[2]
     nresp <- dim(Y)[2]
@@ -25,6 +27,16 @@ svdspc.fit <-
     for (a in 1:ncomp) {
       B[, , a] <- P[, 1:a, drop = FALSE] %*% tQ[1:a, ]
     }
+
+    # Dimnames
+    objnames <- dnX[[1]]
+    if (is.null(objnames)) objnames <- dnY[[1]]
+    prednames <- dnX[[2]]
+    respnames <- dnY[[2]]
+    compnames <- paste0("comp", 1:ncomp)
+    nCompnames <- paste(1:ncomp, "comps")
+    dimnames(B) <- list(prednames, respnames, nCompnames)
+
 
     return(
       list(coefficients = B)

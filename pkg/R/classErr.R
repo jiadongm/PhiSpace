@@ -4,7 +4,7 @@
 #' @param classOriginal Vector.
 #' @param labPerSample Integer.
 #'
-#' @return
+#' @return A list.
 classErr <- function(classQuery, classOriginal, labPerSample = NULL){
 
   if(is.null(labPerSample)) labPerSample <- 1

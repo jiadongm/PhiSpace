@@ -12,8 +12,6 @@ pls.fit(X, Y, ncomp)
 \item{Y}{Matrix. Scaled response matrix}
 
 \item{ncomp}{Integer.}
-
-\item{center}{Logic.}
 }
 \value{
 A list containing

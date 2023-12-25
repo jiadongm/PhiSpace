@@ -1,9 +1,9 @@
 #' Principal component analysis (PCA) based on partial singular value decomposition (SVD).
 #'
-#' @param X
-#' @param ncomp
-#' @param center
-#' @param scale
+#' @param X Matrix.
+#' @param ncomp Integer.
+#' @param center Logic.
+#' @param scale Logic.
 #'
 #' @return A list containing
 #' \item{scores}{Score matrix for X.}
@@ -18,9 +18,12 @@
 #'
 #' @export
 getPC <- function(X, ncomp, center = TRUE, scale = FALSE){
-  Xmeans <- colMeans(X)
 
   X <- scale(X, center = Xmeans, scale = scale)
+
+  Xmeans <- attr(X, "scaled:center")
+  Xscals <- attr(X, "scaled:scale")
+
   huhn <- suppressWarnings(rARPACK::svds(X, k = ncomp))
   D <- huhn$d[1:ncomp]
   TT <- huhn$u[, 1:ncomp, drop = FALSE] %*% diag(D, nrow = ncomp)
@@ -42,6 +45,7 @@ getPC <- function(X, ncomp, center = TRUE, scale = FALSE){
 
   # Store results in reg_re, mimicking supervised mode; see SuperPC.R
   reg_re <- list(Xmeans = Xmeans,
+                 Xscals = Xscals,
                  Ymeans = rep(0, ncol(P)),
                  coefficients = coefficients,
                  loadings = P
@@ -55,5 +59,7 @@ getPC <- function(X, ncomp, center = TRUE, scale = FALSE){
               accuProps = accuProps,
               ncomp = ncomp,
               selectFeat = colnames(X),
-              reg_re = reg_re))
+              reg_re = reg_re,
+              center = center,
+              scale = scale))
 }

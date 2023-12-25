@@ -114,6 +114,7 @@
 ~%2FPhiSpace%2Fpkg%2FR%2Fmvr.R="6B738C02"
 ~%2FPhiSpace%2Fpkg%2FR%2FnormPhiScores.R="E118EDB2"
 ~%2FPhiSpace%2Fpkg%2FR%2Fphenotype.R="86AE323A"
+~%2FPhiSpace%2Fpkg%2FR%2FplotPhiSpaceHeatMap.R="F3D89695"
 ~%2FPhiSpace%2Fpkg%2FR%2FplotSankey.R="E689FCA2"
 ~%2FPhiSpace%2Fpkg%2FR%2FplotSankey3.R="BBA4FEFD"
 ~%2FPhiSpace%2Fpkg%2FR%2Fpls.fit.R="631CD026"
@@ -128,4 +129,5 @@
 ~%2FPhiSpace%2Fpkg%2FR%2FzeroFeatQC.R="4BE64B3D"
 ~%2FPhiSpaceR%2FCase1%2FCase1_Rosa.R="D3378BFA"
 ~%2FPhiSpaceR%2FMATLAB_colScale.R="B0341B1F"
+~%2FPhiSpaceR%2Ffunctions%2FfastPLS.R="6DE29F28"
 ~%2FPhiSpaceR%2Fpackage%2Fbuild_pkg.R="254B6308"

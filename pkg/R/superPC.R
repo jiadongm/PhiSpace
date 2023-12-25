@@ -7,6 +7,7 @@
 #' @param assayName Which assay in reference to use for prediction
 #' @param scale Logic. Scale the predictor matrix or not
 #' @param regMethod Character. Regression method to use, either PCA or PLS.
+#' @param center Logic.
 #'
 #' @return A list containing regression input and output.
 SuperPC <- function(reference,
@@ -15,6 +16,7 @@ SuperPC <- function(reference,
                     selectedFeat = NULL,
                     assayName = 'logcounts',
                     regMethod = c("PCA", "PLS"),
+                    center = TRUE,
                     scale = FALSE)
 {
   regMethod <- match.arg(regMethod)
@@ -33,6 +35,7 @@ SuperPC <- function(reference,
   reg_re <- mvr(XX, YY,
                 ncomp = ncomp,
                 method = regMethod,
+                center = center,
                 scale = scale)
 
 
@@ -42,6 +45,7 @@ SuperPC <- function(reference,
     assayName = assayName,
     regMethod = regMethod,
     reg_re = reg_re,
+    center = center,
     scale = scale
   ))
 }
