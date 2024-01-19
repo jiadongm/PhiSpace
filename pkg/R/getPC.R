@@ -19,7 +19,7 @@
 #' @export
 getPC <- function(X, ncomp, center = TRUE, scale = FALSE){
 
-  X <- scale(X, center = Xmeans, scale = scale)
+  X <- scale(X, center = center, scale = scale)
 
   Xmeans <- attr(X, "scaled:center")
   Xscals <- attr(X, "scaled:scale")
