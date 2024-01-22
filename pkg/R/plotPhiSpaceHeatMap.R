@@ -38,7 +38,7 @@ plotPhiSpaceHeatMap <- function(PhiSpaceScore,
 
   if(is.null(refLvls)) refLvls <- phenoDict$labs
 
-  plot_dat0 <- PhiSpaceScore_norm[,refLvls]
+  plot_dat0 <- PhiSpaceScore[,refLvls]
 
   if(!is.null(queryLabs)){
     if(is.null(queryLvls)){
