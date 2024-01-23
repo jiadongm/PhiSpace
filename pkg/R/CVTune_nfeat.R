@@ -68,8 +68,10 @@ CVTune_nfeat <- function(reference,
   ## Prepare nfeatV
   if(is.null(nfeatV)){
 
-    nfeatMax <- max(nfeatLimits)
     nfeatMin <- min(nfeatLimits)
+    if(nfeatMin > ncol(XX)) stop("nfeat has to be smaller than the total number of features.")
+    nfeatMax <- min(max(nfeatLimits), ncol(XX))
+
 
     # If min nfeat results in too few features, fewer than ncomp
     actualnfeatMin <- length(
