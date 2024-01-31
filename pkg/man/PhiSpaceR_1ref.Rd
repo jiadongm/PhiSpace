@@ -7,7 +7,8 @@
 PhiSpaceR_1ref(
   reference,
   query,
-  phenotypes,
+  phenotypes = NULL,
+  response = NULL,
   PhiSpaceAssay = "rank",
   regMethod = c("PLS", "PCA"),
   ncomp = NULL,
@@ -18,13 +19,15 @@ PhiSpaceR_1ref(
 )
 }
 \arguments{
-\item{reference}{SingleCellExperiment object. The reference}
+\item{reference}{SingleCellExperiment object. The reference.}
 
-\item{query}{SingleCellExperiment object. The query}
+\item{query}{SingleCellExperiment object. The query.}
 
-\item{phenotypes}{Charater. Which types of phenotypes to predict}
+\item{phenotypes}{Charater. Which types of phenotypes to predict. If \code{NULL}, then have to specify \code{response}.}
 
-\item{PhiSpaceAssay}{Character. Which assay to use as predictors}
+\item{response}{Named matrix. Rows correpond to cells (columns) in reference; columns correspond to phenotypes. If not \code{NULL}, then will override \code{phenotypes}.}
+
+\item{PhiSpaceAssay}{Character. Which assay to use to train}
 
 \item{regMethod}{Character. Regression method: one of PLS and PCA}
 

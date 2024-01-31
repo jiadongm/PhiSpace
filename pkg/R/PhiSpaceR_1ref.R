@@ -1,9 +1,10 @@
 #' PhiSpace using a single reference
 #'
-#' @param reference SingleCellExperiment object. The reference
-#' @param query SingleCellExperiment object. The query
-#' @param phenotypes Charater. Which types of phenotypes to predict
-#' @param PhiSpaceAssay Character. Which assay to use as predictors
+#' @param reference SingleCellExperiment object. The reference.
+#' @param query SingleCellExperiment object. The query.
+#' @param phenotypes Charater. Which types of phenotypes to predict. If `NULL`, then have to specify `response`.
+#' @param response Named matrix. Rows correpond to cells (columns) in reference; columns correspond to phenotypes. If not `NULL`, then will override `phenotypes`.
+#' @param PhiSpaceAssay Character. Which assay to use to train
 #' @param regMethod Character. Regression method: one of PLS and PCA
 #' @param ncomp Integer.
 #' @param nfeat Integer.
@@ -16,7 +17,8 @@
 #' @export
 PhiSpaceR_1ref <- function(reference,
                            query,
-                           phenotypes,
+                           phenotypes = NULL,
+                           response = NULL,
                            PhiSpaceAssay = "rank",
                            regMethod = c("PLS", "PCA"),
                            ncomp = NULL,
@@ -26,19 +28,32 @@ PhiSpaceR_1ref <- function(reference,
                            scale = FALSE
 ){
 
+  if(!(PhiSpaceAssay %in% assayNames(reference))) stop("PhiSpaceAssay is not present in reference.")
+  if(!(PhiSpaceAssay %in% assayNames(query))) stop("PhiSpaceAssay is not present in query.")
+
   regMethod <- match.arg(regMethod)
 
   ## Build Y matrix
-  YY <- codeY(reference, phenotypes)
-  phenoDict <-
-    data.frame(
-      labs = colnames(YY),
-      phenotypeCategory =
-        rep(phenotypes,
-            apply(as.data.frame(colData(reference)[,phenotypes]), 2,
-                  function(x) length(unique(x)))
-        )
-    )
+  if(!is.null(response)){
+
+    YY <- response
+    phenoDict <- NULL
+
+  } else {
+
+    if(is.null(phenotypes)) stop("phenotypes and response cannot both be NULL.")
+
+    YY <- codeY(reference, phenotypes)
+    phenoDict <-
+      data.frame(
+        labs = colnames(YY),
+        phenotypeCategory =
+          rep(phenotypes,
+              apply(as.data.frame(colData(reference)[,phenotypes]), 2,
+                    function(x) length(unique(x)))
+          )
+      )
+  }
 
   ## Common genes and rank transform
   c(reference, query) %<-% KeepCommonGenes(reference, query)
