@@ -19,9 +19,9 @@ PhiSpaceR_1ref(
 )
 }
 \arguments{
-\item{reference}{SingleCellExperiment object. The reference.}
+\item{reference}{SCE. The reference.}
 
-\item{query}{SingleCellExperiment object. The query.}
+\item{query}{SCE or a list of SCE. The query.}
 
 \item{phenotypes}{Charater. Which types of phenotypes to predict. If \code{NULL}, then have to specify \code{response}.}
 
