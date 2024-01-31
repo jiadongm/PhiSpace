@@ -10,14 +10,16 @@
 #' @param center Logic.
 #'
 #' @return A list containing regression input and output.
-SuperPC <- function(reference,
-                    YY,
-                    ncomp,
-                    selectedFeat = NULL,
-                    assayName = 'logcounts',
-                    regMethod = c("PCA", "PLS"),
-                    center = TRUE,
-                    scale = FALSE)
+SuperPC <- function(
+    reference,
+    YY,
+    ncomp,
+    selectedFeat = NULL,
+    assayName = 'logcounts',
+    regMethod = c("PCA", "PLS"),
+    center = TRUE,
+    scale = FALSE
+  )
 {
   regMethod <- match.arg(regMethod)
 

@@ -32,21 +32,22 @@ PhiSpaceR_1ref <- function(reference,
 
   if(!(PhiSpaceAssay %in% assayNames(reference))) stop("PhiSpaceAssay is not present in reference.")
 
+  # Intersection of names of assays in all queries
   allAssayNames <- lapply(query, assayNames)
   allAssayNames <- Reduce(intersect, allAssayNames)
-
   if(!(PhiSpaceAssay %in% allAssayNames)) stop("PhiSpaceAssay needs to be present in every query.")
 
   regMethod <- match.arg(regMethod)
 
   ## Build Y matrix
-  if(!is.null(response)){
+  if(!is.null(response)){ # If response is provided
 
     YY <- response
     phenoDict <- NULL
 
   } else {
 
+    # Phenotypes has to be specified
     if(is.null(phenotypes)) stop("phenotypes and response cannot both be NULL.")
 
     YY <- codeY(reference, phenotypes)
@@ -64,6 +65,7 @@ PhiSpaceR_1ref <- function(reference,
   ## Common genes and rank transform
   featNames <- lapply(query, rownames)
   featNames <- Reduce(intersect, featNames)
+  featNames <- intersect(rownames(reference), featNames)
   reference <- reference[featNames,]
   query <- lapply(query, function(x) x[featNames, ])
 
@@ -101,17 +103,21 @@ PhiSpaceR_1ref <- function(reference,
   }
 
 
-  atlas_re <- SuperPC(reference = reference,
-                      YY = YY,
-                      ncomp = ncomp,
-                      selectedFeat = selectedFeat,
-                      assayName = PhiSpaceAssay,
-                      regMethod = regMethod,
-                      center = center,
-                      scale = scale)
-  YrefHat <- phenotype(phenoAssay = t(assay(reference, PhiSpaceAssay)),
-                       atlas_re = atlas_re,
-                       assayName = PhiSpaceAssay)
+  atlas_re <- SuperPC(
+    reference = reference,
+    YY = YY,
+    ncomp = ncomp,
+    selectedFeat = selectedFeat,
+    assayName = PhiSpaceAssay,
+    regMethod = regMethod,
+    center = center,
+    scale = scale
+  )
+  YrefHat <- phenotype(
+    phenoAssay = t(assay(reference, PhiSpaceAssay)),
+    atlas_re = atlas_re,
+    assayName = PhiSpaceAssay
+  )
   ## Project query
   PhiSpaceScore_l <- lapply(
     query,
@@ -135,7 +141,8 @@ PhiSpaceR_1ref <- function(reference,
       YrefHat = YrefHat,
       PhiSpaceScore = PhiSpaceScore_l,
       center = center,
-      scale = scale
+      scale = scale,
+      atlas_re = atlas_re
     )
   )
 }
