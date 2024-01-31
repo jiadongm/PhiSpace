@@ -1,7 +1,7 @@
 #' PhiSpace using a single reference
 #'
-#' @param reference SingleCellExperiment object. The reference.
-#' @param query SingleCellExperiment object. The query.
+#' @param reference SCE. The reference.
+#' @param query SCE or a list of SCE. The query.
 #' @param phenotypes Charater. Which types of phenotypes to predict. If `NULL`, then have to specify `response`.
 #' @param response Named matrix. Rows correpond to cells (columns) in reference; columns correspond to phenotypes. If not `NULL`, then will override `phenotypes`.
 #' @param PhiSpaceAssay Character. Which assay to use to train
@@ -28,8 +28,14 @@ PhiSpaceR_1ref <- function(reference,
                            scale = FALSE
 ){
 
+  if(class(query) != "list") query <- list(query)
+
   if(!(PhiSpaceAssay %in% assayNames(reference))) stop("PhiSpaceAssay is not present in reference.")
-  if(!(PhiSpaceAssay %in% assayNames(query))) stop("PhiSpaceAssay is not present in query.")
+
+  allAssayNames <- lapply(query, assayNames)
+  allAssayNames <- Reduce(intersect, allAssayNames)
+
+  if(!(PhiSpaceAssay %in% allAssayNames)) stop("PhiSpaceAssay needs to be present in every query.")
 
   regMethod <- match.arg(regMethod)
 
@@ -56,10 +62,14 @@ PhiSpaceR_1ref <- function(reference,
   }
 
   ## Common genes and rank transform
-  c(reference, query) %<-% KeepCommonGenes(reference, query)
+  featNames <- lapply(query, rownames)
+  featNames <- Reduce(intersect, featNames)
+  reference <- reference[featNames,]
+  query <- lapply(query, function(x) x[featNames, ])
+
   if(PhiSpaceAssay == "rank"){
     reference <- RankTransf(reference, PhiSpaceAssay)
-    query <- RankTransf(query, PhiSpaceAssay)
+    query <- lapply(query, RankTransf, assayname = PhiSpaceAssay)
   }
 
   ## Build atlas
@@ -91,7 +101,6 @@ PhiSpaceR_1ref <- function(reference,
   }
 
 
-
   atlas_re <- SuperPC(reference = reference,
                       YY = YY,
                       ncomp = ncomp,
@@ -104,9 +113,17 @@ PhiSpaceR_1ref <- function(reference,
                        atlas_re = atlas_re,
                        assayName = PhiSpaceAssay)
   ## Project query
-  PhiSpaceScore <- phenotype(phenoAssay = t(assay(query, PhiSpaceAssay)),
-                             atlas_re = atlas_re,
-                             assayName = PhiSpaceAssay)
+  PhiSpaceScore_l <- lapply(
+    query,
+    function(x){
+      phenotype(
+        phenoAssay = t(assay(x, PhiSpaceAssay)),
+        atlas_re = atlas_re,
+        assayName = PhiSpaceAssay
+      )
+    }
+  )
+  if(length(PhiSpaceScore_l) == 1) PhiSpaceScore_l <- PhiSpaceScore_l[[1]]
 
 
   return(
@@ -116,7 +133,7 @@ PhiSpaceR_1ref <- function(reference,
       phenoDict = phenoDict,
       selectedFeat = selectedFeat,
       YrefHat = YrefHat,
-      PhiSpaceScore = PhiSpaceScore,
+      PhiSpaceScore = PhiSpaceScore_l,
       center = center,
       scale = scale
     )
