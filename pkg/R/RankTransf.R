@@ -10,9 +10,9 @@
 #' @export
 RankTransf <- function(sce, assayname = 'counts', targetAssay = 'rank', sparse = TRUE){
 
-  temp <- Matrix::t(assay(sce, assayname))
+  temp <- assay(sce, assayname)
   # RTassay takes cell by gene matrix as input
-  temp <- Matrix::t(RTassay(temp))
+  temp <- RTassay(temp)
 
   if(sparse){
     temp <- as.sparse.matrix(temp)

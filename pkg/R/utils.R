@@ -1,13 +1,13 @@
 #' Apply rank transform to a gene by cell matrix.
 #'
-#' @param X A cell by gene matrix.
+#' @param X A gene by cell matrix.
 #'
 #' @return Rank transformed cell by gene matrix.
 #'
 RTassay <- function(X){
-  X <- methods::as(X, "dMatrix")
-  temp <- t(apply(X, 1, rank, ties.method = "min") - 1)
-  temp <- temp/(ncol(X) - 1)
+
+  temp <- apply(X, 2, rank, ties.method = "min") - 1
+  temp <- temp/(nrow(temp) - 1)
   return(temp)
 }
 
