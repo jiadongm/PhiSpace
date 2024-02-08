@@ -7,7 +7,7 @@
 RTassay(X)
 }
 \arguments{
-\item{X}{A cell by gene matrix.}
+\item{X}{A gene by cell matrix.}
 }
 \value{
 Rank transformed cell by gene matrix.
