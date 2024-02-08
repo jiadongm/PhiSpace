@@ -26,6 +26,7 @@ Imports:
     scran,
     scuttle,
     tidyr,
+    umap,
     zeallot
 Suggests: 
     testthat (>= 3.0.0)

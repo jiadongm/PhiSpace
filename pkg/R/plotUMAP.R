@@ -14,8 +14,7 @@ computUMAP <- function(
     computPC = TRUE,
     ncomp = 30,
     center = TRUE,
-    scale = FALSE,
-    labs =
+    scale = FALSE
 ){
 
   if(computPC){
