@@ -18,19 +18,16 @@ computUMAP <- function(
 
   if(computPC){
 
-    plot_dat <- getPC(
+    dat <- getPC(
       dat,
       ncomp = ncomp,
       center = center,
       scale = scale
     )$scores
-  } else {
-
-    plot_dat <- dat
   }
 
   umap::umap(
-    query_pc$scores
+    dat
   )$layout %>%
     reNameCols()
 }
