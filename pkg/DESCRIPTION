@@ -24,6 +24,7 @@ Imports:
     rARPACK,
     stats,
     scran,
+    scuttle,
     tidyr,
     zeallot
 Suggests: 

@@ -19,7 +19,7 @@ scranTransf <- function(
     smallestPositive <- sce$sizeFactor[which(sort(sce$sizeFactor) > 0)[1]]
     sce$sizeFactor[sce$sizeFactor <= 0] <- smallestPositive
   }
-  sce <- logNormCounts(sce, assay.type = assayName)
+  sce <- scuttle::logNormCounts(sce, assay.type = assayName)
 
   return(sce)
 }
