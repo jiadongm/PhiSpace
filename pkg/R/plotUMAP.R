@@ -5,7 +5,6 @@
 #' @param ncomp Number of PC components
 #' @param center Center or not.
 #' @param scale Scale or not.
-#' @param labs Labels.
 #'
 #' @return UMAP coordinates.
 #' @export

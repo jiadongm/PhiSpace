@@ -16,8 +16,6 @@ computUMAP(dat, computPC = TRUE, ncomp = 30, center = TRUE, scale = FALSE)
 \item{center}{Center or not.}
 
 \item{scale}{Scale or not.}
-
-\item{labs}{Labels.}
 }
 \value{
 UMAP coordinates.
