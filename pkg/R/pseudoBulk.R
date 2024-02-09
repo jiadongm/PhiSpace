@@ -103,7 +103,10 @@ pseudoBulk <- function(
   # Output
   SingleCellExperiment(
     list(data = XXagg),
-    colData = YYagg
+    reducedDims = list(
+      resposne = YYagg
+    )
   )
+
 
 }
