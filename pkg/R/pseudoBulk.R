@@ -38,6 +38,8 @@ pseudoBulk <- function(
     YY <- response
   }
 
+  if(is.null(clusterid)) stop("Need to specify clusterid.")
+
   ## Resampling indices
   nGenes <- nrow(sce)
   nCells <- ncol(sce)
