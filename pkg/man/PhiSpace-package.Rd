@@ -6,7 +6,7 @@
 \alias{PhiSpace-package}
 \title{PhiSpace: Phenotype space analysis of single-cell multiomics and spatial transcriptomics data}
 \description{
-What the package does (one paragraph).
+Continous phenotyping of single-cell multiomics data using partial least squares regression.
 }
 \author{
 \strong{Maintainer}: Jiadong Mao \email{chiatungmao@gmail.com} (\href{https://orcid.org/0000-0002-3818-1981}{ORCID})

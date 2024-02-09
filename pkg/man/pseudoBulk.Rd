@@ -5,32 +5,38 @@
 \title{Converting single cells to pseudo-bulks.}
 \usage{
 pseudoBulk(
-  query,
-  clusterid,
-  assay = "counts",
-  size.factor = 1,
-  pool.factor = 1,
+  sce,
+  phenotypes = NULL,
+  response = NULL,
+  clusterid = NULL,
+  assayName = "counts",
+  resampSizes = 100,
+  proportion = NULL,
   nPool = 15,
-  YY = NULL
+  seed = 904800
 )
 }
 \arguments{
-\item{query}{\code{SingleCellExpeirment} object.}
+\item{sce}{\code{SingleCellExpeirment} object.}
 
-\item{clusterid}{Character.}
+\item{phenotypes}{Phenotypes to predict. Can be multiple.}
 
-\item{assay}{Character.}
+\item{response}{Response matrix. Can be continuous.}
 
-\item{size.factor}{Numeric.}
+\item{clusterid}{Column name of colData for specifying groups for pseudobulking.}
 
-\item{pool.factor}{Numeric.}
+\item{assayName}{Assay used for pseudobulking.}
 
-\item{nPool}{Integer.}
+\item{resampSizes}{How many pseudo-bulk resamples to generate from each cluster.}
 
-\item{YY}{Matrix.}
+\item{proportion}{Used to determine unequal resampSizes.}
+
+\item{nPool}{How many cells to use for pseudobulking.}
+
+\item{seed}{Random seeds}
 }
 \value{
-An updated \code{SingleCellExpeirment} object with a pseudobulk assay
+An updated \code{SingleCellExpeirment} object with a pseudobulk assay.
 }
 \description{
 Converting single cells to pseudo-bulks.
