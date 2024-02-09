@@ -4,6 +4,7 @@
 #' @param ncomp Integer.
 #' @param center Logic.
 #' @param scale Logic.
+#' @param sparse Use sparse matrix or not.
 #'
 #' @return A list containing
 #' \item{scores}{Score matrix for X.}
@@ -26,7 +27,7 @@ getPC <- function(X, ncomp, center = TRUE, scale = FALSE, sparse = FALSE){
   }
 
   if(scale){
-    Xscals <- apply(X, 2, sd)
+    Xscals <- apply(X, 2, stats::sd)
   } else {
     Xscals <- FALSE
   }
@@ -41,11 +42,11 @@ getPC <- function(X, ncomp, center = TRUE, scale = FALSE, sparse = FALSE){
   huhn <- suppressWarnings(rARPACK::svds(X, k = ncomp))
   D <- huhn$d
   huhn$u[huhn$u < 1e-10] <- 0
+  huhn$v[huhn$v < 1e-10] <- 0
   scores <- Matrix(
     huhn$u %*% diag(D, nrow = ncomp),
     sparse = sparse
   )
-  huhn$v[huhn$v < 1e-10] <- 0
   loadings <- Matrix(
     huhn$v,
     sparse = sparse

@@ -4,7 +4,7 @@
 \alias{mvr}
 \title{Multivariate regression via principal component analysis (PCA) or partial least squares (PLS).}
 \usage{
-mvr(X, Y, ncomp, method = c("PCA", "PLS"), center = T, scale = F)
+mvr(X, Y, ncomp, method = c("PCA", "PLS"), center = TRUE, scale = FALSE)
 }
 \arguments{
 \item{X}{Matrix.}

@@ -8,6 +8,7 @@
 #' @param scale Logic. Scale the predictor matrix or not
 #' @param regMethod Character. Regression method to use, either PCA or PLS.
 #' @param center Logic.
+#' @param sparse Use sparse matrices or not.
 #'
 #' @return A list containing regression input and output.
 SuperPC <- function(
@@ -18,12 +19,16 @@ SuperPC <- function(
     assayName = 'logcounts',
     regMethod = c("PCA", "PLS"),
     center = TRUE,
-    scale = FALSE
+    scale = FALSE,
+    sparse = TRUE
   )
 {
   regMethod <- match.arg(regMethod)
 
-  XX <- as.matrix(t(assay(reference, assayName)))
+  XX <- Matrix(
+    t(assay(reference, assayName)),
+    sparse = sparse
+  )
 
 
   ## Prepare predictor matrix
@@ -34,11 +39,14 @@ SuperPC <- function(
   }
 
 
-  reg_re <- mvr(XX, YY,
-                ncomp = ncomp,
-                method = regMethod,
-                center = center,
-                scale = scale)
+  reg_re <- mvr(
+    XX,
+    YY,
+    ncomp = ncomp,
+    method = regMethod,
+    center = center,
+    scale = scale
+  )
 
 
   return(list(

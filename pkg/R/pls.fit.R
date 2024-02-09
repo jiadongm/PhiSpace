@@ -11,13 +11,13 @@
 pls.fit <-
   function (X, Y, ncomp)
   {
-    X <- as.matrix(X)
-    Y <- as.matrix(Y)
+
     dnX <- dimnames(X)
     dnY <- dimnames(Y)
     nobj <- dim(X)[1]
     npred <- dim(X)[2]
     nresp <- dim(Y)[2]
+
     R <- P <- matrix(0, ncol = ncomp, nrow = npred)
     tQ <- matrix(0, ncol = nresp, nrow = ncomp)
     B <- array(0, c(npred, nresp, ncomp))

@@ -28,7 +28,7 @@ PhiSpaceR_1ref <- function(reference,
                            scale = FALSE
 ){
 
-  if(class(query) != "list") query <- list(query)
+  if(!inherits(query, "list")) query <- list(query)
 
   if(!(PhiSpaceAssay %in% assayNames(reference))) stop("PhiSpaceAssay is not present in reference.")
 
