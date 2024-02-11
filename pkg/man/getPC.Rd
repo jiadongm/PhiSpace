@@ -4,7 +4,7 @@
 \alias{getPC}
 \title{Principal component analysis (PCA) based on partial singular value decomposition (SVD).}
 \usage{
-getPC(X, ncomp, center = TRUE, scale = FALSE)
+getPC(X, ncomp, center = TRUE, scale = FALSE, sparse = FALSE)
 }
 \arguments{
 \item{X}{Matrix.}
@@ -14,6 +14,8 @@ getPC(X, ncomp, center = TRUE, scale = FALSE)
 \item{center}{Logic.}
 
 \item{scale}{Logic.}
+
+\item{sparse}{Use sparse matrix or not.}
 }
 \value{
 A list containing

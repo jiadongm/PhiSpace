@@ -48,9 +48,10 @@ plotSankey3 <- function(class1, class2, class3, add = TRUE, fontsize = 12){
 
   # Following code from https://r-graph-gallery.com/321-introduction-to-interactive-sankey-diagram-2.html
   sankeyLinks <- as.data.frame(incidMat) %>%
-    dplyr::mutate(source = rownames(.)) %>%
-    tidyr::pivot_longer(!source, names_to = "target", values_to = "value") %>%
-    dplyr::filter(value != 0)
+    dplyr::mutate(source = rownames(incidMat)) %>%
+    tidyr::pivot_longer(!source, names_to = "target", values_to = "value")
+  sankeyLinks <- sankeyLinks %>%
+    dplyr::filter(sankeyLinks$value != 0)
 
   sankeyNodes <- data.frame(
     name = c(as.character(sankeyLinks$source),

@@ -17,18 +17,38 @@
 #' \item{method}{}
 #'
 #' @export
-mvr <- function(X, Y, ncomp, method = c("PCA", "PLS"), center = T, scale = F){
+mvr <- function(
+    X,
+    Y,
+    ncomp,
+    method = c("PCA", "PLS"),
+    center = TRUE,
+    scale = FALSE
+  ){
+
+  if(!center) sparse <- TRUE
 
 
   Y <- scale(Y, center = TRUE, scale = FALSE)
-  X <- scale(X, center = center, scale = scale)
 
-  fitFunc <- switch(method,
-                    PCA = svdspc.fit,
-                    PLS = pls.fit
-  )
+  if(sparse){
 
-  out <- fitFunc(X, Y, ncomp)
+    X <- Matrix(X, sparse = sparse)
+
+  } else {
+
+    X <- scale(X, center = center, scale = scale)
+  }
+
+  if(method == "PCA"){
+
+    out <- svdspc.fit(X, Y, ncomp, sparse = sparse)
+  } else {
+
+    out <- pls.fit(X, Y, ncomp)
+  }
+
+
   out$ncomp <- ncomp
   out$method <- method
   out$center <- center

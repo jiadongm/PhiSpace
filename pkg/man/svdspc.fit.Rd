@@ -4,7 +4,7 @@
 \alias{svdspc.fit}
 \title{Principle component regression}
 \usage{
-svdspc.fit(X, Y, ncomp)
+svdspc.fit(X, Y, ncomp, sparse = FALSE)
 }
 \arguments{
 \item{X}{Matrix. Scaled predictor matrix}
@@ -12,6 +12,8 @@ svdspc.fit(X, Y, ncomp)
 \item{Y}{Matrix. Scaled response matrix}
 
 \item{ncomp}{Integer.}
+
+\item{sparse}{Use sparse matrix or not.}
 }
 \value{
 A list containing

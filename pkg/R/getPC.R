@@ -4,6 +4,7 @@
 #' @param ncomp Integer.
 #' @param center Logic.
 #' @param scale Logic.
+#' @param sparse Use sparse matrix or not.
 #'
 #' @return A list containing
 #' \item{scores}{Score matrix for X.}
@@ -17,49 +18,59 @@
 #' \item{reg_re}{}
 #'
 #' @export
-getPC <- function(X, ncomp, center = TRUE, scale = FALSE){
+getPC <- function(X, ncomp, center = TRUE, scale = FALSE, sparse = FALSE){
 
-  X <- scale(X, center = center, scale = scale)
+  if(center){
+    Xmeans <- colMeans(X)
+  } else {
+    Xmeans <- FALSE
+  }
 
-  Xmeans <- attr(X, "scaled:center")
-  Xscals <- attr(X, "scaled:scale")
+  if(scale){
+    Xscals <- apply(X, 2, stats::sd)
+  } else {
+    Xscals <- FALSE
+  }
+
+
+  X <- Matrix(
+    scale(X, center = Xmeans, scale = Xscals),
+    sparse = sparse
+  )
+
 
   huhn <- suppressWarnings(rARPACK::svds(X, k = ncomp))
-  D <- huhn$d[1:ncomp]
-  TT <- huhn$u[, 1:ncomp, drop = FALSE] %*% diag(D, nrow = ncomp)
-  P <- huhn$v[, 1:ncomp, drop = FALSE]
+  D <- huhn$d
+  huhn$u[huhn$u < 1e-10] <- 0
+  huhn$v[huhn$v < 1e-10] <- 0
+  scores <- Matrix(
+    huhn$u %*% diag(D, nrow = ncomp),
+    sparse = sparse
+  )
+  loadings <- Matrix(
+    huhn$v,
+    sparse = sparse
+  )
   sdev <- D/sqrt( nrow(X) - 1 )
   totVar <- sum(colSums(X^2)/(nrow(X)-1))
   props <- sdev^2/totVar
   accuProps <- cumsum(props)
 
-  scores <- TT
+
   rownames(scores) <- rownames(X)
   colnames(scores) <- paste0('comp', 1:ncol(scores))
-  loadings <- P
   rownames(loadings) <- colnames(X)
   colnames(loadings) <- paste0('comp', 1:ncol(scores))
 
-  coefficients <- array(NA, c(dim(P), ncomp))
-  coefficients[,,ncomp] <- P
-
-  # Store results in reg_re, mimicking supervised mode; see SuperPC.R
-  reg_re <- list(Xmeans = Xmeans,
-                 Xscals = Xscals,
-                 Ymeans = rep(0, ncol(P)),
-                 coefficients = coefficients,
-                 loadings = P
-  )
-
-  return(list(scores = scores,
-              loadings = loadings,
-              sdev = sdev,
-              totVar = totVar,
-              props = props,
-              accuProps = accuProps,
-              ncomp = ncomp,
-              selectFeat = colnames(X),
-              reg_re = reg_re,
-              center = center,
-              scale = scale))
+  return(list(
+    scores = scores,
+    loadings = loadings,
+    sdev = sdev,
+    totVar = totVar,
+    props = props,
+    accuProps = accuProps,
+    ncomp = ncomp,
+    Xmeans = Xmeans,
+    Xscals = Xscals
+  ))
 }

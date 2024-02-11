@@ -12,7 +12,8 @@ SuperPC(
   assayName = "logcounts",
   regMethod = c("PCA", "PLS"),
   center = TRUE,
-  scale = FALSE
+  scale = FALSE,
+  sparse = TRUE
 )
 }
 \arguments{
@@ -31,6 +32,8 @@ SuperPC(
 \item{center}{Logic.}
 
 \item{scale}{Logic. Scale the predictor matrix or not}
+
+\item{sparse}{Use sparse matrices or not.}
 }
 \value{
 A list containing regression input and output.

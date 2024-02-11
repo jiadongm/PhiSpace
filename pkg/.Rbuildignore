@@ -2,3 +2,5 @@
 ^\.Rproj\.user$
 ^LICENSE\.md$
 ^\.Rhistory$
+^\.DS_Store$
+^PhiSpace\.Rhistory$

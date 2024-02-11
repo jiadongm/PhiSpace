@@ -98,3 +98,34 @@ classErr <- function(classQuery, classOriginal, labPerSample = NULL){
 split2 <- function(x, n){
   split(x, cut(seq_along(x), n, labels = FALSE))
 }
+
+
+
+
+
+#' Turn a matrix to a data.frame withe newly defined colnames.
+#'
+#' @param mat Matrix.
+#' @param key String.
+#'
+#' @return Data frame.
+#' @export
+reNameCols <- function(
+  mat,
+  key = "comp"
+){
+
+  mat <- as.data.frame(mat)
+  colnames(mat) <- paste0(key, 1:ncol(mat))
+
+  return(mat)
+}
+
+
+
+
+
+
+
+
+
