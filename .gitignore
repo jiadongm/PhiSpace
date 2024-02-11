@@ -2,5 +2,5 @@
 .Rhistory
 .RData
 .Ruserdata
-**/.DS_Store
-**/.Rhistory
+pkg/*.DS_Store
+pkg/*.Rhistory
