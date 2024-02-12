@@ -26,6 +26,7 @@ mvr <- function(
     scale = FALSE
   ){
 
+  ## Work with sparse matrices only when ceter==FALSE
   if(!center){
     sparse <- TRUE
   } else {
