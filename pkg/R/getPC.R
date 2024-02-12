@@ -41,8 +41,10 @@ getPC <- function(X, ncomp, center = TRUE, scale = FALSE, sparse = FALSE){
 
   huhn <- suppressWarnings(rARPACK::svds(X, k = ncomp))
   D <- huhn$d
-  huhn$u[huhn$u < 1e-10] <- 0
-  huhn$v[huhn$v < 1e-10] <- 0
+  if(sparse){
+    huhn$u[huhn$u < 1e-15] <- 0
+    huhn$v[huhn$v < 1e-15] <- 0
+  }
   scores <- Matrix(
     huhn$u %*% diag(D, nrow = ncomp),
     sparse = sparse

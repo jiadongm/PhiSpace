@@ -22,8 +22,11 @@ svdspc.fit <-
     # This step may incur warnings if compute all singular values
     huhn <- suppressWarnings(rARPACK::svds(X, k = ncomp))
     D <- huhn$d
-    huhn$u[huhn$u < 1e-10] <- 0
-    huhn$v[huhn$v < 1e-10] <- 0
+
+    if(sparse){
+      huhn$u[huhn$u < 1e-15] <- 0
+      huhn$v[huhn$v < 1e-15] <- 0
+    }
 
     TT <- Matrix(
       huhn$u %*% diag(D, nrow = ncomp),
