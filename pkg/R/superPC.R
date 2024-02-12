@@ -9,6 +9,7 @@
 #' @param regMethod Character. Regression method to use, either PCA or PLS.
 #' @param center Logic.
 #' @param sparse Use sparse matrices or not.
+#' @param DRinfo Logic. Whether to return dimension reduction information from PCA or PLS. Disable to save memory.
 #'
 #' @return A list containing regression input and output.
 SuperPC <- function(
@@ -20,7 +21,8 @@ SuperPC <- function(
     regMethod = c("PCA", "PLS"),
     center = TRUE,
     scale = FALSE,
-    sparse = TRUE
+    sparse = TRUE,
+    DRinfo = FALSE
   )
 {
   regMethod <- match.arg(regMethod)
@@ -45,7 +47,8 @@ SuperPC <- function(
     ncomp = ncomp,
     method = regMethod,
     center = center,
-    scale = scale
+    scale = scale,
+    DRinfo = DRinfo
   )
 
 

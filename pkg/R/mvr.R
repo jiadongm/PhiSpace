@@ -8,6 +8,7 @@
 #' @param method Character.
 #' @param center Logic.
 #' @param scale Logic.
+#' @param DRinfo Logic. Whether to return dimension reduction information from PCA or PLS. Disable to save memory.
 #'
 #' @return A list containing
 #' \item{coefficients}{Regression coefficient matrices.}
@@ -23,7 +24,8 @@ mvr <- function(
     ncomp,
     method = c("PCA", "PLS"),
     center = TRUE,
-    scale = FALSE
+    scale = FALSE,
+    DRinfo = FALSE
   ){
 
   ## Work with sparse matrices only when ceter==FALSE
@@ -49,10 +51,10 @@ mvr <- function(
 
   if(method == "PCA"){
 
-    out <- svdspc.fit(X, Y, ncomp, sparse = sparse)
+    out <- svdspc.fit(X, Y, ncomp, sparse = sparse, DRinfo = DRinfo)
   } else {
 
-    out <- pls.fit(X, Y, ncomp)
+    out <- pls.fit(X, Y, ncomp, DRinfo = DRinfo)
   }
 
 

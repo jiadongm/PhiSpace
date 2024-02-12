@@ -4,7 +4,15 @@
 \alias{mvr}
 \title{Multivariate regression via principal component analysis (PCA) or partial least squares (PLS).}
 \usage{
-mvr(X, Y, ncomp, method = c("PCA", "PLS"), center = TRUE, scale = FALSE)
+mvr(
+  X,
+  Y,
+  ncomp,
+  method = c("PCA", "PLS"),
+  center = TRUE,
+  scale = FALSE,
+  DRinfo = FALSE
+)
 }
 \arguments{
 \item{X}{Matrix.}
@@ -18,6 +26,8 @@ mvr(X, Y, ncomp, method = c("PCA", "PLS"), center = TRUE, scale = FALSE)
 \item{center}{Logic.}
 
 \item{scale}{Logic.}
+
+\item{DRinfo}{Logic. Whether to return dimension reduction information from PCA or PLS. Disable to save memory.}
 }
 \value{
 A list containing

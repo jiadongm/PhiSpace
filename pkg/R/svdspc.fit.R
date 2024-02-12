@@ -1,16 +1,4 @@
-#' Principle component regression
-#'
-#' Same as `pls::svdpc.fit`, except using `rARPACK::svds` instead of `La.svd`.
-#'
-#' @param X Matrix. Scaled predictor matrix
-#' @param Y Matrix. Scaled response matrix
-#' @param ncomp Integer.
-#' @param sparse Use sparse matrix or not.
-#'
-#' @return A list containing
-#' \item{coefficients}{Regression coefficient matrices.}
-svdspc.fit <-
-  function (X, Y, ncomp, sparse = FALSE) {
+svdspc.fit <- function (X, Y, ncomp, sparse = FALSE, DRinfo = FALSE) {
 
     dnX <- dimnames(X)
     dnY <- dimnames(Y)
@@ -36,6 +24,14 @@ svdspc.fit <-
       huhn$v,
       sparse = sparse
     )
+    dimnames(TT) <- list(
+      dnX[[1]],
+      paste0("comp", 1:ncomp)
+    )
+    dimnames(P) <- list(
+      dnX[[2]],
+      paste0("comp", 1:ncomp)
+    )
     tQ <- crossprod(TT, Y)/D^2
     for (a in 1:ncomp) {
       B[, , a] <- P[, 1:a, drop = FALSE] %*% tQ[1:a, ]
@@ -51,8 +47,24 @@ svdspc.fit <-
     dimnames(B) <- list(prednames, respnames, nCompnames)
 
 
-    return(
-      list(coefficients = B)
-    )
+    if(DRinfo){
+
+      return(
+        list(
+          coefficients = B,
+          scores = TT,
+          loadings = P
+        )
+      )
+
+    } else {
+
+      return(
+        list(
+          coefficients = B
+        )
+      )
+
+    }
 
   }

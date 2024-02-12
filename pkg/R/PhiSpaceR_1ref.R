@@ -11,21 +11,24 @@
 #' @param selectedFeat Character.
 #' @param center Logic.
 #' @param scale Logic.
+#' @param DRinfo Logic. Whether to return dimension reduction information from PCA or PLS. Disable to save memory.
 #'
 #' @return A list
 #'
 #' @export
-PhiSpaceR_1ref <- function(reference,
-                           query,
-                           phenotypes = NULL,
-                           response = NULL,
-                           PhiSpaceAssay = "rank",
-                           regMethod = c("PLS", "PCA"),
-                           ncomp = NULL,
-                           nfeat = NULL,
-                           selectedFeat = NULL,
-                           center = TRUE,
-                           scale = FALSE
+PhiSpaceR_1ref <- function(
+    reference,
+    query,
+    phenotypes = NULL,
+    response = NULL,
+    PhiSpaceAssay = "rank",
+    regMethod = c("PLS", "PCA"),
+    ncomp = NULL,
+    nfeat = NULL,
+    selectedFeat = NULL,
+    center = TRUE,
+    scale = FALSE,
+    DRinfo = FALSE
 ){
 
   if(!inherits(query, "list")) query <- list(query)
@@ -111,7 +114,8 @@ PhiSpaceR_1ref <- function(reference,
     assayName = PhiSpaceAssay,
     regMethod = regMethod,
     center = center,
-    scale = scale
+    scale = scale,
+    DRinfo = DRinfo
   )
   YrefHat <- phenotype(
     phenoAssay = t(assay(reference, PhiSpaceAssay)),
