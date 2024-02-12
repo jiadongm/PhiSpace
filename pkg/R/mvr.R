@@ -26,7 +26,11 @@ mvr <- function(
     scale = FALSE
   ){
 
-  if(!center) sparse <- TRUE
+  if(!center){
+    sparse <- TRUE
+  } else {
+    sparse <- FALSE
+  }
 
 
   Y <- scale(Y, center = TRUE, scale = FALSE)
@@ -39,6 +43,8 @@ mvr <- function(
 
     X <- scale(X, center = center, scale = scale)
   }
+
+
 
   if(method == "PCA"){
 
