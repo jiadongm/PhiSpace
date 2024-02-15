@@ -7,6 +7,8 @@
 #' @export
 selectFeat <- function(impScores, nfeat){
 
+  impScores <- as.matrix(impScores)
+
   if(is.null(rownames(impScores))) stop("impScores has to have row names corresponding to feature names.")
 
   orderByCol <- apply(
