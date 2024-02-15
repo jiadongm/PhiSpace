@@ -6,16 +6,23 @@
 #' @return Vector of selected features.
 #' @export
 selectFeat <- function(impScores, nfeat){
+
   if(is.null(rownames(impScores))) stop("impScores has to have row names corresponding to feature names.")
-  orderByCol <-
-    apply(impScores, 2,
-          function(x){
-            names(x) <- rownames(impScores)
-            names(sort(abs(x), decreasing = T))
-          })
+
+  orderByCol <- apply(
+    impScores,
+    2,
+    function(x){
+      names(x) <- rownames(impScores)
+      names(sort(abs(x), decreasing = T))
+    }
+  )
+
   selectFeat <- unique(
     as.vector(
       orderByCol[1:nfeat, ]
     )
   )
+
+  selectFeat
 }
