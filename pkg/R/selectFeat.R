@@ -21,11 +21,13 @@ selectFeat <- function(
     2,
     function(x){
       names(x) <- rownames(impScores)
-      toSort <- ifelse(
-        absVal,
-        abs(x),
-        x
-      )
+
+      if(absVal){
+        toSort <- abs(x)
+      } else {
+        toSort <- x
+      }
+
       names(sort(toSort, decreasing = T))
     }
   )
