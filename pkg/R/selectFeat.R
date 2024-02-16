@@ -2,10 +2,15 @@
 #'
 #' @param impScores Matrix. Each column corresponds to a phenotype (eg a cell type) and contains importance scores of features for predicting that phenotype.
 #' @param nfeat Number of top features to select from each column of impScores.
+#' @param absVal Take absolute value or not.
 #'
 #' @return Vector of selected features.
 #' @export
-selectFeat <- function(impScores, nfeat){
+selectFeat <- function(
+    impScores,
+    nfeat,
+    absVal = TRUE
+  ){
 
   impScores <- as.matrix(impScores)
 
@@ -16,7 +21,12 @@ selectFeat <- function(impScores, nfeat){
     2,
     function(x){
       names(x) <- rownames(impScores)
-      names(sort(abs(x), decreasing = T))
+      toSort <- ifelse(
+        absVal,
+        abs(x),
+        x
+      )
+      names(sort(toSort, decreasing = T))
     }
   )
 
