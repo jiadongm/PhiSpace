@@ -4,12 +4,14 @@
 \alias{selectFeat}
 \title{Select nfeat top features from each column (label) of impScores}
 \usage{
-selectFeat(impScores, nfeat)
+selectFeat(impScores, nfeat, absVal = TRUE)
 }
 \arguments{
 \item{impScores}{Matrix. Each column corresponds to a phenotype (eg a cell type) and contains importance scores of features for predicting that phenotype.}
 
 \item{nfeat}{Number of top features to select from each column of impScores.}
+
+\item{absVal}{Take absolute value or not.}
 }
 \value{
 Vector of selected features.

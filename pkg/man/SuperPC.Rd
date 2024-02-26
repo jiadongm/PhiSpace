@@ -13,7 +13,8 @@ SuperPC(
   regMethod = c("PCA", "PLS"),
   center = TRUE,
   scale = FALSE,
-  sparse = TRUE
+  sparse = TRUE,
+  DRinfo = FALSE
 )
 }
 \arguments{
@@ -34,6 +35,8 @@ SuperPC(
 \item{scale}{Logic. Scale the predictor matrix or not}
 
 \item{sparse}{Use sparse matrices or not.}
+
+\item{DRinfo}{Logic. Whether to return dimension reduction information from PCA or PLS. Disable to save memory.}
 }
 \value{
 A list containing regression input and output.

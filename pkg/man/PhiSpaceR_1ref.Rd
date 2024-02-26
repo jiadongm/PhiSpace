@@ -15,7 +15,8 @@ PhiSpaceR_1ref(
   nfeat = NULL,
   selectedFeat = NULL,
   center = TRUE,
-  scale = FALSE
+  scale = FALSE,
+  DRinfo = FALSE
 )
 }
 \arguments{
@@ -40,6 +41,8 @@ PhiSpaceR_1ref(
 \item{center}{Logic.}
 
 \item{scale}{Logic.}
+
+\item{DRinfo}{Logic. Whether to return dimension reduction information from PCA or PLS. Disable to save memory.}
 }
 \value{
 A list
