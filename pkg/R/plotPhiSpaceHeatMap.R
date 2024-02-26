@@ -38,23 +38,26 @@ plotPhiSpaceHeatMap <- function(PhiSpaceScore,
 
   if(is.null(refLvls)) refLvls <- phenoDict$labs
 
-  plot_dat0 <- PhiSpaceScore[,refLvls]
+  plot_dat <-
+    PhiSpaceScore[,refLvls] %>%
+    as.data.frame()
 
   if(!is.null(queryLabs)){
+
     if(is.null(queryLvls)){
-      plot_dat <-
-        plot_dat0 %>%
-        as.data.frame() %>%
-        dplyr::arrange(factor(queryLabs))
+
+       plot_dat <- plot_dat %>%
+        mutate(label = factor(queryLabs)) %>%
+        dplyr::arrange(label)
+
     } else {
+
       plot_dat <-
-        plot_dat0 %>%
-        as.data.frame() %>%
-        dplyr::arrange(factor(queryLabs, levels = queryLvls))
+        plot_dat %>%
+        mutate(label = factor(queryLabs, levels = queryLvls)) %>%
+        dplyr::arrange(label)
     }
-  } else {
-    plot_dat <- plot_dat0 %>%
-      as.data.frame()
+
   }
 
   if(is.null(queryLabs)){
