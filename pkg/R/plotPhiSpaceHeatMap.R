@@ -47,14 +47,14 @@ plotPhiSpaceHeatMap <- function(PhiSpaceScore,
     if(is.null(queryLvls)){
 
        plot_dat <- plot_dat %>%
-        mutate(label = factor(queryLabs)) %>%
+        dplyr::mutate(label = factor(queryLabs)) %>%
         dplyr::arrange(label)
 
     } else {
 
       plot_dat <-
         plot_dat %>%
-        mutate(label = factor(queryLabs, levels = queryLvls)) %>%
+        dplyr::mutate(label = factor(queryLabs, levels = queryLvls)) %>%
         dplyr::arrange(label)
     }
 
@@ -66,7 +66,7 @@ plotPhiSpaceHeatMap <- function(PhiSpaceScore,
     rowSplit <- plot_dat$label
   }
 
-  ComplexHeatmap::Heatmap(as.matrix(plot_dat[,1:ncol(plot_dat0)]),
+  ComplexHeatmap::Heatmap(as.matrix(plot_dat[,1:length(refLvls)]),
                           cluster_columns = cluster_columns,
                           cluster_rows = cluster_rows,
                           show_row_names = show_row_names,
