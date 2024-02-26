@@ -32,7 +32,7 @@ plotPhiSpaceHeatMap <- function(PhiSpaceScore,
       labs = colnames(codeY(reference, phenotypes)),
       phenotypeCategory =
         rep(phenotypes,
-            apply(colData(reference)[,phenotypes], 2, function(x) length(unique(x)))
+            apply(colData(reference)[,phenotypes,drop=F], 2, function(x) length(unique(x)))
         )
     )
 
