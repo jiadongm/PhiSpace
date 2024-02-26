@@ -32,7 +32,7 @@ pls.fit <-
           w.a <- XtY %*% q
           w.a <- w.a/sqrt(c(crossprod(w.a)))
         } else {
-          w.a <- rARPACK::eigs_sym(crossprod(XtY), k = 1)$vectors[,1]
+          w.a <- rARPACK::eigs_sym(tcrossprod(XtY), k = 1)$vectors[,1]
         }
 
       }
