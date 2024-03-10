@@ -15,8 +15,10 @@ Depends:
     Matrix
 Imports: 
     ComplexHeatmap,
+    cowplot,
     dplyr,
     ggplot2,
+    gridExtra,
     magrittr,
     methods,
     networkD3,
