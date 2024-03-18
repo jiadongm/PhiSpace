@@ -23,7 +23,7 @@ getErr_nfeat <- function(
     scale = FALSE,
     regMethod = 'PLS',
     assayName = 'logcounts',
-    loss = c("exponential", "Frobenius")
+    loss = c("Frobenius", "exponential")
   )
 {
 
