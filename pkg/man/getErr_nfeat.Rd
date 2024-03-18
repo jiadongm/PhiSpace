@@ -15,7 +15,8 @@ getErr_nfeat(
   center = TRUE,
   scale = FALSE,
   regMethod = "PLS",
-  assayName = "logcounts"
+  assayName = "logcounts",
+  loss = c("exponential", "Frobenius")
 )
 }
 \arguments{
@@ -40,6 +41,8 @@ getErr_nfeat(
 \item{regMethod}{Character.}
 
 \item{assayName}{Character.}
+
+\item{loss}{Type of loss function.}
 }
 \value{
 A list.

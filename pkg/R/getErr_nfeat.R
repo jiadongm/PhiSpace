@@ -11,17 +11,23 @@
 #' @param center Logic.
 #' @param scale Logic.
 #' @param assayName Character.
+#' @param loss Type of loss function.
 #'
 #' @return A list.
-getErr_nfeat <- function(nfeatV,
-                         impScores,
-                         ncomp,
-                         XXtrain, YYtrain, XXtest, YYtest,
-                         center = TRUE,
-                         scale = FALSE,
-                         regMethod = 'PLS',
-                         assayName = 'logcounts')
+getErr_nfeat <- function(
+    nfeatV,
+    impScores,
+    ncomp,
+    XXtrain, YYtrain, XXtest, YYtest,
+    center = TRUE,
+    scale = FALSE,
+    regMethod = 'PLS',
+    assayName = 'logcounts',
+    loss = c("exponential", "Frobenius")
+  )
 {
+
+  loss <- match.arg(loss)
 
   ## Calculate errors
   YYtrain <- as.matrix(YYtrain)
@@ -63,7 +69,23 @@ getErr_nfeat <- function(nfeatV,
                            scale = F,
                            center = -colMeans(as.matrix(YYtrain)))
 
-             Ers <- norm(abs(YYtest-Yhat), type = 'F')/norm(abs(YYtest), type = 'F')
+
+
+             if(loss == "Frobenius"){
+
+               # Frobenius norm
+               Ers <- norm(abs(YYtest-Yhat), type = 'F')/norm(abs(YYtest), type = 'F')
+             } else {
+
+               # Exponential loss
+               Ers <- 1/nrow(YYtest) * sum(
+                 exp(
+                   - YYtest * Yhat
+                 )
+               )
+             }
+
+
              return(Ers)
            }
     )

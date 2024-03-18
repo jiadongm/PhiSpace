@@ -169,8 +169,8 @@ CVTune_nfeat <- function(reference,
     ) +
     geom_line(mapping = aes(y = plot_dat$FrobRatio)) +
     geom_point(mapping = aes(y = plot_dat$FrobRatio)) +
-    ylab("Frobenius ratio") +
-    ggtitle("Frobenius ratio")
+    ylab("Exponential loss") +
+    ggtitle("Exponential loss")
 
   print(p)
 

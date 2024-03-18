@@ -120,8 +120,8 @@ CVTune_ncomp <- function(reference,
     scale_x_continuous(breaks = plot_dat$ncomp, guide = guide_axis(angle = 90, n.dodge=2)) +
     geom_line(mapping = aes(y = plot_dat$FrobRatio)) +
     geom_point(mapping = aes(y = plot_dat$FrobRatio)) +
-    ylab("Frobenius ratio") +
-    ggtitle("Frobenius ratio")
+    ylab("Exponential loss") +
+    ggtitle("Exponential loss")
 
   print(p)
 

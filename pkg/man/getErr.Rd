@@ -14,7 +14,8 @@ getErr(
   scale = FALSE,
   selectedFeat = NULL,
   regMethod = "PLS",
-  assayName = "rank"
+  assayName = "rank",
+  loss = c("exponential", "Frobenius")
 )
 }
 \arguments{
@@ -37,6 +38,8 @@ getErr(
 \item{regMethod}{Character.}
 
 \item{assayName}{Character.}
+
+\item{loss}{Type of loss function.}
 }
 \value{
 A list

@@ -10,16 +10,22 @@
 #' @param assayName Character.
 #' @param center Logic.
 #' @param scale Logic.
+#' @param loss Type of loss function.
 #'
 #' @return A list
-getErr <- function(ncompGrid,
-                   XXtrain, YYtrain, XXtest, YYtest,
-                   center = TRUE,
-                   scale = FALSE,
-                   selectedFeat = NULL,
-                   regMethod = 'PLS',
-                   assayName = 'rank')
+getErr <- function(
+    ncompGrid,
+    XXtrain, YYtrain, XXtest, YYtest,
+    center = TRUE,
+    scale = FALSE,
+    selectedFeat = NULL,
+    regMethod = 'PLS',
+    assayName = 'rank',
+    loss = c("exponential", "Frobenius")
+  )
 {
+
+  loss <- match.arg(loss)
 
   if(is.null(selectedFeat)) selectedFeat <- colnames(XXtrain)
 
@@ -72,7 +78,23 @@ getErr <- function(ncompGrid,
                            scale = F,
                            center = -colMeans(YYtrain))
 
-             Ers <- norm(abs(YYtest-Yhat), type = 'F')/norm(abs(YYtest), type = 'F')
+
+             if(loss == "Frobenius"){
+
+               # Frobenius norm
+               Ers <- norm(abs(YYtest-Yhat), type = 'F')/norm(abs(YYtest), type = 'F')
+             } else {
+
+               # Exponential loss
+               Ers <- 1/nrow(YYtest) * sum(
+                 exp(
+                   - YYtest * Yhat
+                 )
+               )
+             }
+
+
+
 
              return(Ers)
            }
