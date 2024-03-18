@@ -7,6 +7,7 @@
 #' @param ncomp Integer.
 #' @param method Character.
 #' @param center Logic.
+#' @param sparse Convert X to sparse matrix or not.
 #' @param scale Logic.
 #' @param DRinfo Logic. Whether to return dimension reduction information from PCA or PLS. Disable to save memory.
 #'
@@ -24,16 +25,10 @@ mvr <- function(
     ncomp,
     method = c("PCA", "PLS"),
     center = TRUE,
+    sparse = FALSE,
     scale = FALSE,
     DRinfo = FALSE
   ){
-
-  ## Work with sparse matrices only when ceter==FALSE
-  if(!center){
-    sparse <- TRUE
-  } else {
-    sparse <- FALSE
-  }
 
 
   Y <- scale(Y, center = TRUE, scale = FALSE)
