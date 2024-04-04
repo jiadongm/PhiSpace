@@ -32,3 +32,37 @@ codeY <- function(sce, phenotypes, method = c("-1,1", "0,1")){
 
   return(YY)
 }
+
+
+#' Convert discrete annotations to dummy variable matrices.
+#'
+#' @param vec Factor contanining class labels.
+#' @param rowNames Optional. Row names for output dummy matrix (eg cell barcode).
+#' @param method Which coding to use, either (-1,1) or (0,1).
+#'
+#' @return
+#' \item{YY}{A dummy variable matrix encoding discrete annotation}
+#'
+#' @export
+codeY_vec <- function(vec, rowNames = NULL, method = c("-1,1", "0,1")){
+
+  vec <- as.factor(vec)
+
+  method <- match.arg(method)
+
+  labs <- levels(vec)
+  YY <- sapply(
+    1:length(labs),
+    function(x){
+      lab <- labs[x]
+      out <- as.numeric(vec == lab)
+      if(method == "-1,1") out[out == 0] <- -1
+      out
+    }
+  )
+  colnames(YY) <- labs
+
+  if(!is.null(rowNames)) rownames(YY) <- rowNames
+
+  return(YY)
+}

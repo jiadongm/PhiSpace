@@ -10,6 +10,7 @@ mvr(
   ncomp,
   method = c("PCA", "PLS"),
   center = TRUE,
+  sparse = FALSE,
   scale = FALSE,
   DRinfo = FALSE
 )
@@ -24,6 +25,8 @@ mvr(
 \item{method}{Character.}
 
 \item{center}{Logic.}
+
+\item{sparse}{Convert X to sparse matrix or not.}
 
 \item{scale}{Logic.}
 

@@ -15,7 +15,7 @@ getErr(
   selectedFeat = NULL,
   regMethod = "PLS",
   assayName = "rank",
-  loss = c("exponential", "Frobenius")
+  loss = c("Frobenius", "exponential")
 )
 }
 \arguments{
