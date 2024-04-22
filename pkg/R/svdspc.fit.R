@@ -34,7 +34,7 @@ svdspc.fit <- function (X, Y, ncomp, sparse = FALSE, DRinfo = FALSE) {
     )
     tQ <- crossprod(TT, Y)/D^2
     for (a in 1:ncomp) {
-      B[, , a] <- P[, 1:a, drop = FALSE] %*% tQ[1:a, ]
+      B[, , a] <- as.matrix(P[, 1:a, drop = FALSE] %*% tQ[1:a, ])
     }
 
     # Dimnames
