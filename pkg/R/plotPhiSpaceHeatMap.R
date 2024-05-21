@@ -73,7 +73,6 @@ plotPhiSpaceHeatMap <- function(PhiSpaceScore,
                           show_column_names = show_column_names,
                           column_split = phenoDict$phenotypeCategory,
                           row_split = rowSplit,
-                          heatmap_legend_param = list(title = ""),
                           ...)
 
 
