@@ -38,5 +38,8 @@ selectFeat <- function(
     )
   )
 
-  selectFeat
+  list(
+    orderedFeatMat = orderByCol,
+    selectedFeat = selectFeat
+  )
 }
