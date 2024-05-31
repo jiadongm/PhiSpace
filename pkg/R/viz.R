@@ -52,7 +52,7 @@ matrixPlot <- function(
       p <-
         scores %>%
         ggplot(aes(x = !! sym(var2plot))) +
-        geom_density(bw = "SJ") +
+        geom_density(bw = "sj") +
         scale_y_continuous(name = NULL)
 
 
@@ -153,7 +153,7 @@ matrixPlot <- function(
     out <-
       scores %>%
       ggplot(aes(x = !! sym(var2plot))) +
-      geom_density(bw = "SJ")
+      geom_density(bw = "sj")
     if(is.null(groupKey)){
       out <-
         out +
