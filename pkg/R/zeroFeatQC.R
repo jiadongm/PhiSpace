@@ -9,7 +9,7 @@
 zeroFeatQC <- function(sce, assayName = "counts"){
 
   geneSpars <- rowMeans(assay(sce, assayName) == 0)
-  if(max(geneSpars) == 0){
+  if(max(geneSpars) == 1){
     sce <- sce[geneSpars < 1, ]
     cat("Deleted features with all zeros.")
   } else {
