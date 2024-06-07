@@ -9,6 +9,7 @@
 #' @param proportion Used to determine unequal resampSizes.
 #' @param seed Random seeds
 #' @param nPool How many cells to use for pseudobulking.
+#' @param calcMean Logical. Calculate mean of sum of expression for pseudobulking.
 #'
 #' @return An updated `SingleCellExpeirment` object with a pseudobulk assay.
 #'
@@ -21,6 +22,7 @@ pseudoBulk <- function(
     assayName = 'counts',
     resampSizes = 100,
     proportion = NULL,
+    calcMean = FALSE,
     nPool = 15,
     seed = 904800
 ){
@@ -87,7 +89,13 @@ pseudoBulk <- function(
     resampIdx,
     function(x){
 
-      rowMeans(XX[,x])
+      if(calcMean){
+
+        rowMeans(XX[,x])
+      } else {
+
+        rowSums(XX[,x])
+      }
     }
   )
   # Aggregate Y
@@ -104,7 +112,7 @@ pseudoBulk <- function(
 
   # Output
   SingleCellExperiment(
-    list(data = XXagg),
+    list(counts = XXagg),
     reducedDims = list(
       response = YYagg
     )
