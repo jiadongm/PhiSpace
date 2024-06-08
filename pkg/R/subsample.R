@@ -3,11 +3,18 @@
 #' @param sce SCE object to be sampled from
 #' @param key Required for stratefied subsampling
 #' @param proportion Proportion of cells to sample
+#' @param minCellNum Minimum number of cells in each category
 #' @param seed Random seed
 #'
 #' @return A downsized SCE object
 #' @export
-subsample <- function(sce, key = NULL, proportion = 0.1, seed = 5202056){
+subsample <- function(
+    sce,
+    key = NULL,
+    proportion = 0.1,
+    minCellNum = 50,
+    seed = 5202056
+  ){
 
   if(is.null(key)){
 
@@ -34,7 +41,10 @@ subsample <- function(sce, key = NULL, proportion = 0.1, seed = 5202056){
 
         fullIdx <- which(keys == keyName)
         fullIdxSize <- length(fullIdx)
-        subIdxSize <- max(1, ceiling(fullIdxSize * proportion) )
+        # How many to sample should not be smaller than minCellNum
+        subIdxSize <- max(minCellNum, ceiling(fullIdxSize * proportion))
+        # But also should not be larger than total number of cells in that category
+        subIdxSize <- min(subIdxSize, fullIdxSize)
         subIdx <- sample(fullIdx, subIdxSize)
 
         return(subIdx)
