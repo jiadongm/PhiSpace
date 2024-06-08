@@ -12,6 +12,7 @@ pseudoBulk(
   assayName = "counts",
   resampSizes = 100,
   proportion = NULL,
+  calcMean = FALSE,
   nPool = 15,
   seed = 904800
 )
@@ -30,6 +31,8 @@ pseudoBulk(
 \item{resampSizes}{How many pseudo-bulk resamples to generate from each cluster.}
 
 \item{proportion}{Used to determine unequal resampSizes.}
+
+\item{calcMean}{Logical. Calculate mean of sum of expression for pseudobulking.}
 
 \item{nPool}{How many cells to use for pseudobulking.}
 

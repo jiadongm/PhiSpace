@@ -9,6 +9,7 @@ logTransf(
   scalFactor = 10000,
   assayName = "counts",
   targetAssay = "data",
+  use_log1p = FALSE,
   sparse = TRUE
 )
 }
@@ -20,6 +21,8 @@ logTransf(
 \item{assayName}{Character.}
 
 \item{targetAssay}{Character.}
+
+\item{use_log1p}{Logical. Use shifted log (log1p) transform, using raw counts instead of relative counts.}
 
 \item{sparse}{Store the transformed assay as sparse matrix or not.}
 }

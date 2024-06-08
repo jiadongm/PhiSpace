@@ -6,6 +6,8 @@
 #' @param YY Matrix.
 #' @param ncomp Integer.
 #' @param impScores Matrix.
+#' @param center Logical.
+#' @param scale Logical.
 #' @param tune_ncomp Logic.
 #' @param tune_nfeat Logic.
 #' @param ncompLimits Vector.
@@ -30,6 +32,9 @@ tunePhiSpace <- function(reference,
                          ncomp = NULL,
                          impScores = NULL,
                          #
+                         center = TRUE,
+                         scale = FALSE,
+                         #
                          tune_ncomp = TRUE,
                          tune_nfeat = TRUE,
                          #
@@ -43,16 +48,20 @@ tunePhiSpace <- function(reference,
                          nfeatV = NULL,
                          #
                          Kfolds = 5,
-                         regMethod = 'PCA',
+                         regMethod = 'PLS',
                          labelCode = "-1,1",
                          Ncores = 1,
                          seed = 5202056){
 
   if(tune_ncomp){
+
     tune_ncomp_res <- CVTune_ncomp(reference = reference,
                                    assayName = assayName,
                                    phenotypes = phenotypes,
                                    YY = YY,
+                                   #
+                                   center = center,
+                                   scale = scale,
                                    #
                                    ncompLimits = ncompLimits,
                                    gridSize = ncompGridSize,
@@ -67,10 +76,22 @@ tunePhiSpace <- function(reference,
     ncomp <- tune_ncomp_res$ncomp
     tuneNcompErrs <- tune_ncomp_res$tuneNcompErrs
   } else {
-    tuneNcompErrs <- NULL
-  }
 
-  if(is.null(ncomp)) stop("Since we didn't tune ncomp, an ncomp value should be specified.")
+    tuneNcompErrs <- NULL
+
+    if(is.null(phenotypes)){
+
+      if(is.null(YY)) stop("ncomp and YY cannot be both NULL.")
+    } else {
+
+      YY <- codeY(reference, phenotypes)
+    }
+
+    if(is.null(ncomp)){
+
+      ncomp <- ncol(YY)
+    }
+  }
 
   if(tune_nfeat){
     tune_nfeat_res <- CVTune_nfeat(reference = reference,
@@ -79,6 +100,9 @@ tunePhiSpace <- function(reference,
                                    YY = YY,
                                    ncomp = ncomp,
                                    impScores = impScores,
+                                   #
+                                   center = center,
+                                   scale = scale,
                                    #
                                    nfeatLimits = nfeatLimits,
                                    gridSize = nfeatGridSize,
@@ -96,6 +120,22 @@ tunePhiSpace <- function(reference,
   } else {
     tuneNfeatErrs <- NULL
   }
+
+  # If do not tune ncomp nor nfeat, simply calculate importance scores
+  if(!tune_ncomp & !tune_nfeat){
+
+    selectedFeat <- rownames(reference)
+
+    impScores <- mvr(
+      X = t(assay(reference, assayName)),
+      Y = YY,
+      ncomp = ncomp,
+      method = regMethod,
+      center = center,
+      scale = scale
+    )$coefficients[,,ncomp]
+  }
+
 
 
   return(list(

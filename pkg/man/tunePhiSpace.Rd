@@ -11,6 +11,8 @@ tunePhiSpace(
   YY = NULL,
   ncomp = NULL,
   impScores = NULL,
+  center = TRUE,
+  scale = FALSE,
   tune_ncomp = TRUE,
   tune_nfeat = TRUE,
   ncompLimits = c(1, 100),
@@ -21,7 +23,7 @@ tunePhiSpace(
   nfeatGridSize = 30,
   nfeatV = NULL,
   Kfolds = 5,
-  regMethod = "PCA",
+  regMethod = "PLS",
   labelCode = "-1,1",
   Ncores = 1,
   seed = 5202056
@@ -39,6 +41,10 @@ tunePhiSpace(
 \item{ncomp}{Integer.}
 
 \item{impScores}{Matrix.}
+
+\item{center}{Logical.}
+
+\item{scale}{Logical.}
 
 \item{tune_ncomp}{Logic.}
 
