@@ -119,6 +119,7 @@ tunePhiSpace <- function(reference,
     selectedFeat <- tune_nfeat_res$selectedFeat
   } else {
     tuneNfeatErrs <- NULL
+    nfeat <- NULL
   }
 
   # If do not tune ncomp nor nfeat, simply calculate importance scores
@@ -143,6 +144,7 @@ tunePhiSpace <- function(reference,
     nfeat = nfeat,
     impScores = impScores,
     selectedFeat = selectedFeat,
-    tuneNfeatErrs = tuneNfeatErrs
+    tuneNfeatErrs = tuneNfeatErrs,
+    tuneNcompErrs = tuneNcompErrs
   ))
 }

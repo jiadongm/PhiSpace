@@ -4,7 +4,7 @@
 \alias{subsample}
 \title{Subsample from a sce object}
 \usage{
-subsample(sce, key = NULL, proportion = 0.1, seed = 5202056)
+subsample(sce, key = NULL, proportion = 0.1, minCellNum = 50, seed = 5202056)
 }
 \arguments{
 \item{sce}{SCE object to be sampled from}
@@ -12,6 +12,8 @@ subsample(sce, key = NULL, proportion = 0.1, seed = 5202056)
 \item{key}{Required for stratefied subsampling}
 
 \item{proportion}{Proportion of cells to sample}
+
+\item{minCellNum}{Minimum number of cells in each category}
 
 \item{seed}{Random seed}
 }
