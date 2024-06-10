@@ -43,7 +43,7 @@ CVTune_nfeat <- function(reference,
   ## Prepare response: dummy matrix
   if(is.null(YY)){
     if(is.null(phenotypes)) stop("Have to specify either YY or phenotypes.")
-    YY <- codeY(reference, phenotypes)
+    YY <- codeY(reference, phenotypes, method = labelCode)
   }
 
   if(is.null(ncomp)) ncomp <- ncol(YY)
@@ -54,12 +54,14 @@ CVTune_nfeat <- function(reference,
 
   ## impScores
   if(is.null(impScores)){
-    impScores <- mvr(XX,
-                     YY,
-                     ncomp,
-                     method = regMethod,
-                     center = center,
-                     scale = scale)$coefficients[,,ncomp]
+    impScores <- mvr(
+      XX,
+      YY,
+      ncomp,
+      method = regMethod,
+      center = center,
+      scale = scale
+    )$coefficients[,,ncomp]
   } else {
     impScores <- as.matrix(impScores)
   }

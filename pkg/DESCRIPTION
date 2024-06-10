@@ -19,18 +19,15 @@ Imports:
     dplyr,
     ggplot2,
     gridExtra,
+    irlba,
     magrittr,
-    methods,
     networkD3,
     plyr,
-    rARPACK,
-    irlba,
     stats,
     scran,
     scuttle,
     tidyr,
-    umap,
-    zeallot
+    umap
 Suggests: 
     testthat (>= 3.0.0)
 Config/testthat/edition: 3

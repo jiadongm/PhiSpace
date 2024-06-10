@@ -59,7 +59,7 @@ CVTune_ncomp <- function(reference,
   ## Prepare response: dummy matrix
   if(is.null(YY)){
     if(is.null(phenotypes)) stop("Have to specify either YY or phenotypes.")
-    YY <- codeY(reference, phenotypes)
+    YY <- codeY(reference, phenotypes, method = labelCode)
   }
 
 
@@ -124,7 +124,6 @@ CVTune_ncomp <- function(reference,
 
   print(p)
 
-  # TODO: use gap statistic for data-driven choice of ncomp
   ncomp <- readline("What is your choice of ncomp? ")
   ncomp <- as.numeric(ncomp)
 

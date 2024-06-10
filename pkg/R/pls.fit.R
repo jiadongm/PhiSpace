@@ -28,11 +28,11 @@ pls.fit <-
       } else {
 
         if (nresp < npred) {
-          q <- rARPACK::eigs_sym(crossprod(XtY), k = 1)$vectors[,1]
+          q <- irlba::partial_eigen(crossprod(XtY), n = 1)$vectors[,1]
           w.a <- XtY %*% q
           w.a <- w.a/sqrt(c(crossprod(w.a)))
         } else {
-          w.a <- rARPACK::eigs_sym(tcrossprod(XtY), k = 1)$vectors[,1]
+          w.a <- irlba::partial_eigen(tcrossprod(XtY), n = 1)$vectors[,1]
         }
 
       }

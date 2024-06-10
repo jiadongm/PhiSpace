@@ -6,6 +6,5 @@
 #' @import SummarizedExperiment
 #' @import Matrix
 #' @importFrom magrittr %>%
-#' @importFrom zeallot %<-%
 ## usethis namespace: end
 NULL

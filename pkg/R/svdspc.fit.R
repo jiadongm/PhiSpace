@@ -8,22 +8,16 @@ svdspc.fit <- function (X, Y, ncomp, sparse = FALSE, DRinfo = FALSE) {
     B <- array(0, dim = c(npred, nresp, ncomp))
 
     # This step may incur warnings if compute all singular values
-    huhn <- suppressWarnings(rARPACK::svds(X, k = ncomp))
+    huhn <- suppressWarnings(irlba::irlba(X, nv = ncomp))
     D <- huhn$d
 
-    if(sparse){
-      huhn$u[huhn$u < 1e-15] <- 0
-      huhn$v[huhn$v < 1e-15] <- 0
-    }
+    # if(sparse){
+    #   huhn$u[huhn$u < 1e-15] <- 0
+    #   huhn$v[huhn$v < 1e-15] <- 0
+    # }
 
-    TT <- Matrix(
-      huhn$u %*% diag(D, nrow = ncomp),
-      sparse = sparse
-    )
-    P <- Matrix(
-      huhn$v,
-      sparse = sparse
-    )
+    TT <- huhn$u %*% diag(D, nrow = ncomp)
+    P <- huhn$v
     dimnames(TT) <- list(
       dnX[[1]],
       paste0("comp", 1:ncomp)

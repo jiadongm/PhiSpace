@@ -3,13 +3,9 @@
 #' @param X Matrix.
 #'
 #' @return Sparse matrix version of `X`
-#'
-#' @importFrom methods as
 as.sparse.matrix <- function(X){
-  X <- as(
-    object = as(object = as(object = X, Class = "dMatrix"),
-                Class = "generalMatrix"),
-    Class = "CsparseMatrix"
+  X <- Matrix::Matrix(
+    X, sparse = TRUE
   )
   return(X)
 }
