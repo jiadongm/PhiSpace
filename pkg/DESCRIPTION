@@ -24,6 +24,7 @@ Imports:
     networkD3,
     plyr,
     rARPACK,
+    irlba,
     stats,
     scran,
     scuttle,
