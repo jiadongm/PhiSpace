@@ -1,5 +1,5 @@
 pls.fit <-
-  function (X, Y, ncomp, center = center, scale = scale, DRinfo = FALSE)
+  function (X, Y, ncomp, center = TRUE, scale = FALSE, DRinfo = FALSE)
   {
 
     dnX <- dimnames(X)
@@ -62,7 +62,7 @@ pls.fit <-
         if (nresp < npred) {
           q <- irlba::partial_eigen(crossprod(XtY), n = 1)$vectors[,1]
           w.a <- XtY %*% q
-          w.a <- w.a/sqrt(c(crossprod(w.a)))
+          w.a <- w.a/sqrt(as.numeric(crossprod(w.a)))
         } else {
           w.a <- irlba::partial_eigen(tcrossprod(XtY), n = 1)$vectors[,1]
         }
