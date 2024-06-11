@@ -31,25 +31,13 @@ mvr <- function(
   ){
 
 
-  Y <- scale(Y, center = TRUE, scale = FALSE)
-
-  if(sparse){
-
-    X <- Matrix(X, sparse = sparse)
-
-  } else {
-
-    X <- scale(X, center = center, scale = scale)
-  }
-
-
 
   if(method == "PCA"){
 
-    out <- svdspc.fit(X, Y, ncomp, sparse = sparse, DRinfo = DRinfo)
+    out <- svdspc.fit(X, Y, ncomp, center = center, scale = scale, sparse = sparse, DRinfo = DRinfo)
   } else {
 
-    out <- pls.fit(X, Y, ncomp, DRinfo = DRinfo)
+    out <- pls.fit(X, Y, ncomp, center = center, scale = scale, DRinfo = DRinfo)
   }
 
 
@@ -57,9 +45,10 @@ mvr <- function(
   out$method <- method
   out$center <- center
   out$scale <- scale
-  out$Xmeans <- attr(X, "scaled:center")
-  out$Xscals <- attr(X, "scaled:scale")
-  out$Ymeans <- attr(Y, "scaled:center")
+  out$Xmeans <- out$Xmeans
+  out$Xscals <- out$Xscals
+  out$Ymeans <- out$Ymeans
+  out$Yscals <- out$Yscals
 
   return(out)
 }

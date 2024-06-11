@@ -1,4 +1,4 @@
-svdspc.fit <- function (X, Y, ncomp, sparse = FALSE, DRinfo = FALSE) {
+svdspc.fit <- function (X, Y, ncomp, center = TRUE, scale = FALSE,sparse = FALSE, DRinfo = FALSE) {
 
     dnX <- dimnames(X)
     dnY <- dimnames(Y)
@@ -7,8 +7,28 @@ svdspc.fit <- function (X, Y, ncomp, sparse = FALSE, DRinfo = FALSE) {
     nresp <- dim(Y)[2]
     B <- array(0, dim = c(npred, nresp, ncomp))
 
+    if(center){
+
+      Xmeans <- colMeans(X)
+      Ymeans <- colMeans(Y)
+    } else {
+
+      Xmeans <- NULL
+      Ymeans <- NULL
+    }
+
+    if(scale){
+
+      Xscals <- apply(X, 2, stats::sd)
+      Yscals <- apply(Y, 2, stats::sd)
+    } else {
+
+      Xscals <- NULL
+      Yscals <- NULL
+    }
+
     # This step may incur warnings if compute all singular values
-    huhn <- suppressWarnings(irlba::irlba(X, nv = ncomp))
+    huhn <- suppressWarnings(irlba::irlba(X, nv = ncomp, center = Xmeans, scale = Xscals))
     D <- huhn$d
 
     # if(sparse){
@@ -47,7 +67,11 @@ svdspc.fit <- function (X, Y, ncomp, sparse = FALSE, DRinfo = FALSE) {
         list(
           coefficients = B,
           scores = TT,
-          loadings = P
+          loadings = P,
+          Xmeans = Xmeans,
+          Ymeans = Ymeans,
+          Xscals = Xscals,
+          Yscals = Yscals
         )
       )
 
@@ -55,7 +79,11 @@ svdspc.fit <- function (X, Y, ncomp, sparse = FALSE, DRinfo = FALSE) {
 
       return(
         list(
-          coefficients = B
+          coefficients = B,
+          Xmeans = Xmeans,
+          Ymeans = Ymeans,
+          Xscals = Xscals,
+          Yscals = Yscals
         )
       )
 

@@ -1,5 +1,5 @@
 pls.fit <-
-  function (X, Y, ncomp, DRinfo = FALSE)
+  function (X, Y, ncomp, center = center, scale = scale, DRinfo = FALSE)
   {
 
     dnX <- dimnames(X)
@@ -7,6 +7,41 @@ pls.fit <-
     nobj <- dim(X)[1]
     npred <- dim(X)[2]
     nresp <- dim(Y)[2]
+
+    if(center){
+
+      Xmeans <- colMeans(X)
+      Ymeans <- colMeans(Y)
+    } else {
+
+      Xmeans <- NULL
+      Ymeans <- NULL
+    }
+
+    if(scale){
+
+      Xscals <- apply(X, 2, stats::sd)
+      Yscals <- apply(Y, 2, stats::sd)
+    } else {
+
+      Xscals <- NULL
+      Yscals <- NULL
+    }
+
+    if(center | scale){
+
+      X <- scale(
+        X,
+        center = center,
+        scale = scale
+      )
+
+      Y <- scale(
+        Y,
+        center = center,
+        scale = scale
+      )
+    }
 
     if(DRinfo){
       TT <- matrix(0, ncol = ncomp, nrow = nobj)
@@ -84,7 +119,11 @@ pls.fit <-
         list(
           coefficients = B,
           scores = TT,
-          loadings = P
+          loadings = P,
+          Xmeans = Xmeans,
+          Ymeans = Ymeans,
+          Xscals = Xscals,
+          Yscals = Yscals
         )
       )
 
@@ -92,7 +131,11 @@ pls.fit <-
 
       return(
         list(
-          coefficients = B
+          coefficients = B,
+          Xmeans = Xmeans,
+          Ymeans = Ymeans,
+          Xscals = Xscals,
+          Yscals = Yscals
         )
       )
 

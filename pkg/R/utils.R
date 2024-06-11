@@ -6,7 +6,10 @@
 #'
 RTassay <- function(X){
 
-  temp <- apply(X, 2, rank, ties.method = "min") - 1
+  temp <- Matrix::Matrix(
+    apply(X, 2, rank, ties.method = "min") - 1,
+    sparse = TRUE
+  )
   temp <- temp/(nrow(temp) - 1)
   return(temp)
 }
