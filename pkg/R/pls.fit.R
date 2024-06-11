@@ -28,20 +28,17 @@ pls.fit <-
       Yscals <- NULL
     }
 
-    if(center | scale){
+    X <- scal(
+      X,
+      center = Xmeans,
+      scale = Xscals
+    )
 
-      X <- scale(
-        X,
-        center = center,
-        scale = scale
-      )
-
-      Y <- scale(
-        Y,
-        center = center,
-        scale = scale
-      )
-    }
+    Y <- scal(
+      Y,
+      center = Ymeans,
+      scale = Yscals
+    )
 
     if(DRinfo){
       TT <- matrix(0, ncol = ncomp, nrow = nobj)

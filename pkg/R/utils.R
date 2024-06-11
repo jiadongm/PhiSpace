@@ -125,7 +125,22 @@ reNameCols <- function(
 }
 
 
+## Center and scale by matrix operations
+scal <- function(X, center = NULL, scale = NULL){
 
+  ones <- rep(1, nrow(X))
+  if(!is.null(center)){
+
+    X <- X - outer(ones, center)
+  }
+
+  if(!is.null(scale)){
+
+    X <- X / outer(ones, scale)
+  }
+
+  return(X)
+}
 
 
 

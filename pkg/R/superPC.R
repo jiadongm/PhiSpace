@@ -27,10 +27,7 @@ SuperPC <- function(
 {
   regMethod <- match.arg(regMethod)
 
-  XX <- Matrix(
-    t(assay(reference, assayName)),
-    sparse = sparse
-  )
+  XX <- t(assay(reference, assayName))
 
 
   ## Prepare predictor matrix
