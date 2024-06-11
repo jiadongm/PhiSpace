@@ -56,7 +56,7 @@ pls.fit <-
 
       if (nresp == 1) {
 
-        w.a <- XtY/sqrt(c(crossprod(XtY)))
+        w.a <- XtY/sqrt(as.numeric(crossprod(XtY)))
       } else {
 
         if (nresp < npred) {
@@ -75,18 +75,18 @@ pls.fit <-
 
       } else if (a > 1) {
 
-        for (j in 1:(a - 1)) r.a <- r.a - c(P[, j] %*% w.a) * R[, j]
+        for (j in 1:(a - 1)) r.a <- r.a - as.numeric(P[, j] %*% w.a) * R[, j]
 
       }
 
       t.a <- X %*% r.a
-      tsq <- c(crossprod(t.a))
+      tsq <- as.numeric(crossprod(t.a))
       p.a <- crossprod(X, t.a)/tsq
       q.a <- crossprod(XtY, r.a)/tsq
       XtY <- XtY - (tsq * p.a) %*% t(q.a)
-      R[, a] <- r.a
-      P[, a] <- p.a
-      tQ[a, ] <- q.a
+      R[, a] <- as.vector(r.a)
+      P[, a] <- as.vector(p.a)
+      tQ[a, ] <- as.vector(q.a)
 
       B[, , a] <- R[, 1:a, drop = FALSE] %*% tQ[1:a, , drop = FALSE]
 
