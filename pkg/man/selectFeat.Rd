@@ -4,7 +4,7 @@
 \alias{selectFeat}
 \title{Select nfeat top features from each column (label) of impScores}
 \usage{
-selectFeat(impScores, nfeat, absVal = TRUE)
+selectFeat(impScores, nfeat = 5, absVal = TRUE)
 }
 \arguments{
 \item{impScores}{Matrix. Each column corresponds to a phenotype (eg a cell type) and contains importance scores of features for predicting that phenotype.}

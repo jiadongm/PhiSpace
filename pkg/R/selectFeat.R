@@ -8,7 +8,7 @@
 #' @export
 selectFeat <- function(
     impScores,
-    nfeat,
+    nfeat = 5,
     absVal = TRUE
   ){
 
