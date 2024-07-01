@@ -31,7 +31,7 @@ PhiSpace <- function(
     scale = FALSE,
     DRinfo = FALSE,
     storeUnNorm = FALSE,
-    storeOtherResults = FALSE
+    updateRef = FALSE
 ){
 
   PhiRes <- PhiSpaceR_1ref(
@@ -49,22 +49,33 @@ PhiSpace <- function(
     DRinfo = DRinfo
   )
 
-  if(storeUnNorm) reducedDim(query, "PhiSpaceNonNorm") <- PhiRes$PhiSpaceScore
-  reducedDim(query, "PhiSpace") <- normPhiScores(PhiRes$PhiSpaceScore)
+  if(!is.list(query)){
 
-  if(storeOtherResults){
+    if(storeUnNorm) reducedDim(query, "PhiSpaceNonNorm") <- PhiRes$PhiSpaceScore
+    reducedDim(query, "PhiSpace") <- normPhiScores(PhiRes$PhiSpaceScore)
+  } else {
+
+    for(i in 1:length(query)){
+
+      if(storeUnNorm) reducedDim(query[[i]], "PhiSpaceNonNorm") <- PhiRes$PhiSpaceScore[[i]]
+      reducedDim(query[[i]], "PhiSpace") <- normPhiScores(PhiRes$PhiSpaceScore[[i]])
+    }
+  }
+
+  if(updateRef){
+
+    if(storeUnNorm) reducedDim(reference, "PhiSpaceNonNorm") <- PhiRes$YrefHat
+    reducedDim(reference, "PhiSpace") <- normPhiScores(PhiRes$YrefHat)
 
     return(
       list(
-        annotatedQuery = query,
-        OtherResults = PhiRes
+        reference = reference,
+        query = query
       )
     )
   } else {
 
-    return(
-      query
-    )
+    return(query)
   }
 
 
