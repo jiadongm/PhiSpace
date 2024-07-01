@@ -171,10 +171,38 @@ p <- plotPhiSpaceHeatMap(
 ) 
 
 draw(
-  p,
-  heatmap_legend_side = "top"
+  p, heatmap_legend_side = "top"
 )
 ```
+
+<img src="./figs/heatmap.png" width="70%" style="display: block; margin: auto;" />
+
+Every column of the heatmap corresponds to a phenotype defined in the bulk reference. Every horizontal line of the heatmap represents a query cell. The query cells are grouped according to their cell types:
+
+- Control cell types: DC1 (type 1 conventional DC), DC2 (type 2 conventional DC) and pDC (plasmacytoid DC). These cell types are *in vivo* DC subtypes;
+- HEF: the starting point of DC reprogramming;
+- Day3, Day6, Day9: HEFs after 3, 6 and 9 days of reprogramming.
+
+We can see that the control cell types were predicted to have strong DC1, DC2 and pDC identities. In terms of sample source, they are more *in vivo* like than *in vitro*. HEFs have an ambiguous identity since they were not defined in the reference. However, after 9 days of reprogramming, the HEFs were clearly more DC1-like, with strong *in vitro* identity.
+
+
+## Downstream analyses
+
+The essence of Φ-Space is the so-called **phenotype space analysis**. That is, we view cell type prediction as dimension reduction. How is it dimension reduction? Look at the heatmap: each cell was represented by the gene expression level of thousands of genes, and now they are represented by 11 dimensions, each measuring their likelihood of belonging to a certain phenotype defined in the reference. We term this new representation of cells their **phenotype space embedding**.
+
+As any other dimension reduction objects, we can use cells' phenotype space embedding for downstream analyses. One of such analyses is phenotype space PCA, which allows us to visualize both bulk samples and single cells in the same space.
+
+``` r
+d
+```
+
+
+
+
+
+
+
+
 
 
 

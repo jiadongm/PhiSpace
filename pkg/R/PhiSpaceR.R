@@ -51,6 +51,11 @@ PhiSpace <- function(
   if(storeUnNorm) reducedDim(query, "PhiSpaceNonNorm") <- PhiRes$PhiSpaceScore
   reducedDim(query, "PhiSpace") <- normPhiScores(PhiRes$PhiSpaceScore)
 
-  return(query)
+  return(
+    list(
+      annotatedQuery = query,
+      OtherResults = PhiRes
+    )
+  )
 
 }
