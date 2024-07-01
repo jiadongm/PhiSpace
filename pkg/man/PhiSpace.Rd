@@ -17,7 +17,8 @@ PhiSpace(
   center = TRUE,
   scale = FALSE,
   DRinfo = FALSE,
-  storeUnNorm = FALSE
+  storeUnNorm = FALSE,
+  updateRef = FALSE
 )
 }
 \arguments{
@@ -46,6 +47,8 @@ PhiSpace(
 \item{DRinfo}{Logic. Whether to return dimension reduction information from PCA or PLS. Disable to save memory.}
 
 \item{storeUnNorm}{Store unnormalised raw PhiSpace scores or not. Default is \code{FALSE}.}
+
+\item{updateRef}{Update reference (store reference PhiSpace scores in reference sce object) or not.}
 }
 \value{
 An SCE object with annotation results stored as a reducedDims slot.
