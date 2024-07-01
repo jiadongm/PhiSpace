@@ -193,12 +193,50 @@ The essence of Φ-Space is the so-called **phenotype space analysis**. That is, 
 As any other dimension reduction objects, we can use cells' phenotype space embedding for downstream analyses. One of such analyses is phenotype space PCA, which allows us to visualize both bulk samples and single cells in the same space.
 
 ``` r
-d
+queryLabs <- query$mainTypes
+queryLabs[queryLabs %in% c("Day9_SP", "Day9_DP")] <- "Day9"
+refLabs <- colData(reference)[,"Cell Type"]
+YrefHat_norm <- normPhiScores(PhiRes$YrefHat)
+pc_re <- getPC(YrefHat_norm, ncomp = 3)
+
+suppressPackageStartupMessages(library(plotly))
+
+refEmbedding <- pc_re$scores %>% as.data.frame()
+queryEmbedding <- scale(
+    PhiScores_norm, 
+    center = T, 
+    scale = F
+  ) %*% 
+  pc_re$loadings %>%
+  as.data.frame()
+
+plot_ly(
+    x = ~comp1,
+    y = ~comp2,
+    z = ~comp3,
+) %>%
+  add_markers(
+    data = refEmbedding,
+    colors = DC_cols,
+    color = refLabs,
+     marker = list(
+      symbol = ~"circle",
+      size = 5
+    )
+  ) %>%
+  add_markers(
+    data = queryEmbedding,
+    color = queryLabs, 
+    marker = list(
+      symbol = ~"x",
+      size = 3
+    )
+  )
 ```
 
+<img src="./figs/3D.png" width="70%" style="display: block; margin: auto;" />
 
-
-
+Using plotly, we have rendered the PCA results an interactive plot.
 
 
 
