@@ -2,6 +2,7 @@
 
 export(CLRnorm)
 export(KeepCommonGenes)
+export(PhiSpace)
 export(PhiSpaceR_1ref)
 export(RankTransf)
 export(codeY)

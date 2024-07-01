@@ -2,7 +2,6 @@
 % Please edit documentation in R/PhiSpace-package.R
 \docType{package}
 \name{PhiSpace-package}
-\alias{PhiSpace}
 \alias{PhiSpace-package}
 \title{PhiSpace: Phenotype space analysis of single-cell multiomics and spatial transcriptomics data}
 \description{
