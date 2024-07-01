@@ -13,6 +13,7 @@
 #' @param scale Logic.
 #' @param DRinfo Logic. Whether to return dimension reduction information from PCA or PLS. Disable to save memory.
 #' @param storeUnNorm Store unnormalised raw PhiSpace scores or not. Default is `FALSE`.
+#' @param updateRef Update reference (store reference PhiSpace scores in reference sce object) or not.
 #'
 #' @return An SCE object with annotation results stored as a reducedDims slot.
 #'

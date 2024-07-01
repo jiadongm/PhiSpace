@@ -67,14 +67,18 @@ The Stemformatics DC atlas is a bulk RNA-seq atlas of different subtypes of huma
 
 Load packages
 ``` r
+# Name of the game
 suppressPackageStartupMessages(library(PhiSpace))
+# Tidyverse packages
 suppressPackageStartupMessages(library(ggplot2))
 suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(magrittr))
 suppressPackageStartupMessages(library(ggpubr))
 suppressPackageStartupMessages(library(tidyr))
-suppressPackageStartupMessages(library(RColorBrewer))
-suppressPackageStartupMessages(library(ComplexHeatmap))
+# Other utils
+suppressPackageStartupMessages(library(ComplexHeatmap)) $ plot heatmap
+suppressPackageStartupMessages(library(zeallot)) # use operator %<-%
+suppressPackageStartupMessages(library(plotly)) # plot 3d interative plots
 ```
 
 Download the processed reference dataset [ref_dc.rds](https://unimelbcloud-my.sharepoint.com/:u:/g/personal/jiadong_mao_unimelb_edu_au/EZVy-qceLC5Ik9YQ9yiASM8BRy0eKn4KYj_fy5A8LVdifA?e=NhIuTt) and the processed and downsampled query dataset [query_Rosa_sub.rds](https://unimelbcloud-my.sharepoint.com/:u:/g/personal/jiadong_mao_unimelb_edu_au/Eep7PpTnTHJIirmK8EM6JGsBRrxRlx_Soqk5DT-8KiheNQ?e=MvFzNA). In addtion, we download the selected genes [ref_dc_feat.rds](https://unimelbcloud-my.sharepoint.com/:u:/g/personal/jiadong_mao_unimelb_edu_au/EYW4m1WMtxhNg9vTUFQdZAQB12sF0VOj3u2pmz3Uce5U6A?e=zdyv2a). See our [manuscript](https://www.biorxiv.org/content/10.1101/2024.06.19.599787v1) for a description of feature selection. 
@@ -124,7 +128,7 @@ PhiSpaceAssay <- "rank"
 phenotypes <- c("Cell Type", "Sample Source")
 PhiMethod <- "PLS"
 
-query <- PhiSpace(
+c(reference, query) %<-% PhiSpace(
     reference, 
     query,
     ncomp = 30,
@@ -132,8 +136,9 @@ query <- PhiSpace(
     phenotypes = phenotypes, 
     PhiSpaceAssay = PhiSpaceAssay,
     regMethod = PhiMethod,
-    scale = FALSE
-  )
+    scale = FALSE,
+    updateRef = TRUE
+)
 ```
 
 ### Visualise annotation
@@ -196,10 +201,8 @@ As any other dimension reduction objects, we can use cells' phenotype space embe
 queryLabs <- query$mainTypes
 queryLabs[queryLabs %in% c("Day9_SP", "Day9_DP")] <- "Day9"
 refLabs <- colData(reference)[,"Cell Type"]
-YrefHat_norm <- normPhiScores(PhiRes$YrefHat)
+YrefHat_norm <- reducedDim(reference, "PhiSpace")
 pc_re <- getPC(YrefHat_norm, ncomp = 3)
-
-suppressPackageStartupMessages(library(plotly))
 
 refEmbedding <- pc_re$scores %>% as.data.frame()
 queryEmbedding <- scale(
