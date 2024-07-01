@@ -124,11 +124,7 @@ PhiSpaceAssay <- "rank"
 phenotypes <- c("Cell Type", "Sample Source")
 PhiMethod <- "PLS"
 
-PhiResPath <- paste0(dat_dir, "PhiRes.rds")
-
-if(!file.exists(PhiResPath)){
-  
-  PhiRes <- PhiSpaceR(
+query <- PhiSpace(
     reference, 
     query,
     ncomp = 30,
@@ -136,19 +132,49 @@ if(!file.exists(PhiResPath)){
     phenotypes = phenotypes, 
     PhiSpaceAssay = PhiSpaceAssay,
     regMethod = PhiMethod,
-    scale = FALSE, 
-    DRinfo = TRUE
+    scale = FALSE
   )
-  
-  saveRDS(PhiRes, PhiResPath)
-} else {
-  
-  PhiRes <- readRDS(PhiResPath)
-}
 ```
 
 ### Visualise annotation
 
+Draw the PhiSpace scores as heatmap.
+``` r
+PhiScores_norm <- reducedDim(query, "PhiSpace")
+
+queryLabs <- query$mainTypes
+queryLabs[queryLabs %in% c("Day9_SP", "Day9_DP")] <- "Day9"
+lvls <- c("DC1", "DC2", "pDC", "HEF", "Day3", "Day6", "Day9")
+p <- plotPhiSpaceHeatMap(
+  PhiSpaceScore = PhiScores_norm,
+  reference = reference,
+  phenotypes = phenotypes,
+  queryLabs = queryLabs, 
+  queryLvls = lvls,
+  column_names_rot = 20,
+  name = "Phenotype space embedding",
+  row_names_gp = gpar(fontsize = 6),
+  column_names_gp = gpar(fontsize = 6),
+  show_row_dend = F,
+  show_column_dend = T,
+  # row_title = row_title, 
+  row_title_gp = gpar(fontsize = 6),
+  column_title_gp = gpar(fontsize = 6, fontface = "bold"),
+  heatmap_legend_param = list(
+    title_position = "leftcenter",
+    title_gp = gpar(fontsize = 6),
+    grid_height = unit(2, "mm"),
+    grid_width = unit(2, "mm"),
+    labels_gp = gpar(fontsize = 5),
+    legend_direction = "horizontal"
+  )
+) 
+
+draw(
+  p,
+  heatmap_legend_side = "top"
+)
+```
 
 
 

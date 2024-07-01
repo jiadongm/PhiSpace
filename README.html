@@ -522,11 +522,7 @@ query cells.</p>
 phenotypes &lt;- c(&quot;Cell Type&quot;, &quot;Sample Source&quot;)
 PhiMethod &lt;- &quot;PLS&quot;
 
-PhiResPath &lt;- paste0(dat_dir, &quot;PhiRes.rds&quot;)
-
-if(!file.exists(PhiResPath)){
-  
-  PhiRes &lt;- PhiSpaceR(
+query &lt;- PhiSpace(
     reference, 
     query,
     ncomp = 30,
@@ -534,18 +530,46 @@ if(!file.exists(PhiResPath)){
     phenotypes = phenotypes, 
     PhiSpaceAssay = PhiSpaceAssay,
     regMethod = PhiMethod,
-    scale = FALSE, 
-    DRinfo = TRUE
-  )
-  
-  saveRDS(PhiRes, PhiResPath)
-} else {
-  
-  PhiRes &lt;- readRDS(PhiResPath)
-}</code></pre>
+    scale = FALSE
+  )</code></pre>
 </div>
 <div id="visualise-annotation" class="section level3">
 <h3>Visualise annotation</h3>
+<p>Draw the PhiSpace scores as heatmap.</p>
+<pre class="r"><code>PhiScores_norm &lt;- reducedDim(query, &quot;PhiSpace&quot;)
+
+queryLabs &lt;- query$mainTypes
+queryLabs[queryLabs %in% c(&quot;Day9_SP&quot;, &quot;Day9_DP&quot;)] &lt;- &quot;Day9&quot;
+lvls &lt;- c(&quot;DC1&quot;, &quot;DC2&quot;, &quot;pDC&quot;, &quot;HEF&quot;, &quot;Day3&quot;, &quot;Day6&quot;, &quot;Day9&quot;)
+p &lt;- plotPhiSpaceHeatMap(
+  PhiSpaceScore = PhiScores_norm,
+  reference = reference,
+  phenotypes = phenotypes,
+  queryLabs = queryLabs, 
+  queryLvls = lvls,
+  column_names_rot = 20,
+  name = &quot;Phenotype space embedding&quot;,
+  row_names_gp = gpar(fontsize = 6),
+  column_names_gp = gpar(fontsize = 6),
+  show_row_dend = F,
+  show_column_dend = T,
+  # row_title = row_title, 
+  row_title_gp = gpar(fontsize = 6),
+  column_title_gp = gpar(fontsize = 6, fontface = &quot;bold&quot;),
+  heatmap_legend_param = list(
+    title_position = &quot;leftcenter&quot;,
+    title_gp = gpar(fontsize = 6),
+    grid_height = unit(2, &quot;mm&quot;),
+    grid_width = unit(2, &quot;mm&quot;),
+    labels_gp = gpar(fontsize = 5),
+    legend_direction = &quot;horizontal&quot;
+  )
+) 
+
+draw(
+  p,
+  heatmap_legend_side = &quot;top&quot;
+)</code></pre>
 </div>
 </div>
 </div>
