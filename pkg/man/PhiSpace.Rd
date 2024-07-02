@@ -22,37 +22,59 @@ PhiSpace(
 )
 }
 \arguments{
-\item{reference}{SCE. The reference.}
+\item{reference}{The reference. A \code{SingleCellExperiment} (SCE) object. Must contain an assay named by \code{PhiSpaceAssay}.}
 
-\item{query}{SCE or a list of SCE. The query.}
+\item{query}{The query. An SCE object or a list of SCE object. Must contain an assay named by \code{PhiSpaceAssay}.}
 
-\item{phenotypes}{Charater. Which types of phenotypes to predict. If \code{NULL}, then have to specify \code{response}.}
+\item{phenotypes}{Which phenotypes (e.g. "cell type") to predict. If \code{NULL}, then have to specify \code{response}.}
 
 \item{response}{Named matrix. Rows correpond to cells (columns) in reference; columns correspond to phenotypes. If not \code{NULL}, then will override \code{phenotypes}.}
 
-\item{PhiSpaceAssay}{Character. Which assay to use to train}
+\item{PhiSpaceAssay}{Character. Which assay to use to train.}
 
-\item{regMethod}{Character. Regression method: one of PLS and PCA}
+\item{regMethod}{Character. Regression method: one of "PLS" and "PCA".}
 
-\item{ncomp}{Integer.}
+\item{ncomp}{Integer. Number of components. If \code{NULL}, will use the default, i.e. same as the total number of phenotypes.}
 
-\item{nfeat}{Integer.}
+\item{nfeat}{Integer. Number of features to choose to predict each phenotype. See details.}
 
-\item{selectedFeat}{Character.}
+\item{selectedFeat}{Character. Alternatively, can provide a vector of pre-selected features.}
 
-\item{center}{Logic.}
+\item{center}{Logic. Whether to perform centering. See details.}
 
-\item{scale}{Logic.}
+\item{scale}{Logic. Whether to perform scaling. See details.}
 
-\item{DRinfo}{Logic. Whether to return dimension reduction information from PCA or PLS. Disable to save memory.}
+\item{DRinfo}{Logic. Whether to return dimension reduction information from PCA or PLS. By default disabled to save memory.}
 
 \item{storeUnNorm}{Store unnormalised raw PhiSpace scores or not. Default is \code{FALSE}.}
 
 \item{updateRef}{Update reference (store reference PhiSpace scores in reference sce object) or not.}
 }
 \value{
-An SCE object with annotation results stored as a reducedDims slot.
+\itemize{
+\item If \code{updateRef = FALSE} (default): An updated query SCE object with PhiSpace annotation results stored in reducedDim slot "PhiSpace";
+\item If \code{updateRef = TRUE}: A list of updated reference and query SCE objects with PhiSpace annotation results stored in reducedDim slot "PhiSpace".
+}
 }
 \description{
-PhiSpace continuous phenotyping
+PhiSpace annotates a query dataset or a list of query datasets, given an annotated bulk or single-cell
+RNA-seq reference. PhiSpace can simultaneously model multiple layers of cell phenotypes, e.g. cell type and disease condtion.
+}
+\details{
+\itemize{
+\item \strong{Parameter tuning} By default, PhiSpace takes \code{ncomp} equal to the total number of phenotypes. For example, if there are
+20 cell types and 5 sample sources (e.g. \emph{in vivo} and \emph{in vitro}) defined in the reference, \code{ncomp} will be set to be 25.
+By default, PhiSpace doesn't do any feature selection. However, feature selection is very straightforward in PhiSpace. The partial least squares model automatically rank all features
+according to their contribution to predicting each phenotype. For example, if there are 25 phenotypes then PLS will return
+25 rankings of all features. Based on this, customised feature selection can be done in two ways. The user either
+specify \code{nfeat}, i.e. the number of features (or markers) used to predict each phenotype; or specify \code{selectedFeat}, i.e.
+a subset of features used to predict all phenotypes (e.g. highly variable genes). If \code{nfeat} is provided, then \code{selectedFeat}
+will be automatically defined as the union of the \code{nfeat} markers of all phenotypes.
+\item \strong{Center and scale} By default, PhiSpace only center the data but do not scale. This is because we often use more features
+than standard single-cell pipelines (e.g. Seurat selects 2,000 highly variable genes) for a better prediction. This means
+that we might have included genes with small variance and scaling would greatly inflate the expression levels of these genes.
+}
+}
+\references{
+Mao J., Deng, Y. and Lê Cao, K.-A. (2024).Φ-Space: Continuous phenotyping of single-cell multi-omics data. bioRxiv.
 }
