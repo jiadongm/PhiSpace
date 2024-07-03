@@ -28,12 +28,17 @@ PhiSpaceR_1ref <- function(
     selectedFeat = NULL,
     center = TRUE,
     scale = FALSE,
-    DRinfo = FALSE
+    DRinfo = FALSE,
+    assay2rank = NULL
 ){
 
   if(!inherits(query, "list")) query <- list(query)
 
-  if(!(PhiSpaceAssay %in% assayNames(reference))) stop("PhiSpaceAssay is not present in reference.")
+  # Check if PhiSpaceAssya exists (doens't matter if PhiSpaceAssay == "rank", see below)
+  if(PhiSpaceAssay != "rank"){
+
+    if(!(PhiSpaceAssay %in% assayNames(reference))) stop("PhiSpaceAssay is not present in reference.")
+  }
 
   # Intersection of names of assays in all queries
   allAssayNames <- lapply(query, assayNames)
@@ -73,8 +78,16 @@ PhiSpaceR_1ref <- function(
   query <- lapply(query, function(x) x[featNames, ])
 
   if(PhiSpaceAssay == "rank"){
-    reference <- RankTransf(reference, PhiSpaceAssay)
-    query <- lapply(query, RankTransf, assayname = PhiSpaceAssay)
+
+    if(is.null(assay2rank)){
+
+      assay2rank <- "rank"
+    }
+
+    if(!(assay2rank %in% assayNames(reference))) stop("assay2rank is not present in reference; specify a different assay2rank.")
+
+    reference <- RankTransf(reference, assay2rank)
+    query <- lapply(query, RankTransf, assayname = assay2rank)
   }
 
   ## Build atlas
