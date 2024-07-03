@@ -19,7 +19,7 @@ PhiSpace(
   DRinfo = FALSE,
   storeUnNorm = FALSE,
   updateRef = FALSE,
-  assay2use = NULL
+  assay2rank = NULL
 )
 }
 \arguments{

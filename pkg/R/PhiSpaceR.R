@@ -58,7 +58,7 @@ PhiSpace <- function(
     DRinfo = FALSE,
     storeUnNorm = FALSE,
     updateRef = FALSE,
-    assay2use = NULL
+    assay2rank = NULL
 ){
 
   PhiRes <- PhiSpaceR_1ref(
@@ -74,7 +74,7 @@ PhiSpace <- function(
     center = center,
     scale = scale,
     DRinfo = DRinfo,
-    assay2use = assay2use
+    assay2rank = assay2rank
   )
 
   if(!is.list(query)){
