@@ -16,7 +16,8 @@ PhiSpaceR_1ref(
   selectedFeat = NULL,
   center = TRUE,
   scale = FALSE,
-  DRinfo = FALSE
+  DRinfo = FALSE,
+  assay2rank = NULL
 )
 }
 \arguments{
@@ -43,6 +44,8 @@ PhiSpaceR_1ref(
 \item{scale}{Logic.}
 
 \item{DRinfo}{Logic. Whether to return dimension reduction information from PCA or PLS. Disable to save memory.}
+
+\item{assay2rank}{Which assay should be used for rank transform. If not specified, "rank" will be used.}
 }
 \value{
 A list
