@@ -44,7 +44,11 @@ PhiSpaceR_1ref <- function(
   # Intersection of names of assays in all queries
   allAssayNames <- lapply(query, assayNames)
   allAssayNames <- Reduce(intersect, allAssayNames)
-  if(!(PhiSpaceAssay %in% allAssayNames)) stop("PhiSpaceAssay needs to be present in every query.")
+  if(PhiSpaceAssay != "rank"){
+
+    if(!(PhiSpaceAssay %in% allAssayNames)) stop("PhiSpaceAssay needs to be present in every query.")
+  }
+
 
   regMethod <- match.arg(regMethod)
 
