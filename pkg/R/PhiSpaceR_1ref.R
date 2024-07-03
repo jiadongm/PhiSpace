@@ -12,6 +12,7 @@
 #' @param center Logic.
 #' @param scale Logic.
 #' @param DRinfo Logic. Whether to return dimension reduction information from PCA or PLS. Disable to save memory.
+#' @param assay2rank Which assay should be used for rank transform. If not specified, "rank" will be used.
 #'
 #' @return A list
 #'
