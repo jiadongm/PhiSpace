@@ -1,10 +1,6 @@
-.Rproj.user
-.Rhistory
-.RData
-.DS_Store
-.Ruserdata
-pkg/*.DS_Store
-pkg/*.Rhistory
-pkg/*.Rproj.user
 *.Rproj.user
+*.Rhistory
+*.RData
 *.DS_Store
+*.Ruserdata
+
