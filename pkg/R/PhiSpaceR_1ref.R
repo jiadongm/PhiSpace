@@ -114,7 +114,7 @@ PhiSpaceR_1ref <- function(
                        ncomp,
                        method = regMethod,
                        center = center, scale = scale)$coefficients[,,ncomp]
-      selectedFeat <- selectFeat(impScores, nfeat)
+      selectedFeat <- selectFeat(impScores, nfeat)$selectedFeat
     } else {
 
       impScores <- NULL
