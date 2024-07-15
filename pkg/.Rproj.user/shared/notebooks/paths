@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 /Users/jiadongm/Documents/GitHub/PhiSpace/README.md="533A7B3B"
 /Users/jiadongm/Documents/GitHub/PhiSpace/pkg/R/PhiSpaceR.R="B8B952B3"
 /Users/jiadongm/Documents/GitHub/PhiSpace/pkg/R/PhiSpaceR_1ref.R="AE8CB093"
@@ -9,18 +8,3 @@
 /Users/jiadongm/Documents/GitHub/PhiSpace/pkg/R/superPC.R="1971D3FF"
 /Users/jiadongm/Documents/GitHub/PhiSpace/pkg/R/svdspc.fit.R="8160E634"
 /Users/jiadongm/Documents/GitHub/PhiSpace/pkg/R/utils.R="1A766DB9"
-=======
-/Users/jmao1/Documents/GitHub/PhiSpace/README.md="34C00054"
-/Users/jmao1/Documents/GitHub/PhiSpace/pkg/R/CVTune_ncomp.R="0D89549B"
-/Users/jmao1/Documents/GitHub/PhiSpace/pkg/R/CVTune_nfeat.R="27B1267A"
-/Users/jmao1/Documents/GitHub/PhiSpace/pkg/R/PhiSpaceR.R="19A03C0A"
-/Users/jmao1/Documents/GitHub/PhiSpace/pkg/R/PhiSpaceR_1ref.R="15699FA6"
-/Users/jmao1/Documents/GitHub/PhiSpace/pkg/R/getErr.R="49574B74"
-/Users/jmao1/Documents/GitHub/PhiSpace/pkg/R/getErr_nfeat.R="E25E26C1"
-/Users/jmao1/Documents/GitHub/PhiSpace/pkg/R/mvr.R="A9F4F311"
-/Users/jmao1/Documents/GitHub/PhiSpace/pkg/R/phenotype.R="12FBD5D9"
-/Users/jmao1/Documents/GitHub/PhiSpace/pkg/R/pls.fit.R="A08AF114"
-/Users/jmao1/Documents/GitHub/PhiSpace/pkg/R/superPC.R="99226E78"
-/Users/jmao1/Documents/GitHub/PhiSpace/pkg/R/tunePhiSpace.R="42FCD7D9"
-/Users/jmao1/Documents/GitHub/PhiSpace/pkg/R/utils.R="FAF9FD0E"
->>>>>>> a114cb0ff2c6c5d36f75c6a48d096309e16ed7df
