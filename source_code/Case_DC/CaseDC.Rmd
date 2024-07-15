@@ -1,0 +1,880 @@
+---
+title: "Case DC: projecting scRNA-seq to bulk RNA-seq atlas"
+output: html_notebook
+---
+
+
+
+Note that `dat_dir` is the directory where you store the downloaded data and output from the R scripts. This directory should have the following structure:
+```
+dat_dir
+│   
+└───data
+│   │
+│   └───stemformatics
+│   |   │   ref_dc.rds
+│   |   │   ...
+|   |   
+│   └───Covid
+|   |...
+|   |
+└───output
+    │  
+    └───CaseDC
+    |
+    └───CaseCITE
+    |
+    └───CaseATAC
+```
+
+```{r}
+suppressPackageStartupMessages(library(PhiSpace))
+suppressPackageStartupMessages(library(ggplot2))
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(magrittr))
+suppressPackageStartupMessages(library(ggpubr))
+suppressPackageStartupMessages(library(tidyr))
+suppressPackageStartupMessages(library(RColorBrewer))
+suppressPackageStartupMessages(library(ComplexHeatmap))
+
+dat_dir <- "/home/unimelb.edu.au/jmao1/PhiSpace/" # Replace this by your own directory 
+source("Rosa_cols.R") # colour code for visualising 
+```
+
+Load data. The processed reference and query data can be downloaded from [OneDrive](https://unimelbcloud-my.sharepoint.com/:f:/g/personal/jiadong_mao_unimelb_edu_au/EimPelXY7CpHqNKd4vKfLQABhDNcmkpQtzlm2uKOQMGtPQ?e=uQhpBR). See `processData.R` for creating these data objects.
+
+**Warning** This session may require up to 50GB RAM. If you don't have access to bigger RAM, consider subsetting the query datasets (eg to 5000 cells).
+```{r}
+query <- readRDS(paste0(dat_dir, "data/Rosa/query_Rosa.rds"))
+# Comment the following line if you do not wish to subset
+query <- subsample(query, key = "mainTypes", proportion = 0.1, minCellNum = 50)
+reference <- readRDS(paste0(dat_dir,"data/stemformatics/ref_dc.rds"))
+```
+
+In this case study we use rank normalisation for both reference and query. This is because the reference was rank normalised; see [this paper](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1008219) for an explanation. 
+```{r}
+query <- RankTransf(query, "counts")
+reference <- RankTransf(reference, "data", sparse = F)
+```
+
+
+Annotate query cells. See `CaseDC_tune.R` for feature selection.
+```{r}
+PhiSpaceAssay <- "rank"
+phenotypes <- c("Cell Type", "Sample Source")
+PhiMethod <- "PLS"
+
+PhiResPath <- paste0(
+  dat_dir,
+  "output/CaseDC/PhiRes.rds"
+)
+
+if(!file.exists(PhiResPath)){
+  
+  selectedFeat <- readRDS(paste0(dat_dir, "output/CaseDC/ref_dc_test.rds"))
+  PhiRes <- PhiSpaceR_1ref(
+    reference, 
+    query,
+    ncomp = NULL,
+    selectedFeat = selectedFeat,
+    phenotypes = phenotypes, 
+    PhiSpaceAssay = PhiSpaceAssay,
+    regMethod = PhiMethod,
+    scale = FALSE, 
+    DRinfo = F
+  )
+  
+  saveRDS(PhiRes, PhiResPath)
+} else {
+  
+  PhiRes <- readRDS(PhiResPath)
+}
+```
+ 
+
+Use normalised PhiSpace scores for downstream analyses.
+```{r}
+YrefHat <- PhiRes$YrefHat
+YrefHat_norm <- normPhiScores(YrefHat)
+idx <- colnames(query)
+PhiScores_norm <- normPhiScores(PhiRes$PhiSpaceScore)[idx,]
+```
+
+
+Heatmap.
+```{r}
+queryLabs <- query$mainTypes
+queryLabs[queryLabs %in% c("Day9_SP", "Day9_DP")] <- "Day9"
+lvls <- c("DC1", "DC2", "pDC", "HEF", "Day3", "Day6", "Day9")
+p <- plotPhiSpaceHeatMap(
+  PhiSpaceScore = PhiScores_norm,
+  reference = reference,
+  phenotypes = phenotypes,
+  queryLabs = queryLabs, 
+  queryLvls = lvls,
+  column_names_rot = 20,
+  name = "Phenotype space embedding",
+  row_names_gp = gpar(fontsize = 6),
+  column_names_gp = gpar(fontsize = 6),
+  show_row_dend = F,
+  show_column_dend = T,
+  # row_title = row_title, 
+  row_title_gp = gpar(fontsize = 6),
+  column_title_gp = gpar(fontsize = 6, fontface = "bold"),
+  heatmap_legend_param = list(
+    title_position = "leftcenter",
+    title_gp = gpar(fontsize = 6),
+    grid_height = unit(2, "mm"),
+    grid_width = unit(2, "mm"),
+    labels_gp = gpar(fontsize = 5),
+    legend_direction = "horizontal"
+  )
+) 
+
+pdf("figs/heatmap.pdf", width = 6, height = 5)
+draw(
+  p,
+  heatmap_legend_side = "top"
+)
+dev.off()
+```
+
+
+Simplify labels for better visualisation.
+```{r}
+queryLabs <- query$mainTypes
+queryLabs[queryLabs %in% c("Day9_SP", "Day9_DP")] <- "Day9"
+refLabs <- colData(reference)[,"Cell Type"]
+allSymbs <- c(
+  colData(reference)[,"Sample Source"],
+  rep("query", nrow(PhiScores_norm))
+)
+allLabs <- c(refLabs, queryLabs)
+# allLabs[allLabs %in% c("pDC", "DC2")] <- "other"
+allLabs <- factor(
+  allLabs,
+  levels = c("DC", "MoDC", "DC_prec", "mono", "pDC",
+             "DC1", "DC2", "HEF",
+             "Day3", "Day6", "Day9")
+)
+```
+
+
+
+
+Phenotype PC space.
+
+```{r}
+pc_re <- getPC(YrefHat_norm, ncomp = 3)
+plot_dat <- rbind(
+  pc_re$scores,
+  scale(
+    PhiScores_norm, 
+    center = T, 
+    scale = F
+  ) %*% pc_re$loadings
+) %>%
+  as.matrix() %>%
+  as.data.frame() %>%
+  mutate(
+    `Cell type` = allLabs,
+    `Sample source` = allSymbs,
+    `Dataset` = rep(c("reference", "query"), c(nrow(pc_re$scores), nrow(PhiScores_norm)))
+  )
+```
+
+A function for adjusting themes of your ggplot2 object for more compact presentation, useful for papers.
+```{r}
+ref_size <- 1
+query_size <- 1.5
+query_stroke <- 0.05
+axis.title.x.margin <- -2
+axis.title.y.margin <- -3
+
+adjPlots <- function(
+  p,
+  theme_overall = c("bw", "ggplot2", "classic", "linedraw", "light", "dark", "minimal", "void"),
+  # font sizes
+  default.fsize = 10,
+  axis.text.x.fsize = NULL,
+  axis.text.y.fsize = NULL,
+  axis.title.x.fsize = NULL,
+  axis.title.y.fsize = NULL,
+  legend.text.fsize = NULL,
+  legend.title.fsize = NULL,
+  # margins
+  axis.title.x.margin = 0,
+  axis.title.y.margin = 0,
+  # positions
+  legend.position = "top",
+  legend.title.position = "left",
+  # spacings
+  legend.spacing.x = -5,
+  legend.key.spacing = -5,
+  legend.key.spacing.y = -10,
+  legend.box.margin = 0,
+  legend.box.spacing = 0,
+  # sizes
+  legend.obj.size = 2
+){
+  
+  
+  theme_overall <- match.arg(theme_overall)
+  theme_fun <- switch (
+    theme_overall,
+    classic = theme_classic,
+    ggplot2 = theme_gray,
+    bw = theme_bw,
+    linedraw = theme_linedraw,
+    light = theme_light,
+    dark = theme_dark,
+    minimal = theme_minimal,
+    void = theme_void
+  )
+  
+  ## Font sizes
+  if(is.null(axis.text.x.fsize)) axis.text.x.fsize <- default.fsize
+  if(is.null(axis.text.y.fsize)) axis.text.y.fsize <- default.fsize
+  if(is.null(axis.title.x.fsize)) axis.title.x.fsize <- default.fsize
+  if(is.null(axis.title.y.fsize)) axis.title.y.fsize <- default.fsize
+  if(is.null(legend.text.fsize)) legend.text.fsize <- default.fsize
+  if(is.null(legend.title.fsize)) legend.title.fsize <- default.fsize
+  
+  p_adj <- p +
+    theme_fun() +
+    theme(
+      axis.text = element_text(size = axis.text.x.fsize),
+      axis.title.x = element_text(
+        size = axis.title.x.fsize, 
+        margin = margin(
+          axis.title.x.margin, 
+          axis.title.x.margin, 
+          axis.title.x.margin, 
+          axis.title.x.margin
+        )
+      ),
+      axis.title.y = element_text(
+        size = axis.title.y.fsize, 
+        margin = margin(
+          axis.title.y.margin,
+          axis.title.y.margin,
+          axis.title.y.margin,
+          axis.title.y.margin
+        )
+      ),
+      legend.text = element_text(size = legend.text.fsize),
+      legend.title = element_text(size = legend.title.fsize, face = "bold"),
+      legend.position = legend.position,
+      legend.title.position = legend.title.position,
+      legend.key = element_blank(),
+      legend.spacing.x = unit(legend.spacing.x, "pt"),
+      legend.key.spacing = unit(legend.key.spacing, "pt"),
+      legend.key.spacing.y = unit(legend.key.spacing.y, "pt"),
+      legend.box.margin = margin(
+        legend.box.margin,
+        legend.box.margin,
+        legend.box.margin,
+        legend.box.margin
+      ),
+      legend.box.spacing = unit(legend.box.spacing, "pt"),
+      legend.background = element_blank()
+    ) +
+    guides(
+      color = guide_legend(
+        override.aes = list(
+          size = legend.obj.size
+        ),
+        nrow = 1
+      ),
+      shape = guide_legend(
+        override.aes = list(
+          size = legend.obj.size
+        )
+      )
+    )
+  
+}
+
+tempPlot <- function(coord1 = "comp1", coord2 = "comp2"){
+  
+  p <- 
+    plot_dat %>%
+    ggplot(
+      aes(x = plot_dat[,coord1], y = plot_dat[,coord2])
+    ) +
+    geom_point(
+      aes(colour = `Cell type`, shape = Dataset, size = Dataset),
+      stroke = query_stroke
+    ) +
+    scale_size_manual(values = c(query_size, ref_size)) +
+    scale_colour_manual(
+      values = DC_cols,
+      breaks = c("DC1", "DC2", "HEF",
+                 "Day3", "Day6", "Day9", 
+                 "DC", "DC_prec", "mono", 
+                 "pDC", "DC2", "MoDC", "other")
+    ) +
+    scale_shape_manual(values = DC_symbs) +
+    labs(x = coord1, y = coord2)
+  
+  p <- adjPlots(p)
+  
+  return(p)
+}
+
+tempPlot_source <- function(coord1 = "comp1", coord2 = "comp2"){
+  
+  p <- 
+    plot_dat %>%
+    ggplot(
+      aes(x = plot_dat[,coord1], y = plot_dat[,coord2])
+    ) +
+    geom_point(
+      aes(colour = `Sample source`, shape = Dataset, size = Dataset),
+      stroke = 0.1
+    ) +
+    theme_bw() +
+    scale_size_manual(
+      values = c(query_size, ref_size)
+    ) +
+    scale_colour_manual(
+      values = DC_cols_source
+    ) +
+    scale_shape_manual(values = DC_symbs) +
+    labs(x = coord1, y = coord2) +
+    guides(
+      color = guide_legend(
+        override.aes = list(
+          size = 2,
+          shape = c(
+            rep(16, 4),
+            4
+          )
+        ),
+        nrow = 2
+      ),
+      size = "none",
+      shape = "none"
+    ) +
+    theme(
+      axis.text = element_text(size = 6),
+      axis.title.x = element_text(
+        size = 6, 
+        margin = margin(
+          axis.title.x.margin, 
+          axis.title.x.margin, 
+          axis.title.x.margin, 
+          axis.title.x.margin
+        )
+      ),
+      axis.title.y = element_text(
+        size = 6, 
+        margin = margin(
+          axis.title.y.margin,
+          axis.title.y.margin,
+          axis.title.y.margin,
+          axis.title.y.margin
+        )
+      ),
+      legend.text = element_text(size = 6),
+      legend.title = element_text(size = 6, face = "bold"),
+      legend.position = "top",
+      legend.key = element_blank(),
+      legend.spacing.x = unit(-5, "pt"),
+      legend.key.spacing = unit(-5, "pt"),
+      legend.key.spacing.y = unit(-10, "pt"),
+      legend.title.position = "top",
+      legend.box.margin = margin(-10, -10 ,-10 , -10),
+      legend.box.spacing = unit(0, "inch"),
+      legend.background = element_blank()
+    )
+  
+  # theme_void 
+  # angle of x and y labels
+  
+    
+  
+  return(p)
+}
+
+# Comp 1 & 2
+p_comp12 <- tempPlot()
+p_comp23 <- tempPlot("comp2", "comp3")
+p_comp13 <- tempPlot("comp1", "comp3")
+
+p_comp12_source <- tempPlot_source()
+p_comp23_source <- tempPlot_source("comp2", "comp3")
+p_comp13_source <- tempPlot_source("comp1", "comp3")
+
+ggsave(
+  filename = "figs/Query2PhenoSpacePC.pdf",
+  plot = p_comp12, 
+  width = 7.5,
+  height = 2.5
+)
+ggsave(
+  filename = "figs/Query2PhenoSpacePC_sampSource.pdf",
+  plot = p_comp12_source, 
+  width = 2.5,
+  height = 2.5
+)
+ggsave(
+  filename = "figs/Query2PhenoSpacePC23.pdf",
+  plot = p_comp23, 
+  width = 2.5,
+  height = 2.5
+)
+ggsave(
+  filename = "figs/Query2PhenoSpacePC23_sampSource.pdf",
+  plot = p_comp23_source, 
+  width = 2.5,
+  height = 2.5
+)
+ggsave(
+  filename = "figs/Query2PhenoSpacePC13.pdf",
+  plot = p_comp13, 
+  width = 2.5,
+  height = 2.5
+)
+ggsave(
+  filename = "figs/Query2PhenoSpacePC13_sampSource.pdf",
+  plot = p_comp13_source, 
+  width = 2.5,
+  height = 2.5
+)
+```
+
+Biplot overlaid.
+
+```{r}
+tempPlot_load <- function(comps = c(1,2)){
+  
+  comps1 <- paste0("comp", comps[1])
+  comps2 <- paste0("comp", comps[2])
+  
+  plot_load <- 
+    pc_re$loadings %>%
+    as.matrix() %>%
+    as.data.frame() %>%
+    mutate(
+      importance = (!!sym(comps1))^2 + (!!sym(comps2))^2,
+      names = rownames(.)
+    ) %>%
+    arrange(-importance)
+  
+  p <- plot_dat %>%
+    filter(Dataset == "query") %>%
+    ggplot(aes(x = !!sym(comps1), y = !!sym(comps2))) +
+    geom_point(aes(colour = queryLabs), shape = 4, size = 1.5, stroke = 0.3) +
+    theme_bw() +
+    scale_colour_manual(
+      values = DC_cols,
+      breaks = c(
+        "HEF", "Day3", "Day6", "Day9",
+        "DC1", "DC2", "pDC"
+      )
+    ) +
+    geom_segment(
+      data = plot_load,
+      aes(x = 0, y = 0, xend = (!!sym(comps1)) * 0.9, yend = (!!sym(comps2)) * 0.9),
+      arrow = arrow(angle = 10, length = unit(3, "points")),
+      linewidth = 0.3
+    ) +
+    geom_label(
+      data = plot_load,
+      aes(
+        label = names,
+        size = names
+      )
+    ) +
+    scale_size_manual(
+      values = c(
+        DC1 = 2,
+        DC = 1,
+        in_vitro = 2,
+        ex_vivo = 2,
+        DC2 = 2,
+        in_vivo_HuMouse = 1,
+        MoDC = 1,
+        mono = 1,
+        in_vivo = 2,
+        pDC = 1,
+        DC_prec = 1
+      ),
+      guide = "none"
+    ) +
+    theme(
+      axis.text = element_text(size = 6),
+      axis.title.x = element_text(
+          size = 6, 
+          margin = margin(
+            axis.title.x.margin, 
+            axis.title.x.margin, 
+            axis.title.x.margin, 
+            axis.title.x.margin
+          )
+        ),
+        axis.title.y = element_text(
+          size = 6, 
+          margin = margin(
+            axis.title.y.margin,
+            axis.title.y.margin,
+            axis.title.y.margin,
+            axis.title.y.margin
+          )
+        ),
+      legend.text = element_text(size = 6),
+      legend.title = element_text(size = 6),
+      legend.position = "top",
+      legend.key = element_blank(),
+      legend.spacing.x = unit(-5, "pt"),
+      legend.key.spacing = unit(-5, "pt"),
+      legend.key.spacing.y = unit(-10, "pt"),
+      legend.title.position = "top", 
+      legend.box.margin = margin(-10,-10,-10,-10),
+      legend.box.spacing = unit(0, "inch"),
+      legend.background = element_blank()
+    ) +
+    guides(
+      colour = guide_legend(
+        title = "Cell type"
+      )
+    )
+  
+  return(p)
+}
+
+p12 <- tempPlot_load()
+p23 <- tempPlot_load(c(2,3))
+
+ggsave(
+  filename = "figs/biplot.pdf",
+  plot = p12,
+  width = 2.5,
+  height = 2.5
+)
+ggsave(
+  filename = "figs/biplot23.pdf",
+  plot = p23,
+  width = 2.5,
+  height = 2.5
+)
+```
+
+
+
+
+# Compare with SingleR
+
+See `Case1_Rosa_SingleR.R` for getting SingleR annotation.
+
+```{r}
+SingleRScores <- readRDS(paste0(dat_dir, "output/Case1/Rosa2dc_SR_score.rds"))
+SingleRScores_noselect <- readRDS(paste0(dat_dir, "output/Case1/Rosa2dc_SR_score_noselect.rds"))
+SingleRScores_stemf <- readRDS(paste0(dat_dir, "output/Case1/Rosa2dc_SR_score_stemf_feat.rds"))
+
+queryLabs <- query$mainTypes
+queryLabs[queryLabs %in% c("Day9_SP", "Day9_DP")] <- "Day9"
+lvls <- c("DC1", "DC2", "pDC", "HEF", "Day3", "Day6", "Day9")
+
+PhiScores_norm_mod <- PhiScores_norm
+newColNames <- colnames(PhiScores_norm)
+newColNames[3] <- "cDC1"
+colnames(PhiScores_norm_mod) <- newColNames
+```
+
+Violin plots.
+```{r}
+temp_plot_violin <- function(scores, title){
+  p <-
+    scores %>%
+    as.data.frame() %>%
+    mutate(queryLabs = factor(queryLabs, levels = lvls)) %>%
+    pivot_longer(
+      cols = ! queryLabs, 
+      names_to = "refLabs", 
+      values_to = "scores"
+    ) %>%
+    filter(refLabs %in% c("cDC1", "in_vitro")) %>%
+    ggplot(aes(x = queryLabs, y = scores, fill = refLabs)) +
+    geom_violin() +
+    theme_bw() +
+    scale_fill_discrete(
+      labels = c(
+        "DC1", "in_vitro"
+      )
+    ) +
+    guides(fill = guide_legend(title = "Phenotype")) +
+    ggtitle(title) +
+    theme(
+      axis.text = element_text(size = 6),
+      axis.title.x = element_blank(),
+      axis.title.y = element_blank(),
+      plot.title = element_text(size = 7, face = "bold"),
+      legend.text = element_text(size = 6),
+      legend.title = element_text(size = 6),
+      legend.position = "top",
+      # legend.key = element_blank(),
+      legend.background = element_blank(),
+      legend.key.size = unit(6, "pt")
+    ) 
+    
+  return(p)
+}
+## Boxplots for PhiSpace scores
+p_phi <- temp_plot_violin(PhiScores_norm_mod, "PhiSpace")
+p_sr <- temp_plot_violin(SingleRScores, "SingleR")
+p_sr_ns <- temp_plot_violin(SingleRScores_noselect, "SingleR using all features")
+p_sr_stemf <- temp_plot_violin(SingleRScores_stemf, "SingleR using features selected by Elahi et al. (2022)")
+# ggarrange(p_phi, p_sr_ns, p_sr, ncol = 1, common.legend = TRUE)
+ggsave(
+  "figs/violin.pdf",
+  plot = ggarrange(
+    p_phi, 
+    # p_sr_ns, 
+    p_sr, 
+    # p_sr_stemf,  
+    nrow = 1, ncol = 2, common.legend = TRUE
+  ),
+  width = 7,
+  height = 2
+)
+```
+
+
+
+# Omics space reference mapping
+```{r}
+selectedFeat <- rownames(PhiRes$atlas_re$reg_re$loadings)
+
+assay4pc <- t(
+    assay(reference, PhiSpaceAssay)[selectedFeat,]
+  )
+assay4pc <- PhiSpace:::RTassay(assay4pc)
+
+pca_omics_res <- getPC(
+  assay4pc,
+  ncomp = 10
+)
+
+plot_dat <- rbind(
+  pca_omics_res$scores,
+  scale(
+    t(assay(query, PhiSpaceAssay))[,selectedFeat], 
+    center = T, 
+    scale = F
+  ) %*% pca_omics_res$loadings
+) %>%
+  as.matrix() %>%
+  as.data.frame() %>%
+  mutate(
+    `Cell type` = allLabs,
+    `Sample source` = allSymbs,
+    `Dataset` = rep(
+      c("reference", "query"), 
+      c(
+        nrow(pca_omics_res$scores), 
+        nrow(PhiScores_norm)
+      )
+    )
+  )
+```
+
+
+
+```{r}
+# Comp 1 & 2
+p_comp12 <- tempPlot()
+p_comp23 <- tempPlot("comp2", "comp3")
+p_comp13 <- tempPlot("comp1", "comp3")
+
+p_comp12_source <- tempPlot_source()
+p_comp23_source <- tempPlot_source("comp2", "comp3")
+p_comp13_source <- tempPlot_source("comp1", "comp3")
+  
+
+ggsave(
+  "figs/Xspace.pdf",
+  plot = p_comp12,
+  width = 2.5,
+  height = 2.5
+)
+ggsave(
+  "figs/Xspace_source.pdf",
+  plot = p_comp12_source,
+  width = 2.5,
+  height = 2.5
+)
+ggsave(
+  "figs/XspacePC23.pdf",
+  plot = p_comp23,
+  width = 2.5,
+  height = 2.5
+)
+ggsave(
+  "figs/Xspace_sourcePC23.pdf",
+  plot = p_comp23_source,
+  width = 2.5,
+  height = 2.5
+)
+```
+
+
+Sincast imputation. See `Case_DC_runSincast.R` for details. Took 25.50501 mins to compute with 4 CPUs and 250GB RAM.
+```{r}
+SinResPath <- paste0(
+  dat_dir,
+  "output/Case1/SinImputRosa.rds"
+)
+
+querySin <- readRDS(SinResPath)
+querySin <- RankTransf(querySin, "SincastImpData")
+```
+
+```{r}
+plot_dat <- rbind(
+  pca_omics_res$scores,
+  scale(
+    t(assay(querySin, PhiSpaceAssay))[,selectedFeat], 
+    center = T, 
+    scale = F
+  ) %*% pca_omics_res$loadings
+) %>%
+  as.matrix() %>%
+  as.data.frame() %>%
+  mutate(
+    `Cell type` = allLabs,
+    `Sample source` = allSymbs,
+    `Dataset` = rep(
+      c("reference", "query"), 
+      c(
+        nrow(pca_omics_res$scores), 
+        nrow(PhiScores_norm)
+      )
+    )
+  )
+```
+
+```{r}
+# Comp 1 & 2
+p_comp12 <- tempPlot()
+p_comp23 <- tempPlot("comp2", "comp3")
+p_comp13 <- tempPlot("comp1", "comp3")
+
+p_comp12_source <- tempPlot_source()
+p_comp23_source <- tempPlot_source("comp2", "comp3")
+p_comp13_source <- tempPlot_source("comp1", "comp3")
+  
+
+ggsave(
+  "figs/XspaceSincast.pdf",
+  plot = p_comp12,
+  width = 2.5,
+  height = 2.5
+)
+ggsave(
+  "figs/XspaceSincast_source.pdf",
+  plot = p_comp12_source,
+  width = 2.5,
+  height = 2.5
+)
+ggsave(
+  "figs/XspaceSincastPC23.pdf",
+  plot = p_comp23,
+  width = 2.5,
+  height = 2.5
+)
+ggsave(
+  "figs/XspaceSincast_sourcePC23.pdf",
+  plot = p_comp23_source,
+  width = 2.5,
+  height = 2.5
+)
+```
+
+
+PC plots.
+```{r}
+## Colour scheme
+cols <- c(
+  DC_prec = "#B3B3B3",
+  MoDC = "#CCEBC5", 
+  DC = "#B3DE69", 
+  mono = "#80B1D3",
+  DC1 = "#1B9E77",
+  DC2 = "#D95F02",
+  pDC = "#7570B3",
+  # Sample source
+  ex_vivo = "#B3B3B3",
+  in_vitro = "#A50026",
+  in_vivo = "#313695",
+  `in_vivo_HuMouse` = "#7570B3",
+  # platform
+  HuGene = "#8DD3C7",
+  Illumina = "#FFFFB3",
+  `Illumina V4` = "#BEBADA",
+  RNAseq = "#FB8072"
+)
+
+# Batch and biology
+phes <- c("Platform Category", "Cell Type", "Sample Source")
+legendTitle <- c("Platform", "Cell type", "Sample source")
+outPlots <- vector("list", length(phes))
+for(i in 1:length(phes)){
+  phe <- phes[i]
+  
+  outPlots_i <- vector("list", length(pc_list))
+  for(j in 1:length(pc_list)){
+    
+    outPlots_i[[j]] <- pc_list[[j]]$scores %>%
+      as.matrix() %>%
+      as.data.frame() %>%
+      mutate(labs = colData(reference)[,phe]) %>%
+      ggplot(aes(x = comp1, y = comp2)) +
+      geom_point(
+        aes(colour = labs),
+        size = 0.5
+      ) + 
+      theme_bw() +
+      scale_colour_manual(
+        values = cols
+      ) +
+      theme(
+        axis.title = element_blank(),
+        axis.text = element_text(size = 6),
+        # plot.title = element_text(size = 7, face = "bold"),
+        legend.text = element_text(size = 10),
+        legend.title = element_text(size = 10, face = "bold"),
+        legend.position = "bottom",
+        legend.key = element_blank(),
+        legend.background = element_blank(),
+        legend.key.size = unit(8, "pt"),
+        legend.box.margin = margin(-5,-5,-5,-5),
+        legend.box.spacing = unit(0, "inch")
+      )  +
+      guides(
+        colour = guide_legend(
+          title = legendTitle[i],
+          nrow = 1,
+          override.aes = list(
+            size = 2
+          )
+        )
+      )
+  }
+  
+  outPlots[[i]] <- ggarrange(
+    plotlist = outPlots_i, 
+    nrow = 1, 
+    common.legend = TRUE, 
+    legend = "bottom"
+  )
+}
+
+ggsave(
+  "figs/CompareFeatSelect.pdf",
+  plot =  ggarrange(plotlist = outPlots, ncol = 1),
+  width = 7,
+  height = 6.5
+)
+```

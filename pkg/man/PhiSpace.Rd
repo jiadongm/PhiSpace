@@ -18,7 +18,8 @@ PhiSpace(
   scale = FALSE,
   DRinfo = FALSE,
   storeUnNorm = FALSE,
-  updateRef = FALSE
+  updateRef = FALSE,
+  assay2rank = NULL
 )
 }
 \arguments{
@@ -49,6 +50,8 @@ PhiSpace(
 \item{storeUnNorm}{Store unnormalised raw PhiSpace scores or not. Default is \code{FALSE}.}
 
 \item{updateRef}{Update reference (store reference PhiSpace scores in reference sce object) or not.}
+
+\item{assay2rank}{Which assay should be used for rank transform. If not specified, "rank" will be used.}
 }
 \value{
 \itemize{

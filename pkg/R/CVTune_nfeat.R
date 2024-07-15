@@ -97,15 +97,6 @@ CVTune_nfeat <- function(reference,
 
   }
 
-
-
-
-  ## Prepare response: dummy matrix
-  if(is.null(YY)){
-    if(is.null(phenotypes)) stop("Have to specify either phenotypes or YY.")
-    YY <- codeY(reference, phenotypes)
-  }
-
   ## CV
   # Create data partition
   set.seed(seed)
@@ -178,7 +169,7 @@ CVTune_nfeat <- function(reference,
   ## TODO: gap statistic for data-driven selection of nfeat
   nfeat <- readline("What is your choice of nfeat? ")
   nfeat <- as.numeric(nfeat)
-  selectedFeat <- selectFeat(impScores, nfeat)
+  selectedFeat <- selectFeat(impScores, nfeat)$selectedFeat
 
   return(
     list(

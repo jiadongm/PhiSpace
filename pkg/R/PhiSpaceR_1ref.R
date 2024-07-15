@@ -12,6 +12,7 @@
 #' @param center Logic.
 #' @param scale Logic.
 #' @param DRinfo Logic. Whether to return dimension reduction information from PCA or PLS. Disable to save memory.
+#' @param assay2rank Which assay should be used for rank transform. If not specified, "rank" will be used.
 #'
 #' @return A list
 #'
@@ -28,17 +29,26 @@ PhiSpaceR_1ref <- function(
     selectedFeat = NULL,
     center = TRUE,
     scale = FALSE,
-    DRinfo = FALSE
+    DRinfo = FALSE,
+    assay2rank = NULL
 ){
 
   if(!inherits(query, "list")) query <- list(query)
 
-  if(!(PhiSpaceAssay %in% assayNames(reference))) stop("PhiSpaceAssay is not present in reference.")
+  # Check if PhiSpaceAssya exists (doens't matter if PhiSpaceAssay == "rank", see below)
+  if(PhiSpaceAssay != "rank"){
+
+    if(!(PhiSpaceAssay %in% assayNames(reference))) stop("PhiSpaceAssay is not present in reference.")
+  }
 
   # Intersection of names of assays in all queries
   allAssayNames <- lapply(query, assayNames)
   allAssayNames <- Reduce(intersect, allAssayNames)
-  if(!(PhiSpaceAssay %in% allAssayNames)) stop("PhiSpaceAssay needs to be present in every query.")
+  if(PhiSpaceAssay != "rank"){
+
+    if(!(PhiSpaceAssay %in% allAssayNames)) stop("PhiSpaceAssay needs to be present in every query.")
+  }
+
 
   regMethod <- match.arg(regMethod)
 
@@ -73,8 +83,16 @@ PhiSpaceR_1ref <- function(
   query <- lapply(query, function(x) x[featNames, ])
 
   if(PhiSpaceAssay == "rank"){
-    reference <- RankTransf(reference, PhiSpaceAssay)
-    query <- lapply(query, RankTransf, assayname = PhiSpaceAssay)
+
+    if(is.null(assay2rank)){
+
+      assay2rank <- "rank"
+    }
+
+    if(!(assay2rank %in% assayNames(reference))) stop("assay2rank is not present in reference; specify a different assay2rank.")
+
+    reference <- RankTransf(reference, assay2rank)
+    query <- lapply(query, RankTransf, assayname = assay2rank)
   }
 
   ## Build atlas
@@ -96,7 +114,7 @@ PhiSpaceR_1ref <- function(
                        ncomp,
                        method = regMethod,
                        center = center, scale = scale)$coefficients[,,ncomp]
-      selectedFeat <- selectFeat(impScores, nfeat)
+      selectedFeat <- selectFeat(impScores, nfeat)$selectedFeat
     } else {
 
       impScores <- NULL

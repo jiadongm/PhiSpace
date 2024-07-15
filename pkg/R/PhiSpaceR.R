@@ -17,6 +17,7 @@
 #' @param DRinfo Logic. Whether to return dimension reduction information from PCA or PLS. By default disabled to save memory.
 #' @param storeUnNorm Store unnormalised raw PhiSpace scores or not. Default is `FALSE`.
 #' @param updateRef Update reference (store reference PhiSpace scores in reference sce object) or not.
+#' @param assay2rank Which assay should be used for rank transform. If not specified, "rank" will be used.
 #'
 #' @return
 #' - If `updateRef = FALSE` (default): An updated query SCE object with PhiSpace annotation results stored in reducedDim slot "PhiSpace";
@@ -56,7 +57,8 @@ PhiSpace <- function(
     scale = FALSE,
     DRinfo = FALSE,
     storeUnNorm = FALSE,
-    updateRef = FALSE
+    updateRef = FALSE,
+    assay2rank = NULL
 ){
 
   PhiRes <- PhiSpaceR_1ref(
@@ -71,7 +73,8 @@ PhiSpace <- function(
     selectedFeat = selectedFeat,
     center = center,
     scale = scale,
-    DRinfo = DRinfo
+    DRinfo = DRinfo,
+    assay2rank = assay2rank
   )
 
   if(!is.list(query)){

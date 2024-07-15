@@ -43,9 +43,17 @@ phenotype <- function(phenoAssay,
     }
   }
 
-  Yhat <- scale(XX_cent %*% Bhat,
-                scale = F,
-                center = -atlas_re$reg_re$Ymeans)
+  if(is.null(atlas_re$reg_re$Ymeans)){
+    toCent <- FALSE
+  } else {
+
+    toCent <- -atlas_re$reg_re$Ymeans
+  }
+  Yhat <- scale(
+    XX_cent %*% Bhat,
+    scale = F,
+    center = toCent
+  )
 
   return(Yhat)
 }
