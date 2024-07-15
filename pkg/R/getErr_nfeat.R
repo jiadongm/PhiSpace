@@ -37,7 +37,7 @@ getErr_nfeat <- function(
     sapply(nfeatV,
            function(nfeat){
 
-             selectedFeat <- selectFeat(impScores, nfeat)
+             selectedFeat <- selectFeat(impScores, nfeat)$selectedFeat
 
              ## Prepare predictor matrix
              if(assayName == 'rank'){
