@@ -1,0 +1,915 @@
+---
+title: "CaseCITE: projecting Vento-Tormo CITE-seq to Haniffa CITE-seq"
+output: html_notebook
+---
+
+**Bibliographic note**: Vento-Tormo Lab published their analysis of their autoimmunity Covid dataset [here](https://onlinelibrary.wiley.com/doi/10.1002/eji.202350633). Biological background knowledge referred to here is mostly from that reference.
+
+Note that `dat_dir` is the directory where you store the downloaded data and output from the R scripts. This directory should have the following structure:
+```
+dat_dir
+│   
+└───data
+│   │
+│   └───stemformatics
+│   |   │   ref_dc.rds
+│   |   │   ...
+|   |   
+│   └───Covid
+|   |...
+|   |
+└───output
+    │  
+    └───CaseDC
+    |
+    └───CaseCITE
+    |
+    └───CaseATAC
+```
+
+```{r}
+suppressPackageStartupMessages(library(PhiSpace))
+suppressPackageStartupMessages(library(ggplot2))
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(magrittr))
+suppressPackageStartupMessages(library(ggpubr))
+suppressPackageStartupMessages(library(tidyr))
+suppressPackageStartupMessages(library(RColorBrewer))
+
+dat_dir <- "/home/unimelb.edu.au/jmao1/PhiSpace/" # Replace this by your own directory 
+source("utils.R")
+```
+
+# Get PhiSpace annotation results
+
+Data can be downloaded from [OneDrive](https://unimelbcloud-my.sharepoint.com/:f:/g/personal/jiadong_mao_unimelb_edu_au/EimPelXY7CpHqNKd4vKfLQABhDNcmkpQtzlm2uKOQMGtPQ?e=uQhpBR)
+
+See [CaseCITE_prepareData.Rmd]{.underline} for data preparation.
+
+## ADT modality
+
+Several issues specific to ADT modality:
+
+-   Naming convention of ADTs different across datasets: see [CaseCITE_prepareData.Rmd]{.underline} for details.
+
+-   ADT assay has limited number of features, which may not be enough to learn too many cell type labels.
+
+```{r}
+PhiResPath <- paste0(
+    dat_dir,
+    "output/CaseCITE/Covid/doublePhenoADTPhiRes.rds"
+  )
+reference <- readRDS(
+    paste0(
+      dat_dir,
+      "data/Covid/Haniffa/HaniffaADT.rds"
+    )
+  )
+# See Case_CITE_doubleCovidCellType.Rmd for renaming of ADTs
+query <- readRDS(
+  paste0(
+    dat_dir,
+    "data/Covid/Vento-Tormo/ADT.rds"
+  )
+)
+
+if(!file.exists(PhiResPath)){
+  PhiSpaceAssay <- "data"
+  YtrainName <- c("initial_clustering", "Status_on_day_collection_summary")
+  PhiRes <- PhiSpaceR_1ref(
+    reference, 
+    query = query, 
+    phenotypes = YtrainName, 
+    PhiSpaceAssay = PhiSpaceAssay,
+    regMethod = "PLS", 
+    scale = FALSE
+  )
+  saveRDS(
+    PhiRes, PhiResPath
+  )
+  gc()
+} else {
+  
+  PhiResADT <- readRDS(PhiResPath)
+}
+```
+
+Define some parameters that will be useful.
+
+```{r}
+severityNames <- unique(reference$Status_on_day_collection_summary %>% as.character())
+autoimmuneNames <- unique(query$Group %>% as.character())
+```
+
+
+## RNA modality
+
+Run PhiSpace for RNA asssay
+```{r}
+PhiResPath <- paste0(
+    dat_dir,
+    "output/CaseCITE/Covid/doublePhenoRNAPhiRes.rds"
+)
+if(!file.exists(PhiResPath)){
+  
+  reference <- readRDS(
+    paste0(
+      dat_dir,
+      "data/Covid/Haniffa/HaniffaRNA.rds"
+    )
+  )
+  query <- readRDS(
+    paste0(
+      dat_dir,
+      "data/Covid/Vento-Tormo/RNA.rds"
+    )
+  )
+  
+  PhiSpaceAssay <- "logcounts"
+  YtrainName <- c("full_clustering", "Status_on_day_collection_summary")
+  PhiRes <- PhiSpaceR_1ref(
+    reference, 
+    query = query, 
+    phenotypes = YtrainName, 
+    PhiSpaceAssay = PhiSpaceAssay,
+    regMethod = "PLS"
+  )
+  saveRDS(
+    PhiRes, PhiResPath
+  )
+  gc()
+} else {
+  
+  PhiResRNA <- readRDS(PhiResPath)
+}
+``` 
+
+
+# Batch effects in query
+
+Load original UMAP for query data (batch-corrected).
+
+```{r}
+ventoRNAumap <- readRDS(
+  paste0(dat_dir, "data/Covid/Vento-Tormo/ventoRNAumap.rds")
+)
+```
+
+
+Compute UMAP using PhiSpace embeddings.
+
+```{r}
+set.seed(9183247)
+idx <- sample(1:ncol(query), 10000)
+quSubsetIdx <- idx # Store this object for future reference
+
+pathADT <- paste0(
+    dat_dir,
+    "output/CaseCITE/Covid/doublePhenoADTPhiUMAPquery.rds"
+  )
+pathRNA <- paste0(
+    dat_dir,
+    "output/CaseCITE/Covid/doublePhenoRNAPhiUMAPquery.rds"
+)
+pathCombo <- paste0(
+  dat_dir,
+  "output/CaseCITE/Covid/doublePhenoComboPhiUMAPquery.rds"
+)
+
+YrefHatRNA_norm <- normPhiScores(PhiResRNA$YrefHat)
+YrefhatADT_norm <- normPhiScores(PhiResADT$YrefHat)
+PhiScRNA_norm <- normPhiScores(PhiResRNA$PhiSpaceScore)
+PhiScADT_norm <- normPhiScores(PhiResADT$PhiSpaceScore)
+
+if(!(file.exists(pathADT) & file.exists(pathRNA) )){
+  
+  umapPhiRNA_res <- umap::umap(
+    PhiScRNA_norm[idx,]
+  )
+  umapPhiADT_res <- umap::umap(
+    PhiScADT_norm[idx,]
+  )
+  
+  saveRDS(
+    umapPhiADT_res, pathADT
+  )
+  saveRDS(
+    umapPhiRNA_res, pathRNA
+  )
+} else {
+  
+  umapPhiADT_res <- readRDS(pathADT)
+  umapPhiRNA_res <- readRDS(pathRNA)
+}
+
+
+
+# Concatenate two annotations
+if(!file.exists(pathCombo)){
+  
+  comboPCA_res <- getPC(
+    cbind(PhiScADT_norm, PhiScRNA_norm)[idx,],
+    ncomp = 64 # number of latent variables used in 
+  )
+  
+  umapPhiCombo_res <- umap::umap(
+    comboPCA_res$scores
+  )
+  
+  saveRDS(
+    umapPhiCombo_res,
+    pathCombo
+  )
+} else {
+  
+  umapPhiCombo_res <- readRDS(
+    pathCombo
+  )
+}
+```
+
+Compute UMAP using X-space PCs.
+
+```{r}
+pathADT <- paste0(
+    dat_dir,
+    "output/CaseCITE/Covid/doublePhenoADTomicsUMAPquery.rds"
+  )
+pathRNA <- paste0(
+    dat_dir,
+    "output/CaseCITE/Covid/doublePhenoRNAomicsUMAPquery.rds"
+)
+
+if(!(file.exists(pathADT) & file.exists(pathRNA) )){
+  
+  quRNA <- readRDS(
+    paste0(
+      dat_dir,
+      "data/Covid/Vento-Tormo/RNA.rds"
+    )
+  )
+  quADT <- readRDS(
+    paste0(
+      dat_dir,
+      "data/Covid/Vento-Tormo/ADT.rds"
+    )
+  )
+
+  
+  pca_adt <- getPC(
+    t(assay(quADT, "data")[,quSubsetIdx]),
+    ncomp = ncol(PhiScADT_norm)
+  )
+  pca_rna <- getPC(
+    t(assay(quRNA, "logcounts")[,quSubsetIdx]),
+    ncomp = ncol(PhiScRNA_norm)
+  )
+  
+  umapOmicsADT_res <- umap::umap(
+    pca_adt$scores
+  )
+  umapOmicsRNA_res <- umap::umap(
+    pca_rna$scores
+  )
+  
+  saveRDS(
+    umapOmicsADT_res, pathADT
+  )
+  saveRDS(
+    umapOmicsRNA_res, pathRNA
+  )
+} else {
+  
+  umapOmicsADT_res <- readRDS(pathADT)
+  umapOmicsRNA_res <- readRDS(pathRNA)
+}
+```
+
+
+Compute UMAP using X-space reference mapping.
+
+```{r}
+pathADT <- paste0(
+    dat_dir,
+    "output/CaseCITE/Covid/doublePhenoADTomicsMapUMAPquery.rds"
+  )
+pathRNA <- paste0(
+    dat_dir,
+    "output/CaseCITE/Covid/doublePhenoRNAomicsMapUMAPquery.rds"
+)
+
+if(!(file.exists(pathADT) & file.exists(pathRNA) )){
+  
+  refADT <- readRDS(
+    paste0(
+      dat_dir,
+      "data/Covid/Haniffa/HaniffaADT.rds"
+    )
+  )
+  refRNA <- readRDS(
+    paste0(
+      dat_dir,
+      "data/Covid/Haniffa/HaniffaRNA.rds"
+    )
+  )
+  quRNA <- readRDS(
+    paste0(
+      dat_dir,
+      "data/Covid/Vento-Tormo/RNA.rds"
+    )
+  )
+  quADT <- readRDS(
+    paste0(
+      dat_dir,
+      "data/Covid/Vento-Tormo/ADT.rds"
+    )
+  )
+
+  commonGenes <- intersect(
+    rownames(refRNA),
+    rownames(quRNA)
+  )
+  
+  pca_adt <- getPC(
+    t(assay(refADT, "data")),
+    ncomp = ncol(PhiScADT_norm)
+  )
+  pca_rna <- getPC(
+    t(assay(refRNA, "logcounts")[commonGenes,]),
+    ncomp = ncol(PhiScRNA_norm)
+  )
+  
+  mappedADT <- scale(
+    t(assay(quADT, "data")[,quSubsetIdx]),
+    center = T,
+    scale = F
+  ) %*%
+    pca_adt$loadings 
+  
+  mappedRNA <- scale(
+    t(assay(quRNA, "logcounts")[commonGenes,quSubsetIdx]),
+    center = T,
+    scale = F
+  ) %*%
+    pca_rna$loadings 
+  
+  
+  umapOmicsADT_res <- umap::umap(
+    mappedADT
+  )
+  umapOmicsRNA_res <- umap::umap(
+    mappedRNA
+  )
+  
+  saveRDS(
+    umapOmicsADT_res, pathADT
+  )
+  saveRDS(
+    umapOmicsRNA_res, pathRNA
+  )
+} else {
+  
+  umapOmicsMapADT_res <- readRDS(pathADT)
+  umapOmicsMapRNA_res <- readRDS(pathRNA)
+}
+```
+
+
+
+UMAPs using Seurat v3 ref mapping results. See `runSeurat.R` for details.
+```{r}
+pathCombo <- paste0(
+  dat_dir,
+  "output/CaseCITE/Covid/doublePhenoComboSeuUMAPquery.rds"
+)
+
+SeuResPathRNA <- paste0(
+  dat_dir,
+  "output/CaseCITE/Covid/doublePhenoRNASeuRes.rds"
+)
+SeuResPathADT <- paste0(
+  dat_dir,
+  "output/CaseCITE/Covid/doublePhenoADTSeuRes.rds"
+)
+SeuResPathADTRef <- paste0(
+  dat_dir,
+  "output/CaseCITE/Covid/doublePhenoADTSeuResRef.rds"
+)
+SeuResPathRNARef <- paste0(
+  dat_dir,
+  "output/CaseCITE/Covid/doublePhenoRNASeuResRef.rds"
+)
+
+SeuRNA <- readRDS(SeuResPathRNA)
+SeuADT <- readRDS(SeuResPathADT)
+SeuRNAref <- readRDS(SeuResPathRNARef)
+SeuADTref <- readRDS(SeuResPathADTRef)
+
+SeuRNA <- cbind(
+  SeuRNA[[1]][,-c(1,ncol(SeuRNA[[1]]))],
+  SeuRNA[[2]][,-c(1,ncol(SeuRNA[[2]]))]
+)
+SeuADT <- cbind(
+  SeuADT[[1]][,-c(1,ncol(SeuADT[[1]]))],
+  SeuADT[[2]][,-c(1,ncol(SeuADT[[2]]))]
+)
+SeuRNAref <- cbind(
+  SeuRNAref[[1]][,-c(1,ncol(SeuRNAref[[1]]))],
+  SeuRNAref[[2]][,-c(1,ncol(SeuRNAref[[2]]))]
+)
+SeuADTref <- cbind(
+  SeuADTref[[1]][,-c(1,ncol(SeuADTref[[1]]))],
+  SeuADTref[[2]][,-c(1,ncol(SeuADTref[[2]]))]
+)
+
+
+if(!file.exists(pathCombo)){
+  
+  SeuRNA_sub <- SeuRNA[quSubsetIdx, ]
+  SeuADT_sub <- SeuADT[quSubsetIdx, ]
+
+  comboPCA_res <- getPC(
+    cbind(SeuRNA_sub, SeuADT_sub) %>% as.matrix(),
+    ncomp = 64 # number of latent variables used in 
+  )
+  
+  umapSeuCombo_res <- umap::umap(
+    comboPCA_res$scores
+  )
+  
+  saveRDS(umapSeuCombo_res, pathCombo)
+} else {
+  
+  umapSeuCombo_res <- readRDS(pathCombo)
+}
+```
+
+
+
+
+
+
+Plot the UMAPs.
+
+```{r fig.asp=0.8}
+PhiPredCellType = getClass(PhiScRNA_norm[,1:51])
+PhiPredCellType[PhiPredCellType %in% c(
+  "ASDC", "DC1", "DC2", "DC3", "pDC", "DC_prolif"
+)] <- "DC"
+PhiPredCellType[PhiPredCellType %in% c(
+  "B_exhausted",           "B_immature",          
+  "B_malignant",           "B_naive",               "B_non-switched_memory",
+  "B_switched_memory"
+)] <- "B cell"
+PhiPredCellType[PhiPredCellType %in% c(
+  "Plasma_cell_IgA", "Plasma_cell_IgG", "Plasma_cell_IgM","Plasmablast"
+)] <- "B plasma"
+PhiPredCellType[PhiPredCellType %in% c(
+  "C1_CD16_mono",          "CD14_mono",            "CD16_mono",
+  "CD83_CD14_mono", "Mono_prolif"
+)] <- "Mono"
+PhiPredCellType[PhiPredCellType %in% c(
+  "CD4.CM",                "CD4.EM",               
+  "CD4.IL22",              "CD4.Naive",             "CD4.Prolif",           
+  "CD4.Tfh",               "CD4.Th1",               "CD4.Th17",             
+  "CD4.Th2"
+)] <- "CD4 T"
+PhiPredCellType[PhiPredCellType %in% c(
+  "CD8.EM",                "CD8.Naive",  "CD8.Prolif",            "CD8.TE"
+)] <- "CD8 T"
+PhiPredCellType[PhiPredCellType %in% c(
+  "gdT", "MAIT", "Treg" 
+)] <- "other T"
+PhiPredCellType[PhiPredCellType %in% c(
+  "NK_16hi",               "NK_56hi",               "NK_prolif",  "NKT"
+)] <- "NK"
+PhiPredCellType[PhiPredCellType %in% c(
+  "HSC_CD38neg", "HSC_CD38pos",           "HSC_erythroid",         "HSC_MK",               
+  "HSC_myeloid",           "HSC_prolif"
+)] <- "HSC"
+PhiPredCellType[PhiPredCellType %in% c(
+  "ILC1_3", "ILC2", "Platelets", "RBC", "HSC"
+)] <- "other"
+
+# Main cell types for query
+majCellType <- query$Annotation[idx] %>% as.character()
+fineTypes <- sort(unique(as.character(query$Annotation)))
+majTypes <- c(
+  "Mono", "Mono", "CD4", "CD4",
+  "CD8", "CD8", "DC", "DC",
+  "DC", "B", "other", "B", 
+  "other T", "B", "B", "other",
+  "NK", "NK", "NK", "DC",
+  "B", "other", "other", "NK",
+  "other T", "other", "other T", "other T"
+)
+for(ii in 1:length(fineTypes)){
+  ctype <- fineTypes[ii]
+  majCellType[majCellType == ctype] <- majTypes[ii] 
+}
+table(majCellType)
+
+
+# Simplified disease names
+disease <- query$Group[idx] %>% as.character()
+disNames <- sort(
+  unique(query$Group %>% as.character())
+)
+simpDisease <- c(
+  "Control", "MS", "Ps", "RA"
+)
+for(ii in 1:length(disNames)){
+  dName <- disNames[ii]
+  disease[disease == dName] <- simpDisease[ii] 
+}
+
+cols_disease <- c(
+        Control = "gray",
+        MS = "#377EB8",
+        RA = "#4DAF4A",
+        Ps = "#984EA3"
+)
+# cols_disease <- aurora_cols_dis
+# names(cols_disease) <- c(
+#   "Control", "MS", "RA", "Ps"
+# )
+
+cols_type <- brewer.pal(8, "Set1")
+```
+
+
+
+Calculate alignment score.
+
+Using all cells and no PC (took long to run):
+- Batch: 0.7823567 0.8242383
+- Disease: 0.6227782 0.6815256
+- Cell type: 0.4062466 0.3734180
+
+Using 10,000 cells and 64 PCs (same as UMAP):
+
+
+```{r}
+sc_list <- list(
+  cbind(PhiScADT_norm, PhiScRNA_norm)[idx,],
+  cbind(SeuADT, SeuRNA)[idx,]
+)
+
+# Major cell type
+sapply(
+  sc_list,
+  function(x){
+    
+    alignmentScore(
+      x,
+      batch = majCellType
+    )
+  }
+)
+lab <- "Batch"
+sapply(
+  sc_list,
+  function(x){
+    
+    alignmentScore(
+      x,
+      batch = colData(query)[idx,lab]
+    )
+  }
+)
+lab <- "Group"
+sapply(
+  sc_list,
+  function(x){
+    
+    alignmentScore(
+      x,
+      batch = colData(query)[idx,lab]
+    )
+  }
+)
+lab <- "Annotation"
+sapply(
+  sc_list,
+  function(x){
+    
+    alignmentScore(
+      x,
+      batch = colData(query)[idx,lab]
+    )
+  }
+)
+```
+
+Plot
+
+```{r}
+tempUMAPobj <- list(layout = ventoRNAumap[quSubsetIdx, ])
+# Save plots
+# RNA disease
+colVar <- "disease"
+p11 <- tempPlotUMAP(umapOmicsRNA_res, idx, colVar) %>% adjPlots()
+p21 <- tempPlotUMAP(umapOmicsADT_res, idx, colVar) %>% adjPlots()
+p31 <- tempPlotUMAP(tempUMAPobj, idx, colVar) %>% adjPlots()
+p41 <- tempPlotUMAP(umapPhiCombo_res, idx, colVar) %>% adjPlots()
+p51 <- tempPlotUMAP(umapSeuCombo_res, idx, colVar) %>% adjPlots()
+
+# RNA celltype
+colVar <- "celltype"
+p12 <- tempPlotUMAP(umapOmicsRNA_res, idx, colVar) %>% adjPlots()
+p22 <- tempPlotUMAP(umapOmicsADT_res, idx, colVar) %>% adjPlots()
+p32 <- tempPlotUMAP(tempUMAPobj, idx, colVar) %>% adjPlots()
+p42 <- tempPlotUMAP(umapPhiCombo_res, idx, colVar) %>% adjPlots()
+p52 <- tempPlotUMAP(umapSeuCombo_res, idx, colVar) %>% adjPlots()
+
+# RNA celltype
+colVar <- "batch"
+p13 <- tempPlotUMAP(umapOmicsRNA_res, idx, colVar) %>% adjPlots()
+p23 <- tempPlotUMAP(umapOmicsADT_res, idx, colVar) %>% adjPlots()
+p33 <- tempPlotUMAP(tempUMAPobj, idx, colVar) %>% adjPlots()
+p43 <- tempPlotUMAP(umapPhiCombo_res, idx, colVar) %>% adjPlots()
+p53 <- tempPlotUMAP(umapSeuCombo_res, idx, colVar) %>% adjPlots()
+
+ggsave(
+  "figs/umap1.pdf", 
+  ggarrange(p11, p12, p13, nrow = 1, common.legend = F), 
+  width = 5, height = 1.7
+)
+ggsave(
+  "figs/umap2.pdf", 
+  ggarrange(p21, p22, p23, nrow = 1, legend = F), 
+  width = 5, height = 1.5
+)
+ggsave(
+  "figs/umap3.pdf", 
+  ggarrange(p31, p32, p33, nrow = 1, legend = F), 
+  width = 5, height = 1.5
+)
+ggsave(
+  "figs/umap4.pdf", 
+  ggarrange(p41, p42, p43, nrow = 1, legend = F), 
+  width = 5, height = 1.5
+)
+ggsave(
+  "figs/umap5.pdf", 
+  ggarrange(p51, p52, p53, nrow = 1, legend = F), 
+  width = 5, height = 1.5
+)
+```
+
+
+
+
+
+
+# Interpretation of continuous phenotyping
+
+Existing methods typically annotate the cells and calculate cell type proportions for each disease condition. This method is highly sensitive to how the annotation is done. As a result, the direct quantitative comparison between cell type compositions derived in two studies may not always be possible.
+
+We solve this problem by calculating the total/median/mean cell type scores by disease conditions, in both reference and query.
+
+```{r fig.asp=1}
+library(ComplexHeatmap)
+library(seriation)
+typeNames <- sort(
+  colnames(YrefHatRNA_norm)[1:51]
+)
+ADTtypeNames <- sort(
+  colnames(YrefhatADT_norm)[1:18]
+)
+
+
+
+refLabs <- reference$Status_on_day_collection_summary
+sev_lvls <- levels(refLabs)
+sev_lvls_simp <- c(
+  "Asymp", "Critical", "Healthy", "LPS10h", "LPS90m",
+  "Mild", "Moderate", "NonCovid", "Severe"  
+)
+levels(refLabs) <- sev_lvls_simp
+condNames <- c(
+  "Healthy", "LPS90m", "LPS10h", "NonCovid", "Asymp",
+  "Mild", "Moderate", "Severe", "Critical"
+)
+refLabs <- factor(
+  refLabs,
+  levels = condNames
+)
+quLabs <- query$Group
+dis_lvls <- levels(quLabs)
+dis_lvls_simp <- c(
+  "Control", "MS", "Ps", "RA"
+)
+levels(quLabs) <- dis_lvls_simp
+
+disNames <- c(
+  "Healthy", "Asymp", "Mild", "Moderate", "Severe", "Critical"
+)
+
+sc_RNA_ref <- mk_sc(YrefHatRNA_norm, typeNames, refLabs)[,disNames]
+sc_ADT_ref <- mk_sc(YrefhatADT_norm, ADTtypeNames, refLabs)[,disNames]
+sc_RNA <- mk_sc(PhiScRNA_norm, typeNames, quLabs)
+sc_ADT <- mk_sc(PhiScADT_norm, ADTtypeNames, quLabs)
+
+all(rownames(sc_RNA_ref) == rownames(sc_RNA))
+rownames(sc_RNA_ref) <- rownames(sc_RNA) <- c(
+  "ASDC", "B exhausted", "B immature", "B malignant",
+  "B naive", "B unswitched", "B swithced", "C1 CD16 mono",
+  "CD14 mono",       "CD16 mono",             "CD4 CM",                "CD4 EM",               
+  "CD4 IL22",              "CD4 naive",             "CD4 prolif",            "CD4 Tfh",              
+  "CD4 Th1",               "CD4 Th17",              "CD4 Th2",               "CD8 EM",               
+  "CD8 naive",             "CD8 prolif",            "CD8 TE",                "CD83CD14 mono",       
+  "DC prolif",             "DC1",                   "DC2",                   "DC3",                  
+  "gdT",                   "HSC CD38-",           "HSC CD38+",           "HSC erythroid",        
+  "HSC MK",                "HSC myeloid",           "HSC prolif",            "ILC1 3",               
+  "ILC2",                  "MAIT",                  "mono prolif",           "NK CD16+",              
+  "NK CD56+",               "NK prolif",             "NKT",                   "pDC",                  
+  "plasma IgA",       "plasma IgG",       "plasma IgM",       "plasmablast",          
+  "platelets",             "RBC",                   "Treg"                 
+)
+all(rownames(sc_ADT_ref) == rownames(sc_ADT))
+rownames(sc_ADT_ref) <- rownames(sc_ADT) <- c(
+  "B cell", "CD14 mono", "CD16 mono", "CD4 T", "CD8 T", "DC", "gdT",
+  "HSC",          "lymph prolif",  "MAIT",         "mono prolif",  "NK CD16+",      "NK CD56+",      "pDC", 
+  "plasmablast",  "platelets",    "RBC",          "Treg"
+)
+
+p1 <- tempCorHeat(
+  cbind(
+    sc_RNA_ref, sc_RNA
+  )
+)
+
+p2 <- tempCorHeat(
+  cbind(
+    sc_ADT_ref, sc_ADT
+  ),
+  "ADT derived"
+)
+
+# pdf("corPlot_combo.pdf", width = 2.5, height = 6)
+# draw(
+#   p1 %v% p2,
+#   heatmap_legend_side = "top"
+# )
+# dev.off()
+
+p11 <- tempCorHeat(sc_RNA_ref, clust_rows = p1$clust_rows)$p
+p21 <- tempCorHeat(
+  sc_ADT_ref,
+  "ADT derived",
+  clust_rows = p2$clust_rows
+)$plot
+p12 <- tempCorHeat(sc_RNA, clust_rows = p1$clust_rows)$p
+p22 <- tempCorHeat(
+  sc_ADT,
+  "ADT derived",
+  clust_rows = p2$clust_rows
+)$plot
+
+pdf("figs/corPlot_combo.pdf", width = 2.5, height = 6)
+draw(
+  p11 %v% p21,
+  heatmap_legend_side = "top"
+)
+dev.off()
+
+pdf("figs/corPlot_combo_ADT_derived.pdf", width = 2, height = 6)
+draw(
+  p12 %v% p22,
+  heatmap_legend_side = "top"
+)
+dev.off()
+
+
+sc_combo <- cbind(
+  rbind(sc_RNA_ref, sc_ADT_ref),
+  rbind(sc_RNA, sc_ADT)
+) %>% t()
+clust_res <- hclust(dist(sc_combo))
+pdf("figs/hclust.pdf", width = 2.5, height = 2.5)
+ggdendro::ggdendrogram(clust_res)
+dev.off()
+```
+
+
+Seurat V3 heatmaps: not meaningful since most scores are zero
+```{r}
+SeuRNAnew <- SeuRNA %>%
+  `colnames<-`(
+    gsub(
+      "prediction.score.",
+      "",
+      colnames(SeuRNA)
+    )
+  )
+SeuADTnew <- SeuADT %>%
+  `colnames<-`(
+    gsub(
+      "prediction.score.",
+      "",
+      colnames(SeuADT)
+    )
+  )
+SeuRNArefNew <- SeuRNAref %>%
+  `colnames<-`(
+    gsub(
+      "prediction.score.",
+      "",
+      colnames(SeuRNAref)
+    )
+  )
+SeuADTrefNew <- SeuADTref %>%
+  `colnames<-`(
+    gsub(
+      "prediction.score.",
+      "",
+      colnames(SeuADTref)
+    )
+  )
+sc_RNA_ref <- mk_sc(SeuRNArefNew, typeNames, refLabs)[,disNames]
+sc_ADT_ref <- mk_sc(SeuADTrefNew, ADTtypeNames, refLabs)[,disNames]
+sc_RNA <- mk_sc(SeuRNAnew, typeNames, quLabs)
+sc_ADT <- mk_sc(SeuADTnew, ADTtypeNames, quLabs)
+
+
+p1 <- tempCorHeat(
+  cbind(
+    sc_RNA_ref, sc_RNA
+  )
+)
+p2 <- tempCorHeat(
+  cbind(
+    sc_ADT_ref, sc_ADT
+  ),
+  "ADT derived"
+)
+
+
+p11 <- tempCorHeat(sc_RNA_ref, clust_rows = p1$clust_rows)$p
+p21 <- tempCorHeat(
+  sc_ADT_ref,
+  "ADT derived",
+  clust_rows = p2$clust_rows
+)$plot
+p12 <- tempCorHeat(sc_RNA, clust_rows = p1$clust_rows)$p
+p22 <- tempCorHeat(
+  sc_ADT,
+  "ADT derived",
+  clust_rows = p2$clust_rows
+)$plot
+
+pdf("figs/corPlot_combo_Seu.pdf", width = 2.5, height = 6)
+draw(
+  p11 %v% p21,
+  heatmap_legend_side = "top"
+)
+dev.off()
+
+pdf("figs/corPlot_combo_ADT_derived_Seu.pdf", width = 2, height = 6)
+draw(
+  p12 %v% p22,
+  heatmap_legend_side = "top"
+)
+dev.off()
+```
+
+
+
+
+
+# PLSDA (all but only show disease conds)
+
+```{r}
+XX <- cbind(PhiScADT_norm, PhiScRNA_norm)[quSubsetIdx,]
+colnames(XX) <- c(
+  paste0(colnames(PhiScADT_norm), "(ADT)"),
+  paste0(colnames(PhiScRNA_norm), "(RNA)")
+)
+rownames(XX) <- rownames(PhiScADT_norm)[quSubsetIdx]
+YY <- codeY(query, "Group")[rownames(XX), ]
+
+ncomp <- 4
+reg_res <- mvr(XX, YY, ncomp = ncomp, method = "PLS", center = T, scale = F)
+
+Bhat <- reg_res$coefficients[,,ncomp]
+```
+
+Plot
+
+```{r fig.asp=1}
+p <- plotBmat(Bhat)
+ggsave(
+  "figs/feat2autoimmune.pdf", adjPlots2(p, "bw"), width = 2.5, height = 4
+)
+```
+
+
+
+
+
+
+
+
+
+
