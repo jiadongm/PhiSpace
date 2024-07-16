@@ -1,0 +1,919 @@
+---
+title: "CaseATAC: benchmarking within- and cross-omics annotation"
+output: html_notebook
+---
+
+This case study assesses the hard classification performances of PhiSpace. This invovles
+
+- Benchmarking within-modality annotation using scRNA-seq
+
+- Benchmarking cross-modality annotation using 10x multiome
+
+
+Note that `dat_dir` is the directory where you store the downloaded data and output from the R scripts. This directory should have the following structure:
+```
+dat_dir
+│   
+└───data
+│   │
+│   └───stemformatics
+│   |   │   ref_dc.rds
+│   |   │   ...
+|   |   
+│   └───Covid
+|   |...
+|   |
+└───output
+    │  
+    └───CaseDC
+    |
+    └───CaseCITE
+    |
+    └───CaseATAC
+    |...
+```
+
+```{r}
+suppressPackageStartupMessages(library(PhiSpace))
+suppressPackageStartupMessages(library(ggplot2))
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(magrittr))
+suppressPackageStartupMessages(library(ggpubr))
+suppressPackageStartupMessages(library(tidyr))
+suppressPackageStartupMessages(library(RColorBrewer))
+
+dat_dir <- "/home/unimelb.edu.au/jmao1/PhiSpace/" # Replace this by your own directory 
+source("utils.R")
+```
+
+
+See see `PrepareData.R` for data processing and normalisation.
+
+
+
+# Within-omics 
+Load benchmarking results using NeurIPS2021 multiome data (RNA part only). See `Case_Benchmark/` for R code for benchmarking. These objects can be downloaded from [OneDrive](https://unimelbcloud-my.sharepoint.com/:f:/g/personal/jiadong_mao_unimelb_edu_au/EqAiHIQq0plHsNs8gJWa9ucBFWKyxYGGtTE39UQ1HxQGIg?e=kM4SQE)
+```{r}
+# SingleR
+SR_ann_res <- readRDS(
+  paste0(dat_dir, "output/scRNAseq/NeurIPS2021_multiome_SR_ann_res_cor.rds")
+)
+# Seurat V3
+Seu_ann_res <- readRDS(
+  paste0(dat_dir, "output/scRNAseq/NeurIPS2021_multiome_Seu_ann_res_cor.rds")
+)
+# PhiSpace
+# Original full Phi_ann_res object too large here we use a diet version
+Phi_ann_res_path <- paste0(
+  dat_dir,
+  "output/scRNAseq/NeurIPS2021_multiome_Phi_ann_res_cor_diet.rds"
+)
+if(!file.exists(Phi_ann_res_path)){
+  
+  Phi_ann_res <- readRDS(
+    paste0(
+      dat_dir, "output/scRNAseq/NeurIPS2021_multiome_Phi_ann_res_cor.rds"
+    )
+  )
+  
+  Phi_ann_res_diet <- lapply(
+    Phi_ann_res,
+    function(Phi_ann_res_i){
+      
+      lapply(
+        Phi_ann_res_i,
+        function(x) x$errSR
+      )
+    }
+  )
+  
+  saveRDS(
+    Phi_ann_res_diet, Phi_ann_res_path
+  )
+} else {
+  
+  Phi_ann_res <- readRDS(Phi_ann_res_path)
+}
+scANVI_ann_res <- readRDS(
+  paste0(dat_dir, "output/scRNAseq/NeurIPS2021_multiome_scANVI_ann_res_cor.rds")
+)
+```
+
+Viz the errors: preparation.
+```{r}
+methodNumber <- 4
+batchNames <- names(SR_ann_res)
+errs <- matrix(
+  NA, nrow = 0, ncol = 2
+) 
+temp <- vector("list", length(batchNames))
+for(refIdx in 1:length(batchNames)){
+  
+  refBatchName <- batchNames[refIdx]
+  queryBatchNames <- setdiff(batchNames, refBatchName)
+  
+  temp[[refIdx]] <- queryBatchNames
+  
+  for(queryIdx in 1:length(queryBatchNames)){
+    
+    queryBatchName <- queryBatchNames[queryIdx]
+    errs <- rbind(
+      errs, 
+      SR_ann_res[[refBatchName]][[queryBatchName]]$errSR,
+      Seu_ann_res[[refBatchName]][[queryBatchName]]$errSR,
+      Phi_ann_res[[refBatchName]][[queryBatchName]],
+      scANVI_ann_res[[refBatchName]][[queryBatchName]]$errSR
+    )
+  }
+}
+temp <- do.call(c, temp)
+errs <- errs %>%
+  as.data.frame() %>%
+  `colnames<-`(
+    c("overall", "balanced")
+  ) %>%
+  mutate(
+    ref = rep(
+      batchNames,
+      rep((length(batchNames) - 1)*methodNumber, length(batchNames))
+    ),
+    query = rep(
+      temp,
+      rep(methodNumber, length(temp))
+    ),
+    method = rep(
+      c("SingleR", "Seurat", "PhiSpace", "scANVI"),
+      length(temp)
+    )
+  ) %>%
+  pivot_longer(
+    c(overall, balanced),
+    names_to = "errorType",
+    values_to = "error"
+  )
+```
+
+
+
+Boxplot
+```{r}
+methodCols <- c(
+  "#E41A1C", "#377EB8", "#984EA3", "#4DAF4A"
+) %>%
+  `names<-`(c("PhiSpace", "Seurat", "scANVI", "SingleR"))
+p <- errs %>%
+  filter(errorType == "balanced") %>%
+  mutate(
+    method = factor(
+      method,
+      levels = c("PhiSpace", "Seurat", "scANVI", "SingleR")
+    )
+  ) %>%
+  ggplot(
+    aes(
+      x = method,
+      y = error
+    )
+  ) +
+  geom_boxplot(
+    aes(
+      fill = method
+    ),
+    linewidth = 0.3,
+    outlier.size = 0.5
+  ) +
+  theme_bw() +
+  theme(
+    axis.title.x = element_blank(),
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank()
+  ) +
+  labs(y = "Balanced error") +
+  scale_fill_manual(
+    values = methodCols,
+    labels = c("PhiSpace", "SeuV3", "scANVI", "SingleR")
+  ) +
+  theme(
+    axis.text.y = element_text(size = fsize),
+    axis.title = element_text(size = fsize),
+    legend.text = element_text(size = fsize, face = "bold"),
+    legend.title = element_text(size = fsize, face = "bold"),
+    legend.position = "right",
+    legend.title.position = legend.title.position,
+    legend.key = element_blank(),
+    legend.spacing.x = unit(legend.spacing.x, "pt"),
+    legend.key.spacing = unit(legend.key.spacing, "pt"),
+    legend.key.spacing.y = unit(0, "pt"),
+    legend.box.margin = margin(
+      legend.box.margin,
+      legend.box.margin,
+      legend.box.margin,
+      legend.box.margin
+    ),
+    legend.box.spacing = unit(legend.box.spacing, "pt"),
+    legend.background = element_blank()
+  ) +
+  guides(
+    fill = guide_legend(
+      title = element_blank()
+    )
+  ) #+
+  # facet_wrap(~errorType, nrow = 1, scales = "free") 
+ggsave(
+  "figs/classifErrs.pdf",
+  p,
+  width = 2.35,
+  height = 2
+)
+```
+
+
+
+# Cross-omics annotation
+
+
+## Reference mapping
+```{r}
+bridgeATAC_list <- readRDS(paste0(dat_dir, "data/NeurIPS2021/bridgeATAC_list_cor.rds"))
+  PhiSpaceAnn_cv <- readRDS(paste0(dat_dir, "output/CaseATAC/PhiSpaceAnn_cv_genAct_normPhiSc_cor.rds"))
+  assay2use <- "logcounts"
+reference <- readRDS(paste0(dat_dir, "data/NeurIPS2021/obj.rna_for_refMap_sce.rds"))
+# Seurat BridgeInt annotations
+bridgeIntAnn_cv <- readRDS(paste0(dat_dir, "output/CaseATAC/bridgeIntAnn_cv_cor.rds"))
+originAnn_l <- readRDS(paste0(dat_dir, "output/CaseATAC/originAnn_l.rds"))
+cellTypeTable <- readRDS(paste0(dat_dir, "output/CaseATAC/cellTypeTable.rds"))
+```
+
+Some numbers for paper.
+```{r}
+sapply(bridgeATAC_list, ncol) %>% sum
+length(unique(reference$celltype.l2))
+```
+
+
+Bridge and query batches.
+```{r}
+# Bridge
+(batchNames <- names(bridgeATAC_list))
+bridgeBatchName <- "s4d8"
+queryBatchNames <- c(
+  "s1d1", "s1d2", "s2d1", "s2d4", "s3d3", "s3d6", "s4d1", "s4d9"
+)
+```
+
+Rename cell types.
+```{r}
+refTypes_l2 <- unique(reference$celltype.l2) %>% sort
+refTypes_l1 <- sapply(
+  refTypes_l2,
+  function(x){
+    unique(reference$celltype.l1[reference$celltype.l2 == x])
+  }
+)
+ref_lookup <- data.frame(
+  l2 = refTypes_l2,
+  l1 = refTypes_l1
+)
+## Query original annotations (ILC is hard to classify)
+queryTypes_l2 <- rownames(cellTypeTable) %>% sort
+queryTypes_l1 <- c(
+  "B cell", "Mono/DC", "Mono/DC", "T cell", "T cell",
+  "T cell", "T cell", "Mono/DC", "Progenitor cells", "Progenitor cells",
+  "Progenitor cells", "Progenitor cells", "ILC", "Progenitor cells", "Progenitor cells",
+  "B cell", "NK", "Progenitor cells", "Mono/DC", "B cell",
+  "Progenitor cells", "B cell"
+)
+query_lookup <- data.frame(
+  l2 = queryTypes_l2,
+  l1 = queryTypes_l1
+)
+```
+
+
+Subsampling 1000 cells from each batch.
+```{r}
+set.seed(39486723)
+subN <- 1000
+subIdx <- lapply(
+  1:length(queryBatchNames),
+  function(x){
+    
+    queryBatchName <- queryBatchNames[x]
+    idx <- sample(
+      1:ncol(bridgeATAC_list[[queryBatchName]]),
+      subN
+    )
+    
+    return(idx)
+  }
+)
+comboATAC <- lapply(
+  1:length(queryBatchNames),
+  function(x){
+    
+    queryBatchName <- queryBatchNames[x]
+    queryBatch <- bridgeATAC_list[[queryBatchName]]
+    idx <- subIdx[[x]]
+    queryBatch <- queryBatch[,idx]
+    return(
+      queryBatch
+    )
+  }
+)
+
+comboATAC <- Reduce(SingleCellExperiment::cbind, comboATAC)
+
+comboATAC$cellType.main <- query_lookup$l1[match(comboATAC$cellType, query_lookup$l2)]
+
+(ncomp <- length(unique(reference$celltype.l2)))
+```
+
+Compute UMAP using log normalised data.
+```{r}
+query_pc_umap <- computUMAP(
+  t(assay(comboATAC, "logcounts")), 
+  computPC = T, 
+  ncomp = ncomp
+)
+```
+
+
+
+PhiSpace UMAPs.
+```{r}
+YqueryHat_nrom <- do.call(
+  rbind,
+  lapply(
+    1:length(queryBatchNames),
+    function(x){
+      
+      queryBatchName <- queryBatchNames[x]
+      PhiSc <- PhiSpaceAnn_cv[[bridgeBatchName]][[queryBatchName]]
+      idx <- subIdx[[x]]
+      
+      return(PhiSc$queryScore_norm[idx,])
+    }
+  )
+)
+query_phi_umap <- computUMAP(
+  YqueryHat_nrom, 
+  computPC = F
+)
+```
+
+
+SeuBI UMAPs
+```{r}
+BI_sc <- do.call(
+  rbind,
+  lapply(
+    1:length(queryBatchNames),
+    function(x){
+      
+      queryBatchName <- queryBatchNames[x]
+      BISc <- bridgeIntAnn_cv[[bridgeBatchName]][[queryBatchName]]
+      idx <- subIdx[[x]]
+      
+      return(t(BISc$scores.l2[,idx]))
+    }
+  )
+)
+query_seu_umap <- computUMAP(
+  BI_sc, 
+  computPC = F
+)
+```
+
+
+Generate figures.
+```{r fig.asp=1.5}
+ggsave(
+  "figs/UMAP_ctype.pdf",
+  ggarrange(
+    tempPlot(query_pc_umap, labs = comboATAC$cellType.main, colSc = "Set2"),
+    tempPlot(query_seu_umap, labs = comboATAC$cellType.main, colSc = "Set2"),
+    tempPlot(query_phi_umap, labs = comboATAC$cellType.main, colSc = "Set2"),
+    nrow = 1,
+    common.legend = T
+  ),
+  width = 7,
+  height = 2.5
+)
+ggsave(
+  "figs/UMAP_batch.pdf",
+  ggarrange(
+    tempPlot(query_pc_umap, labs = comboATAC$batch, labName = "batch"),
+    tempPlot(query_seu_umap, labs = comboATAC$batch, labName = "batch"),
+    tempPlot(query_phi_umap, labs = comboATAC$batch, labName = "batch"),
+    nrow = 1,
+    common.legend = T
+  ),
+  width = 7,
+  height = 2.5
+)
+```
+
+
+
+
+## Cell type prediction
+
+Load PhiSpace cell typing results.
+```{r}
+bridgeIntAnn_cv <- readRDS(paste0(dat_dir, "output/CaseATAC/bridgeIntAnn_cv_cor.rds"))
+bridgeIntAnnGeneAct_cv <- readRDS(paste0(dat_dir, "output/CaseATAC/bridgeIntAnnGeneAct_cv_cor.rds"))
+PhiSpaceAnn_cv <- readRDS(
+  paste0(
+    dat_dir,
+    "output/CaseATAC/PhiSpaceAnn_cv_genAct_normPhiSc_cor.rds"
+  )
+)
+PhiSpaceAnn_cv_peaks <- readRDS(
+  paste0(
+    dat_dir,
+    "output/CaseATAC/PhiSpaceAnn_cv_TF-IDF_cor.rds"
+  )
+)
+```
+
+
+```{r}
+# List of original annotations
+originAnn_l <- readRDS(paste0(dat_dir, "output/CaseATAC/originAnn_l.rds"))
+cellTypeTable <- readRDS(paste0(dat_dir, "output/CaseATAC/cellTypeTable.rds"))
+# YrefHats <- readRDS(paste0(dat_dir, "output/CaseATAC/YrefHats.rds"))
+reference <- readRDS(paste0(dat_dir, "data/NeurIPS2021/obj.rna_for_refMap_sce.rds"))
+refTypes_l2 <- unique(reference$celltype.l2) %>% sort
+refTypes_l1 <- sapply(
+  refTypes_l2,
+  function(x){
+    unique(reference$celltype.l1[reference$celltype.l2 == x])
+  }
+)
+ref_lookup <- data.frame(
+  l2 = refTypes_l2,
+  l1 = refTypes_l1
+)
+## Query original annotations (ILC is hard to classify)
+queryTypes_l2 <- rownames(cellTypeTable) %>% sort
+queryTypes_l1 <- c(
+  "B cell", "Mono/DC", "Mono/DC", "T cell", "T cell",
+  "T cell", "T cell", "Mono/DC", "Progenitor cells", "Progenitor cells",
+  "Progenitor cells", "Progenitor cells", "ILC", "Progenitor cells", "Progenitor cells",
+  "B cell", "NK", "Progenitor cells", "Mono/DC", "B cell",
+  "Progenitor cells", "B cell"
+)
+query_origin_lookup <- data.frame(
+  l2 = queryTypes_l2,
+  l1 = queryTypes_l1
+)
+```
+
+
+```{r}
+nBatches <- length(bridgeIntAnn_cv)
+bridgeNames <- names(bridgeIntAnn_cv)
+errs_l <- vector("list", nBatches*(nBatches - 1))
+for(jj in 1:length(bridgeNames)){
+  
+  bridgeName <- bridgeNames[jj]
+  bridgeIntAnn_l <- bridgeIntAnn_cv[[bridgeName]]
+  bridgeIntAnn_l_geneAct <- bridgeIntAnnGeneAct_cv[[bridgeName]]
+  PhiSpaceAnn_l <- PhiSpaceAnn_cv[[bridgeName]]
+  PhiSpaceAnn_l_peaks <- PhiSpaceAnn_cv_peaks[[bridgeName]]
+  queryNames <- names(bridgeIntAnn_l)
+  
+  for(kk in 1:length(queryNames)){
+    
+    queryName <- queryNames[kk]
+    
+    # Translate Seurat bridgeInt labels
+    bridgeIntAnn <- bridgeIntAnn_l[[queryName]]$metadata$predicted.l2
+    bridgeIntAnn_l1 <- ref_lookup$l1[match(bridgeIntAnn, ref_lookup$l2)]
+    bridgeIntAnn_geneAct <- bridgeIntAnn_l_geneAct[[queryName]]$metadata$predicted.l2
+    bridgeIntAnn_geneAct_l1 <- ref_lookup$l1[match(bridgeIntAnn_geneAct, ref_lookup$l2)]
+    
+    nNAs <- bridgeIntAnn_l1 %>% is.na() %>% sum()
+    if(nNAs) stop("NAs appeared in converting l2 to l1 cell type lables.")
+    
+    # Translate PhiSpace labels
+    PhiSpaceAnn <- PhiSpaceAnn_l[[queryName]]$queryScore_norm %>% getClass
+    PhiSpaceAnn_l1 <- ref_lookup$l1[match(PhiSpaceAnn, ref_lookup$l2)]
+    PhiSpaceAnnPeaks <- PhiSpaceAnn_l_peaks[[queryName]]$queryScore_norm %>% getClass()
+    PhiSpaceANN_l1_peaks <- ref_lookup$l1[match(PhiSpaceAnnPeaks, ref_lookup$l2)]
+    
+    nNAs <- PhiSpaceAnn_l1 %>% is.na() %>% sum()
+    if(nNAs) stop("NAs appeared in converting l2 to l1 cell type lables.")
+    
+    # Original annotations
+    originAnn <- originAnn_l[[queryName]]$cellType
+    originAnn_l1 <- query_origin_lookup$l1[
+      match(originAnn, query_origin_lookup$l2)
+    ]
+    
+    # Some cell types do not have good correspondence to l1 cell types
+    types2move <- c("ILC")
+    idx <- !(originAnn %in% types2move)
+    
+    
+    ## PhiSpace errs by other methods
+    
+    
+    errs_ind <- (jj-1)*nBatches + kk
+    errs_l[[errs_ind]] <-
+      data.frame(
+        errs = c(
+          PhiSpace:::classErr(bridgeIntAnn_l1[idx], originAnn_l1[idx])$err,
+          PhiSpace:::classErr(bridgeIntAnn_geneAct_l1[idx], originAnn_l1[idx])$err,
+          PhiSpace:::classErr(PhiSpaceAnn_l1[idx], originAnn_l1[idx])$err,
+          PhiSpace:::classErr(PhiSpaceANN_l1_peaks[idx], originAnn_l1[idx])$err
+        ),
+        typeOfErr = c(
+          "overall", "balanced", "overall", "balanced", 
+          "overall", "balanced",  "overall", "balanced"
+        ),
+        bridge = rep(bridgeName, 8),
+        query = rep(queryName, 8),
+        method = c(
+          "SeuratBridge", "SeuratBridge", 
+          "SeuratBridgeGeneAct", "SeuratBridgeGeneAct",
+          "PhiSpace", "PhiSpace",
+          "PhiSpacePeaks", "PhiSpacePeaks"
+        )
+      )  
+    
+  }
+}
+```
+
+Visualising the errors
+```{r}
+errs_long <- do.call(rbind, errs_l)
+# BridgeInt vs PhiSpace (just shown balanced error here)
+p <- errs_long %>%
+  filter(typeOfErr == "balanced") %>%
+  mutate(
+    method = factor(
+      method,
+      levels = c("PhiSpace", "PhiSpacePeaks",  "SeuratBridgeGeneAct", "SeuratBridge")
+    ) %>%
+    `levels<-`(
+      c("Phi_GA", "Phi_Peaks", "SeuBI_GA", "SeuBI_Peaks")
+    )
+  )  %>%
+  ggplot(aes(method, errs, fill = method)) +
+  theme_bw() +
+  geom_boxplot(
+    linewidth = 0.3,
+    outlier.size = 0.5
+  ) +
+  scale_fill_manual(
+    values = c(
+      "#E41A1C", "#FB8072", "#377EB8", "#80B1D3"
+    ) %>%
+      `names<-`(
+        c("Phi_GA", "Phi_Peaks", "SeuBI_GA", "SeuBI_Peaks")
+      )
+  ) +
+  theme(
+    axis.title.x = element_blank(),
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank()
+  ) +
+  ylab("Balanced error") +
+  theme(
+    axis.text = element_text(size = fsize),
+    axis.title = element_text(size = fsize),
+    legend.text = element_text(size = fsize, face = "bold"),
+    legend.title = element_text(size = fsize, face = "bold"),
+    legend.position = "right",
+    legend.title.position = legend.title.position,
+    legend.key = element_blank(),
+    legend.spacing.x = unit(legend.spacing.x, "pt"),
+    legend.key.spacing = unit(legend.key.spacing, "pt"),
+    legend.key.spacing.y = unit(0, "pt"),
+    legend.box.margin = margin(
+      legend.box.margin,
+      legend.box.margin,
+      legend.box.margin,
+      legend.box.margin
+    ),
+    legend.box.spacing = unit(legend.box.spacing, "pt"),
+    legend.background = element_blank()
+  ) +
+  guides(
+    fill = guide_legend(
+      title = element_blank()
+    )
+    # override.aes = list(
+    #     size = legend.obj.size
+    # )
+  ) #+
+  # facet_wrap(~typeOfErr, nrow = 1, scales = "free") 
+  
+ggsave(
+  "figs/classErr.pdf",
+  p,
+  width = 2.5,
+  height = 2
+)
+```
+
+## Semi-supervised clustering
+Organise results.
+```{r}
+clustMeas_path <- paste0(
+  dat_dir,
+  "output/CaseATAC/clustMeas.rds"
+)
+if(!file.exists(clustMeas_path)){
+  
+  bridgeBatchNames <- readRDS(paste0(dat_dir, "output/CaseATAC/cellTypeTable.rds")) %>%
+    colnames()
+  clust_res <- readRDS(paste0(dat_dir, "output/CaseATAC/clus_res_cor.rds"))
+  clust_res_alt <- readRDS(paste0(dat_dir, "output/CaseATAC/clus_res_cor_PCAonly_stack.rds"))
+  clust_res_peaks <- readRDS(paste0(dat_dir, "output/CaseATAC/clus_res_cor_PeaksOnly_stack.rds"))
+  names(clust_res) <- names(clust_res_alt) <- names(clust_res_peaks) <- bridgeBatchNames
+  clustMeas <- vector('list', length(bridgeBatchNames)) %>%
+    `names<-`(bridgeBatchNames)
+  for(ii in 1:length(bridgeBatchNames)){
+    
+    bridgeBatchName <- bridgeBatchNames[ii]
+    clustRes <- clust_res[[bridgeBatchName]]
+    
+    origin <- clustRes[[1]]
+    origin_l1 <- clustRes[[2]]
+    originClust <- clustRes[[3]]
+    originClust_l1 <- clustRes[[4]]
+    clustRes <- clustRes[[5]]
+    
+    clustRes[[1]] <- c(
+      clustRes[[1]],
+      clust_res_alt[[bridgeBatchName]][[5]][[1]],
+      clust_res_peaks[[bridgeBatchName]][[5]][[1]]
+    )
+    clustRes[[2]] <- c(
+      clustRes[[2]],
+      clust_res_alt[[bridgeBatchName]][[5]][[2]],
+      clust_res_peaks[[bridgeBatchName]][[5]][[2]]
+    )
+    
+    meas <- lapply(
+      1:length(clustRes[[1]]),
+      function(x){
+        # All measures implemented in aricode package
+        clustcomp_l1 <- suppressWarnings(
+          aricode::clustComp(clustRes[[1]][[x]], originClust_l1)
+        )
+        clustcomp_l2 <- suppressWarnings(
+          aricode::clustComp(clustRes[[2]][[x]], originClust)
+        )
+        # Purity
+        Purs_l1 <- purity(clustRes[[1]][[x]], originClust_l1)
+        Purs_l2 <- purity(clustRes[[2]][[x]], originClust)
+        Pur_l1 <- Purs_l1$Pur
+        Pur_l2 <- Purs_l2$Pur
+        InvPur_l1 <- Purs_l1$invPur
+        InvPur_l2 <- Purs_l2$invPur
+        Fmeasure_l1 <- Purs_l1$Fmeasure
+        Fmeasure_l2 <- Purs_l2$Fmeasure
+        
+        l1Purs <- list(
+          Pur = Pur_l1,
+          InvPur = InvPur_l1,
+          Fmeasure = Fmeasure_l1
+        )
+        l2Purs <- list(
+          Pur = Pur_l2,
+          InvPur = InvPur_l2,
+          Fmeasure = Fmeasure_l2
+        )
+        
+        return(
+          list(
+            l1 = c(
+              l1Purs,
+              clustcomp_l1
+            ),
+            l2 = c(
+              l2Purs,
+              clustcomp_l2
+            )
+          )
+        )
+        
+        
+      }
+    )
+    
+    names(meas) <- c(
+      "TFIDF_renorm", 
+      "PC_renorm", 
+      "Phi", 
+      "PhiPeaks", 
+      "BI", 
+      "BIgenAct", 
+      "PC", 
+      "TFIDF"
+    )
+    
+    clustMeas[[ii]] <- meas
+  }
+  
+  saveRDS(clustMeas, clustMeas_path)
+} else {
+  
+  clustMeas <- readRDS(clustMeas_path)
+}
+```
+
+
+
+Visualisation.
+```{r}
+methNames <- c(
+  # "TFIDF_renorm",
+  "TFIDF", 
+  # "PC_renorm", 
+  "PC", 
+  "Phi", 
+  "PhiPeaks",
+  "BI", 
+  "BIgenAct"
+)
+out <- vector("list", length(methNames))
+for(ii in 1:length(methNames)){
+  
+  methName <- methNames[ii]
+  
+  out_l1 <- sapply(
+   clustMeas,
+   function(x){
+     unlist(x[[methName]]$l1)
+   }
+  )
+  out_l2 <- sapply(
+    clustMeas,
+    function(x){
+      unlist(x[[methName]]$l2)
+    }
+  )
+  
+  out_l1 <- out_l1 %>%
+    as.data.frame() %>%
+    mutate(measName = rownames(.)) %>%
+    pivot_longer(!measName, names_to = "batch", values_to = "value") %>%
+    mutate(
+      resolution = rep("l1", nrow(.)),
+      clustMethod = rep(methName, nrow(.))
+    )
+  out_l2 <- out_l2 %>%
+    as.data.frame() %>%
+    mutate(measName = rownames(.)) %>%
+    pivot_longer(!measName, names_to = "batch", values_to = "value") %>%
+    mutate(
+      resolution = rep("l2", nrow(.)),
+      clustMethod = rep(methName, nrow(.))
+    )
+  
+  out[[ii]] <- rbind(
+    out_l1,
+    out_l2
+  )
+}
+
+plot_dat <- do.call(rbind, out)
+methodCols <- c(
+  "#E41A1C", "#377EB8", 
+  "#FB8072", "#80B1D3", 
+  "#4DAF4A", "#984EA3", 
+  "#4DAF4A", "#984EA3"
+) %>%
+  `names<-`(
+    c(
+      "Phi-GA", "SeuBI-GA", 
+      "Phi-Peaks", "SeuBI-Peaks", 
+      "GA-renorm", "Peaks-renorm", 
+      "GA", "Peaks"
+    )
+  )
+tempPlot <- function(ClustTruth = "l1", omit.strip.text = FALSE){
+  
+  showMeas <- c(
+    # "RI", 
+    "ARI", 
+    # "MI", 
+    "NMI", 
+    # "Pur",
+    # "InvPur"
+    "Fmeasure"
+  )
+  
+  ytitle <- ifelse(
+    ClustTruth == "l1",
+    "Nclust = 6",
+    "Nclust = 22"
+  )
+  
+  p <- plot_dat %>%
+    filter((resolution == ClustTruth) & (measName %in% showMeas) ) %>%
+    mutate(
+      clustMethod = factor(
+          clustMethod,
+          levels = c(
+            "Phi", "PhiPeaks", "BIgenAct", "BI", "PC", "TFIDF", "PC_renorm", "TFIDF_renorm"
+          )
+        ) %>%
+        `levels<-`(
+          c(
+            "Phi-GA", "Phi-Peaks", 
+            "SeuBI-GA", "SeuBI-Peaks", 
+            "GA", "Peaks",
+            "GA-renorm", "Peaks-renorm"
+          )
+        ),
+      measName = factor(
+        measName,
+        levels = showMeas,
+        labels = c(
+          # "Rand index", 
+          "Adjusted RI",
+          # "Mutual info", 
+          "Normalised MI",
+           "F measure"
+          # "InvPurity"
+        )
+      )
+    ) %>%
+    ggplot(
+      aes(
+        clustMethod, 
+        value, 
+        fill = clustMethod
+      )
+    ) +
+    geom_boxplot(
+      linewidth = 0.3,
+      outlier.size = 0.5
+    ) +
+    theme_bw() +
+    theme(
+      axis.title.x = element_blank(),
+      axis.text.x = element_blank(),
+      axis.ticks.x = element_blank()
+    ) +
+    labs(y = ytitle) +
+    scale_fill_manual(
+      values = methodCols,
+      name = "ClustMethod"
+    ) +
+    theme(
+      axis.text.y = element_text(size = fsize),
+      axis.title = element_text(size = fsize),
+      legend.text = element_text(size = fsize, face = "bold"),
+      legend.title = element_text(size = fsize, face = "bold"),
+      legend.position = legend.position,
+      legend.title.position = legend.title.position,
+      legend.key = element_blank(),
+      legend.spacing.x = unit(legend.spacing.x, "pt"),
+      legend.key.spacing = unit(legend.key.spacing, "pt"),
+      legend.key.spacing.y = unit(legend.key.spacing.y, "pt"),
+      legend.box.margin = margin(
+        legend.box.margin,
+        legend.box.margin,
+        legend.box.margin,
+        legend.box.margin
+      ),
+      legend.box.spacing = unit(legend.box.spacing, "pt"),
+      legend.background = element_blank()
+    ) +
+    guides(
+      fill = guide_legend(
+        title = element_blank(),
+        nrow = 1
+      )
+      # override.aes = list(
+      #     size = legend.obj.size
+      # )
+    ) +
+    facet_wrap(~measName, nrow = 1, scales = "free") 
+  
+  if(omit.strip.text){
+    p <- p + 
+      theme(
+        strip.text = element_blank()
+      )
+  } else {
+    p <- p +
+      theme(
+        strip.text = element_text(size = fsize)
+      )
+  }
+}
+ggsave(
+  filename = "figs/ClustRes_box.pdf", 
+  plot = ggarrange(tempPlot(), tempPlot("l2",T), nrow = 2, common.legend = T), 
+  width = 4.7,
+  height = 4
+)
+```
