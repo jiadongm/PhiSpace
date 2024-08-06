@@ -88,7 +88,7 @@ pls.fit <-
       P[, a] <- p.a
       tQ[a, ] <- q.a
 
-      B[, , a] <- R[, 1:a, drop = FALSE] %*% tQ[1:a, , drop = FALSE]
+      B[, , a] <- as.matrix(R[, 1:a, drop = FALSE] %*% tQ[1:a, , drop = FALSE])
 
 
       if (DRinfo) {
