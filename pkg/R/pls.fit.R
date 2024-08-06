@@ -41,15 +41,15 @@ pls.fit <-
     )
 
     if(DRinfo){
-      TT <- matrix(0, ncol = ncomp, nrow = nobj)
+      TT <- Matrix(0, ncol = ncomp, nrow = nobj)
       dimnames(TT) <- list(
         dnX[[1]],
         paste0("comp", 1:ncomp)
       )
     }
 
-    R <- P <- matrix(0, ncol = ncomp, nrow = npred)
-    tQ <- matrix(0, ncol = nresp, nrow = ncomp)
+    R <- P <- Matrix(0, ncol = ncomp, nrow = npred)
+    tQ <- Matrix(0, ncol = nresp, nrow = ncomp)
     B <- array(0, c(npred, nresp, ncomp))
     XtY <- crossprod(X, Y)
     for (a in 1:ncomp) {
@@ -84,9 +84,9 @@ pls.fit <-
       p.a <- crossprod(X, t.a)/tsq
       q.a <- crossprod(XtY, r.a)/tsq
       XtY <- XtY - (tsq * p.a) %*% t(q.a)
-      R[, a] <- as.vector(r.a)
-      P[, a] <- as.vector(p.a)
-      tQ[a, ] <- as.vector(q.a)
+      R[, a] <- r.a
+      P[, a] <- p.a
+      tQ[a, ] <- q.a
 
       B[, , a] <- R[, 1:a, drop = FALSE] %*% tQ[1:a, , drop = FALSE]
 
