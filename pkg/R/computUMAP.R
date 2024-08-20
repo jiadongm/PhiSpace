@@ -13,7 +13,8 @@ computUMAP <- function(
     computPC = TRUE,
     ncomp = 30,
     center = TRUE,
-    scale = FALSE
+    scale = FALSE,
+    config = NULL
 ){
 
   if(computPC){
@@ -26,8 +27,10 @@ computUMAP <- function(
     )$scores
   }
 
+  if(is.null(config)) config <- umap::umap.defaults
+
   umap::umap(
-    dat
+    dat, config = config
   )$layout %>%
     reNameCols()
 }
