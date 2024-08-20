@@ -143,8 +143,6 @@ matrixPlot <- function(
     if(!is.null(groupKey)) layoutM[ceiling(length(comp_idx)/2)-1, ceiling(length(comp_idx)/2)+1] <- length(out)
     p <- gridExtra::grid.arrange(grobs = out, layout_matrix = layoutM)
 
-    print(p)
-
   } else if (length(comp_idx) == 1){
 
     var2plot <- paste0("comp", comp_idx)
@@ -218,12 +216,11 @@ matrixPlot <- function(
       }
     }
 
-    print(p)
     out <- p
 
   }
 
-  return(out)
+  return(p)
 
 }
 
