@@ -216,8 +216,6 @@ matrixPlot <- function(
       }
     }
 
-    out <- p
-
   }
 
   return(p)
