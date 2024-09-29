@@ -1,5 +1,7 @@
 # Φ-Space: Continuous phenotyping for single-cell and spatial multiomics data.
 
+<img src="./figs/PhiSpace.png" width="20%" style="display: block; margin: auto;" />
+
 Mao, Jiadong, Deng, Yidi and Lê Cao, Kim-Anh. (2024). Φ-Space: Continuous phenotyping of single-cell multi-omics data. *bioRxiv*.
 
 Check out our talk and bioRxiv manuscript at [mixOmics website](http://mixomics.org/2024/06/phispace/).
