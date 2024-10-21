@@ -5,6 +5,7 @@
 #' @param ncomp Number of PC components
 #' @param center Center or not.
 #' @param scale Scale or not.
+#' @param config Configuration of UMAP (see `umap` package).
 #'
 #' @return UMAP coordinates.
 #' @export

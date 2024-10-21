@@ -135,6 +135,12 @@ PhiSpaceR_1ref <- function(
     scale = scale,
     DRinfo = DRinfo
   )
+
+  if(is.null(impScores)){
+
+    impScores <- atlas_re$reg_re$coefficients[,,ncomp]
+  }
+
   YrefHat <- phenotype(
     phenoAssay = t(assay(reference, PhiSpaceAssay)),
     atlas_re = atlas_re,
