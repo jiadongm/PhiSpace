@@ -50,11 +50,14 @@ matrixPlot <- function(
 
       var2plot <- paste0("comp", comp_idx[comp_i])
 
-      p <-
-        scores %>%
-        ggplot(aes(x = !! sym(var2plot))) +
+      p <- scores %>%
+        ggplot(aes(x = !!sym(var2plot))) +
         geom_density(bw = "sj") +
-        scale_y_continuous(name = NULL)
+        theme_bw(base_size = fsize) +
+        theme(
+          legend.position = "none",
+          axis.title.y = element_blank()
+        )
 
 
 
@@ -63,8 +66,7 @@ matrixPlot <- function(
         p <- p +
           geom_jitter(aes(y = 0),
                       height = diff(layer_scales(p)$y$range$range)/20)
-        out_diag[[comp_i]] <- p +
-          theme_bw(base_size = fsize)
+        out_diag[[comp_i]] <- p
 
       } else {
 
@@ -73,15 +75,10 @@ matrixPlot <- function(
                       height = diff(layer_scales(p)$y$range$range)/20)
 
         if(!is.null(manualCol)){
-          p <- p +
-            scale_color_manual(values = manualCol)
+          p <- p + scale_color_manual(values = manualCol)
         }
 
-        out_diag[[comp_i]] <- p +
-          theme_bw(base_size = fsize) +
-          theme(legend.position = "none")
-
-
+        out_diag[[comp_i]] <- p
 
       }
 
@@ -90,7 +87,7 @@ matrixPlot <- function(
     }
 
     # Get the legend
-    if(!is.null(groupKey)) p_legend <- cowplot::get_legend(p)
+    if(!is.null(groupKey)) suppressWarnings( p_legend <- cowplot::get_legend(p))
 
 
     # Scatter plots on non-diagonal
@@ -103,10 +100,10 @@ matrixPlot <- function(
 
       if(is.null(groupKey)){
 
-        p <-
-          scores %>%
+        p <- scores %>%
           ggplot(aes(x = !! sym(var1), y = !! sym(var2))) +
           geom_point(size = pointSize, stroke = 0) +
+          theme_bw(base_size = fsize) +
           theme(
             legend.position = "none",
             axis.ticks = element_blank()
@@ -121,6 +118,7 @@ matrixPlot <- function(
           scores %>%
           ggplot(aes(x = !! sym(var1), y = !! sym(var2))) +
           geom_point(aes(colour = !! sym(groupKey)), size = pointSize, stroke = 0) +
+          theme_bw(base_size = fsize) +
           theme(
             legend.position = "none",
             axis.ticks = element_blank()
@@ -132,8 +130,6 @@ matrixPlot <- function(
           p <- p + scale_color_manual(values = manualCol)
         }
       }
-
-      p <- p + theme_bw(base_size = fsize)
 
       out_nondiag[[comb]] <- p
 
@@ -148,7 +144,7 @@ matrixPlot <- function(
     layoutM <- matrix(NA, length(comp_idx), length(comp_idx))
     layoutM[upper.tri(layoutM, diag = F)] <- 1:nrow(combs)
     diag(layoutM) <- (nrow(combs)+1):(nrow(combs)+length(comp_idx))
-    if(!is.null(groupKey)) layoutM[ceiling(length(comp_idx)/2)-1, ceiling(length(comp_idx)/2)+1] <- length(out)
+    if(!is.null(groupKey)) layoutM[ceiling(length(comp_idx)/2)+1, ceiling(length(comp_idx)/2)-1] <- length(out)
     p <- gridExtra::grid.arrange(grobs = out, layout_matrix = layoutM)
 
   } else if (length(comp_idx) == 1){
