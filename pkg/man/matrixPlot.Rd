@@ -12,7 +12,8 @@ matrixPlot(
   pointAlpha = NULL,
   pointSize = 1,
   manualCol = NULL,
-  manualAlpha = NULL
+  manualAlpha = NULL,
+  fsize = 14
 )
 }
 \arguments{

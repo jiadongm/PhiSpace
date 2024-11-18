@@ -21,7 +21,8 @@ matrixPlot <- function(
     pointAlpha = NULL,
     pointSize = 1,
     manualCol = NULL,
-    manualAlpha = NULL
+    manualAlpha = NULL,
+    fsize = 14
   ){
 
   if(is.null(max_ncomp) & is.null(comp_idx)){
@@ -62,7 +63,8 @@ matrixPlot <- function(
         p <- p +
           geom_jitter(aes(y = 0),
                       height = diff(layer_scales(p)$y$range$range)/20)
-        out_diag[[comp_i]] <- p
+        out_diag[[comp_i]] <- p +
+          theme_bw(base_size = fsize)
 
       } else {
 
@@ -76,6 +78,7 @@ matrixPlot <- function(
         }
 
         out_diag[[comp_i]] <- p +
+          theme_bw(base_size = fsize) +
           theme(legend.position = "none")
 
 
@@ -103,9 +106,11 @@ matrixPlot <- function(
         p <-
           scores %>%
           ggplot(aes(x = !! sym(var1), y = !! sym(var2))) +
-          geom_point(size = pointSize) +
-          theme(legend.position = "none",
-                axis.ticks = element_blank()) +
+          geom_point(size = pointSize, stroke = 0) +
+          theme(
+            legend.position = "none",
+            axis.ticks = element_blank()
+          ) +
           scale_x_continuous(name = NULL, labels = NULL) +
           scale_y_continuous(name = NULL, labels = NULL)
 
@@ -115,17 +120,20 @@ matrixPlot <- function(
         p <-
           scores %>%
           ggplot(aes(x = !! sym(var1), y = !! sym(var2))) +
-          geom_point(aes(colour = !! sym(groupKey)), size = pointSize) +
-          theme(legend.position = "none",
-                axis.ticks = element_blank()) +
+          geom_point(aes(colour = !! sym(groupKey)), size = pointSize, stroke = 0) +
+          theme(
+            legend.position = "none",
+            axis.ticks = element_blank()
+          ) +
           scale_x_continuous(name = NULL, labels = NULL) +
           scale_y_continuous(name = NULL, labels = NULL)
 
         if(!is.null(manualCol)){
-          p <- p +
-            scale_color_manual(values = manualCol)
+          p <- p + scale_color_manual(values = manualCol)
         }
       }
+
+      p <- p + theme_bw(base_size = fsize)
 
       out_nondiag[[comb]] <- p
 
@@ -138,7 +146,7 @@ matrixPlot <- function(
       out[[length(out) + 1]] <- p_legend
     }
     layoutM <- matrix(NA, length(comp_idx), length(comp_idx))
-    layoutM[lower.tri(layoutM, diag = F)] <- 1:nrow(combs)
+    layoutM[upper.tri(layoutM, diag = F)] <- 1:nrow(combs)
     diag(layoutM) <- (nrow(combs)+1):(nrow(combs)+length(comp_idx))
     if(!is.null(groupKey)) layoutM[ceiling(length(comp_idx)/2)-1, ceiling(length(comp_idx)/2)+1] <- length(out)
     p <- gridExtra::grid.arrange(grobs = out, layout_matrix = layoutM)
