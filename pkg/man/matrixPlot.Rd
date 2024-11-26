@@ -32,6 +32,8 @@ matrixPlot(
 \item{manualCol}{Manual specification of colours.}
 
 \item{manualAlpha}{Manual specification of alpha colours.}
+
+\item{fsize}{Figure font size.}
 }
 \description{
 Density and pairwise scatter plots for visualising score matrices.

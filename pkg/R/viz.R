@@ -11,6 +11,7 @@
 #' @param manualCol Manual specification of colours.
 #' @param manualAlpha Manual specification of alpha colours.
 #' @param groupKey Column name of plot_dat storing group information.
+#' @param fsize Figure font size.
 #'
 #' @export
 matrixPlot <- function(

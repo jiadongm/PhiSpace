@@ -46,9 +46,8 @@ plotPhiSpaceHeatMap <- function(PhiSpaceScore,
 
     if(is.null(queryLvls)){
 
-       plot_dat <- plot_dat %>%
-        dplyr::mutate(label = factor(queryLabs)) %>%
-        dplyr::arrange(label)
+       plot_dat[,"label"] <- factor(queryLabs)
+       plot_dat <- dplyr::arrange(plot_dat, label)
 
     } else {
 

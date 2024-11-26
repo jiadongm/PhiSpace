@@ -1,28 +1,43 @@
-## Plot formatting for presentation and publication
-#' Title
+MATLAB_cols <- c(rgb(54, 70, 157, maxColorValue = 255),
+                 rgb(61, 146, 185, maxColorValue = 255),
+                 rgb(126, 203, 166, maxColorValue = 255),
+                 rgb(204, 234, 156, maxColorValue = 255),
+                 rgb(249, 252, 181, maxColorValue = 255),
+                 rgb(255, 226, 144, maxColorValue = 255),
+                 rgb(253, 164, 93, maxColorValue = 255),
+                 rgb(234, 95, 70, maxColorValue = 255),
+                 rgb(185, 30, 72, maxColorValue = 255))
+
+censor <- function(vec, quant = 0.05){
+
+  vec <- as.vector(vec)
+
+  cutoff <- stats::quantile(vec, 1-quant)
+  vec[vec <= cutoff] <- cutoff
+  vec
+}
+
+#' Plot formatting for presentation and publication
 #'
-#' @param p
-#' @param theme_overall
-#' @param base_size
-#' @param legend.position
-#' @param x.text.blank
-#' @param y.text.blank
-#' @param axis.title.bold
-#' @param legend.title.bold
-#' @param axis.title.x.blank
-#' @param axis.title.y.blank
-#' @param legend.title.blank
-#' @param legend.spacing.x
-#' @param legend.key.spacing
-#' @param legend.key.spacing.y
-#' @param legend.box.margin
-#' @param legend.box.spacing
-#' @param legend.key.size
+#' @param p A ggplot2 object.
+#' @param theme_overall Theme of p.
+#' @param base_size base_size of theme.
+#' @param legend.position Legend position.
+#' @param x.text.blank Logical. Set x axis text to blank.
+#' @param y.text.blank Logical. Set y axis text to blank.
+#' @param axis.title.bold Logical. Set title to be bold.
+#' @param legend.title.bold Logical. Set legend title to be bold.
+#' @param axis.title.x.blank Logical. Set x axis title to be bold.
+#' @param axis.title.y.blank Logical. Set y axis title to be bold.
+#' @param legend.title.blank Logical. Set legend title to be blank.
+#' @param legend.spacing.x Legend spacing.
+#' @param legend.key.spacing Legend key spacing.
+#' @param legend.key.spacing.y Legend key spacing on vertical direction.
+#' @param legend.box.margin Legend box margin.
+#' @param legend.box.spacing Legend box spacing.,
+#' @param legend.key.size Legend key size.
 #'
-#' @return
-#' @export
-#'
-#' @examples
+#' @return A ggplot2 object.
 basicPlotFormat <- function(
     p, theme_overall = "bw",
     base_size = 8, legend.position = "top",
@@ -222,14 +237,20 @@ VizSpatial <- function(
 
   if(!is.null(feature)){
 
-    plot_dat[[feature]] <- as.numeric(SummarizedExperiment::assay(sce, assay2use)[feature, ])
+    if(!(feature %in% rownames(sce))) stop("Feature not in sce object.")
+
+    if(is.null(assay2use)) assay2use <- "counts"
+
+    plot_dat[[feature]] <- as.numeric(assay(sce, assay2use)[feature, ])
 
     if(reOrder){
-      plot_dat <- plot_dat %>%
-        arrange(!!sym(feature))
+      plot_dat <- dplyr::arrange(plot_dat, !!sym(feature))
+
     }
 
   } else if (!is.null(reducedDim)) {
+
+    if(!(reducedDim2use %in% reducedDimNames(sce))) stop("Non-existent reducedDim2use.")
 
     if(censor){
 
@@ -243,7 +264,7 @@ VizSpatial <- function(
     }
 
     if(reOrder){
-      plot_dat <- plot_dat %>% arrange(!!sym(reducedDim))
+      plot_dat <-  dplyr::arrange(plot_dat, !!sym(reducedDim))
     }
   }
 
@@ -251,7 +272,7 @@ VizSpatial <- function(
   if(!is.null(groupBy)){
 
     if(reOrder){
-      plot_dat <- plot_dat %>% arrange(!!sym(groupBy))
+      plot_dat <- dplyr::arrange(plot_dat, !!sym(groupBy))
     }
   }
 
@@ -274,9 +295,11 @@ VizSpatial <- function(
         stroke = 0
       )
 
-  } else if (!is.null(feature)) {
+    if(is.numeric(plot_dat[,groupBy])){
+      p <- p + scale_colour_gradientn(colours = MATLAB_cols)
+    }
 
-    if(is.null(assay2use)) assay2use <- "counts"
+  } else if (!is.null(feature)) {
 
     p <- p +
       geom_point(
@@ -308,7 +331,7 @@ VizSpatial <- function(
   p <- basicPlotFormat(
     p, legend.position = legend.position,
     x.text.blank = T, y.text.blank = T,
-    axis.title.x.blank = T, axis.title.y.blank = T, fsize = fsize, ...
+    axis.title.x.blank = T, axis.title.y.blank = T, base_size = fsize, ...
   )
 
   if(bigLegendSymb){
