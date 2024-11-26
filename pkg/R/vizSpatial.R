@@ -1,0 +1,325 @@
+## Plot formatting for presentation and publication
+#' Title
+#'
+#' @param p
+#' @param theme_overall
+#' @param base_size
+#' @param legend.position
+#' @param x.text.blank
+#' @param y.text.blank
+#' @param axis.title.bold
+#' @param legend.title.bold
+#' @param axis.title.x.blank
+#' @param axis.title.y.blank
+#' @param legend.title.blank
+#' @param legend.spacing.x
+#' @param legend.key.spacing
+#' @param legend.key.spacing.y
+#' @param legend.box.margin
+#' @param legend.box.spacing
+#' @param legend.key.size
+#'
+#' @return
+#' @export
+#'
+#' @examples
+basicPlotFormat <- function(
+    p, theme_overall = "bw",
+    base_size = 8, legend.position = "top",
+    x.text.blank = F, y.text.blank = F,
+    axis.title.bold = T, legend.title.bold = T,
+    axis.title.x.blank = F, axis.title.y.blank = F,
+    ## Legend format
+    legend.title.blank = F,
+    legend.spacing.x = 0,
+    legend.key.spacing = 0,
+    legend.key.spacing.y = 0,
+    legend.box.margin = 0,
+    legend.box.spacing = 0,
+    legend.key.size = 8
+){
+
+  theme_fun <- switch (
+    theme_overall,
+    classic = theme_classic,
+    ggplot2 = theme_gray,
+    bw = theme_bw,
+    linedraw = theme_linedraw,
+    light = theme_light,
+    dark = theme_dark,
+    minimal = theme_minimal,
+    void = theme_void
+  )
+
+  p <- p +
+    theme_fun(base_size = base_size) +
+    theme(
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(),
+      legend.position = legend.position,
+      legend.key = element_blank(),
+      legend.spacing.x = unit(legend.spacing.x, "pt"),
+      legend.key.spacing = unit(legend.key.spacing, "pt"),
+      legend.key.spacing.y = unit(legend.key.spacing.y, "pt"),
+      legend.box.margin = margin(
+        legend.box.margin,
+        legend.box.margin,
+        legend.box.margin,
+        legend.box.margin
+      ),
+      legend.box.spacing = unit(legend.box.spacing, "pt"),
+      legend.background = element_blank(),
+      legend.key.size = unit(legend.key.size, "pt")
+    )
+
+  if(axis.title.bold) p <- p + theme(axis.title = element_text(face = "bold"))
+  if(!legend.title.blank){
+
+    if(legend.title.bold) p <- p + theme(legend.title = element_text(face = "bold"))
+  } else {
+
+    p <- p + theme(legend.title = element_blank())
+  }
+
+  if(x.text.blank){
+    p <- p +
+      theme(
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank()
+      )
+  } else {
+    p <- p + theme(axis.text.x = element_text(angle = 45))
+  }
+
+  if(y.text.blank){
+    p <- p +
+      theme(
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+      )
+  }
+
+  if(axis.title.x.blank) p <- p + theme(axis.title.x = element_blank())
+  if(axis.title.y.blank) p <- p + theme(axis.title.y = element_blank())
+
+  # Legend
+  # p <- p +
+  #   theme(
+  #     legend.key.size = unit(legend.key.size, "cm")
+  #   )
+
+  # p <- p +
+  #     theme(
+  #       axis.text = element_text(size = axis.text.x.fsize),
+  #       axis.title.x = element_text(
+  #         size = axis.title.x.fsize,
+  #         margin = margin(
+  #           axis.title.x.margin,
+  #           axis.title.x.margin,
+  #           axis.title.x.margin,
+  #           axis.title.x.margin
+  #         )
+  #       ),
+  #       axis.title.y = element_text(
+  #         size = axis.title.y.fsize,
+  #         margin = margin(
+  #           axis.title.y.margin,
+  #           axis.title.y.margin,
+  #           axis.title.y.margin,
+  #           axis.title.y.margin
+  #         )
+  #       ),
+  #       legend.text = element_text(size = legend.text.fsize),
+  #       legend.title = element_text(size = legend.title.fsize, face = "bold"),
+  #       legend.position = legend.position,
+  #       legend.title.position = legend.title.position,
+  #       legend.key = element_blank(),
+  #       legend.spacing.x = unit(legend.spacing.x, "pt"),
+  #       legend.key.spacing = unit(legend.key.spacing, "pt"),
+  #       legend.key.spacing.y = unit(legend.key.spacing.y, "pt"),
+  #       legend.box.margin = margin(
+  #         legend.box.margin,
+  #         legend.box.margin,
+  #         legend.box.margin,
+  #         legend.box.margin
+  #       ),
+  #       legend.box.spacing = unit(legend.box.spacing, "pt"),
+  #       legend.background = element_blank()
+  #     ) +
+  #     guides(
+  #       color = guide_legend(
+  #         override.aes = list(
+  #           size = legend.obj.size
+  #         ),
+  #         nrow = 1
+  #       ),
+  #       shape = guide_legend(
+  #         override.aes = list(
+  #           size = legend.obj.size
+  #         )
+  #       )
+  #     )
+
+  return(p)
+}
+
+
+
+
+
+#' Visualising features (eg gene expression), metadata (eg cell type) or reducedDim component (eg PhiSpace cell type score) in 2D tissue space.
+#'
+#' The 2D spatial coordinates (x and y) should be stored as two columns in colData.
+#'
+#' @param sce SCE object.
+#' @param x_coord x coordinate name of a column of colData.
+#' @param y_coord y coordinate name of a column of colData.
+#' @param ptSize Size of point, representing spatial cell like objects (segmented cells, spots etc).
+#' @param ptShape Shape of point.
+#' @param groupBy Name of a metadata column to colour points by.
+#' @param feature Name of a feature (eg gene) to colour points by.
+#' @param assay2use Which assay to use when feature is specified.
+#' @param reducedDim Name of reducedDim column to colour points by.
+#' @param reducedDim2use Name of reducedDim layer to use when reducedDim is specified.
+#' @param censor Logical. Whether to set smaller colour values to zero. Default is `FALSE`. (Recommend to set to `TRUE` when visualise PhiSpace scores,)
+#' @param quant A value between 0 and 1. Colour values below `quant` will be set to zero if `censor=TRUE`.
+#' @param legend.position Position of legened, one of "right", "bottome", "left" and "top".
+#' @param legend.symb.size Legend symbol size (for discrete legend).
+#' @param bigLegendSymb Logical. Whether to enlarge legend symbols (for discrete legend).
+#' @param fsize Base font size of figure.
+#' @param reOrder Logical. Whether to reorder points according to their values (ascending) or not. Set to be `TRUE` to avoid overplotting.
+#' @param ... Other arguments to pass to `basicPlotFormat`.
+#'
+#' @return A ggplot2 object.
+#' @export
+#'
+VizSpatial <- function(
+    sce,
+    x_coord = "x",
+    y_coord = "y",
+    ptSize = 2,
+    ptShape = 16,
+    groupBy = NULL,
+    feature = NULL,
+    assay2use = NULL,
+    reducedDim = NULL,
+    reducedDim2use = "PhiSpace",
+    censor = FALSE, # censor tail PhiSpace scores (see cell2location)
+    quant = 0.5,
+    ## Plot format
+    legend.position = "right",
+    legend.symb.size = 3,
+    bigLegendSymb = F,
+    fsize = 8,
+    reOrder = F,
+    ...
+){
+
+
+
+
+  plot_dat <- colData(sce) %>% as.data.frame()
+
+  if(!is.null(feature)){
+
+    plot_dat[[feature]] <- as.numeric(SummarizedExperiment::assay(sce, assay2use)[feature, ])
+
+    if(reOrder){
+      plot_dat <- plot_dat %>%
+        arrange(!!sym(feature))
+    }
+
+  } else if (!is.null(reducedDim)) {
+
+    if(censor){
+
+      plot_dat[[reducedDim]] <- censor(
+        as.numeric(reducedDim(sce, reducedDim2use)[,reducedDim]),
+        quant = quant
+      )
+    } else {
+
+      plot_dat[[reducedDim]] <- as.numeric(reducedDim(sce, reducedDim2use)[,reducedDim]) %>% matrix()
+    }
+
+    if(reOrder){
+      plot_dat <- plot_dat %>% arrange(!!sym(reducedDim))
+    }
+  }
+
+
+  if(!is.null(groupBy)){
+
+    if(reOrder){
+      plot_dat <- plot_dat %>% arrange(!!sym(groupBy))
+    }
+  }
+
+  p <- plot_dat %>%
+    ggplot(
+      aes(
+        x = !!sym(x_coord),
+        y = !!sym(y_coord)
+      )
+    )
+
+  if(!is.null(groupBy)){
+
+    p <- p +
+      geom_point(
+        aes(
+          colour = !!sym(groupBy)
+        ),
+        size = ptSize, shape = ptShape,
+        stroke = 0
+      )
+
+  } else if (!is.null(feature)) {
+
+    if(is.null(assay2use)) assay2use <- "counts"
+
+    p <- p +
+      geom_point(
+        aes(
+          colour = !!sym(feature)
+        ),
+        size = ptSize, shape = ptShape,
+        stroke = 0
+      ) + scale_colour_gradientn(
+        colours = MATLAB_cols
+      )
+  } else if (!is.null(reducedDim)){
+
+    p <- p +
+      geom_point(
+        aes(
+          colour = !!sym(reducedDim)
+        ),
+        size = ptSize, shape = ptShape,
+        stroke = 0
+      ) + scale_colour_gradientn(
+        colours = MATLAB_cols
+      )
+  } else {
+
+    p <- p + geom_point(size = ptSize, shape = ptShape)
+  }
+
+  p <- basicPlotFormat(
+    p, legend.position = legend.position,
+    x.text.blank = T, y.text.blank = T,
+    axis.title.x.blank = T, axis.title.y.blank = T, fsize = fsize, ...
+  )
+
+  if(bigLegendSymb){
+
+    p <- p +
+      guides(
+        colour = guide_legend(
+          override.aes = list(size = legend.symb.size)
+        )
+      )
+  }
+
+  return(p)
+}
