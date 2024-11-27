@@ -1,10 +1,10 @@
 Package: PhiSpace
-Title: Phenotype space analysis of single-cell multiomics and spatial transcriptomics data
+Title: Analysing compelx phenotypes of bulk, single-cell and spatial omics data.
 Version: 0.0.0.9000
 Authors@R: 
     person("Jiadong", "Mao", , "chiatungmao@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-3818-1981"))
-Description: Continous phenotyping of single-cell multiomics data using partial least squares regression.
+Description: Continous phenotyping of bulk, single-cell and spatial omics data using partial least squares regression.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
