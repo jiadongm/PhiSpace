@@ -19,7 +19,7 @@ loadBarplot <- function(
   if(absVal){
 
     plot_dat <- Loadings %>% as.data.frame() %>%
-      dplyr::arrange(desc(abs(!!sym(comp))))  %>%
+      dplyr::arrange(dplyr::desc(abs(!!sym(comp))))  %>%
       dplyr::slice_head(n = nfeat) %>%
       dplyr::arrange((!!sym(comp)))
   } else {

@@ -23,9 +23,9 @@ PhiSpace(
 )
 }
 \arguments{
-\item{reference}{The reference. A \code{SingleCellExperiment} (SCE) object. Must contain an assay named by \code{PhiSpaceAssay}.}
+\item{reference}{The references. A \code{SingleCellExperiment} (SCE) object or a list of SCE objects. Each must contain an assay named by \code{PhiSpaceAssay}.}
 
-\item{query}{The query. An SCE object or a list of SCE object. Must contain an assay named by \code{PhiSpaceAssay}.}
+\item{query}{The queries. An SCE object or a list of SCE object. Each must contain an assay named by \code{PhiSpaceAssay}.}
 
 \item{phenotypes}{Which phenotypes (e.g. "cell type") to predict. If \code{NULL}, then have to specify \code{response}.}
 
@@ -61,7 +61,7 @@ PhiSpace(
 }
 \description{
 PhiSpace annotates a query dataset or a list of query datasets, given an annotated bulk or single-cell
-RNA-seq reference. PhiSpace can simultaneously model multiple layers of cell phenotypes, e.g. cell type and disease condtion.
+RNA-seq references. PhiSpace can simultaneously model multiple layers of cell phenotypes, e.g. cell type and disease condtion.
 }
 \details{
 \itemize{

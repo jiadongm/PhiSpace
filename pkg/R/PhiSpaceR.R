@@ -1,10 +1,10 @@
 #' PhiSpace continuous phenotyping
 #'
 #' PhiSpace annotates a query dataset or a list of query datasets, given an annotated bulk or single-cell
-#' RNA-seq reference. PhiSpace can simultaneously model multiple layers of cell phenotypes, e.g. cell type and disease condtion.
+#' RNA-seq references. PhiSpace can simultaneously model multiple layers of cell phenotypes, e.g. cell type and disease condtion.
 #'
-#' @param reference The reference. A `SingleCellExperiment` (SCE) object. Must contain an assay named by `PhiSpaceAssay`.
-#' @param query The query. An SCE object or a list of SCE object. Must contain an assay named by `PhiSpaceAssay`.
+#' @param reference The references. A `SingleCellExperiment` (SCE) object or a list of SCE objects. Each must contain an assay named by `PhiSpaceAssay`.
+#' @param query The queries. An SCE object or a list of SCE object. Each must contain an assay named by `PhiSpaceAssay`.
 #' @param phenotypes Which phenotypes (e.g. "cell type") to predict. If `NULL`, then have to specify `response`.
 #' @param response Named matrix. Rows correpond to cells (columns) in reference; columns correspond to phenotypes. If not `NULL`, then will override `phenotypes`.
 #' @param PhiSpaceAssay Character. Which assay to use to train.
@@ -61,50 +61,139 @@ PhiSpace <- function(
     assay2rank = NULL
 ){
 
-  PhiRes <- PhiSpaceR_1ref(
-    reference = reference,
-    query = query,
-    phenotypes = phenotypes,
-    response = response,
-    PhiSpaceAssay = PhiSpaceAssay,
-    regMethod = regMethod,
-    ncomp = ncomp,
-    nfeat = nfeat,
-    selectedFeat = selectedFeat,
-    center = center,
-    scale = scale,
-    DRinfo = DRinfo,
-    assay2rank = assay2rank
-  )
+  # Check if multiple references are provided
+  if(is.list(reference)){
 
-  if(!is.list(query)){
+    # Check if references are named
+    if(is.null(names(reference))){
 
-    if(storeUnNorm) reducedDim(query, "PhiSpaceNonNorm") <- PhiRes$PhiSpaceScore
-    reducedDim(query, "PhiSpace") <- normPhiScores(PhiRes$PhiSpaceScore)
-  } else {
+      warning("Names of reference datasets not provided. Will use generic names.")
+      names(reference) <- paste0("Ref", 1:length(reference))
+    }
 
-    for(i in 1:length(query)){
 
-      if(storeUnNorm) reducedDim(query[[i]], "PhiSpaceNonNorm") <- PhiRes$PhiSpaceScore[[i]]
-      reducedDim(query[[i]], "PhiSpace") <- normPhiScores(PhiRes$PhiSpaceScore[[i]])
+    sc_list <- scUnnorm_list <- vector("list", length(reference))
+    names(sc_list) <- names(reference)
+    for(ii in 1:length(reference)){
+
+      refDataName <- names(reference)[ii]
+      refSingle <- reference[[refDataName]]
+
+      PhiRes <- PhiSpaceR_1ref(
+        reference = refSingle,
+        query = query,
+        phenotypes = phenotypes,
+        response = response,
+        PhiSpaceAssay = PhiSpaceAssay,
+        regMethod = regMethod,
+        ncomp = ncomp,
+        nfeat = nfeat,
+        selectedFeat = selectedFeat,
+        center = center,
+        scale = scale,
+        DRinfo = DRinfo,
+        assay2rank = assay2rank
+      )
+
+      # Rename cell type names by appending reference dataset name
+      sc <- PhiRes$PhiSpaceScore
+
+      if(is.list(sc)){
+
+        sc <- lapply(
+          sc,
+          function(x){
+            colnames(x) <- paste0(colnames(x), "(", refDataName, ")")
+            return(x)
+          }
+        )
+
+        sc_norm <- lapply(sc, normPhiScores)
+
+      } else {
+
+        colnames(sc) <- paste0(colnames(sc), "(", refDataName, ")")
+        sc_norm <- normPhiScores(sc)
+      }
+
+      sc_list[[refDataName]] <- sc_norm
+      if(storeUnNorm) scUnnorm_list [[refDataName]] <- sc
+    }
+
+
+    # If multiple queries were provided
+    if(is.list(query)){
+
+      for(i in 1:length(query)){
+
+        scSingleQuery_list <- lapply(sc_list, function(x) x[[i]])
+        reducedDim(query[[i]], "PhiSpace") <- Reduce(cbind, scSingleQuery_list)
+
+        if(storeUnNorm){
+
+          scSingleQuery_list <- lapply(scUnnorm_list, function(x) x[[i]])
+          reducedDim(query[[i]], "PhiSpaceNonNorm") <- Reduce(cbind, scSingleQuery_list)
+        }
+      }
+    } else {
+
+      reducedDim(query, "PhiSpace") <- Reduce(cbind, sc_list)
+      if(storeUnNorm) reducedDim(query, "PhiSpaceNonNorm") <-  Reduce(cbind, scUnnorm_list)
+    }
+
+
+
+  } else { # If single reference was provided
+
+    PhiRes <- PhiSpaceR_1ref(
+      reference = reference,
+      query = query,
+      phenotypes = phenotypes,
+      response = response,
+      PhiSpaceAssay = PhiSpaceAssay,
+      regMethod = regMethod,
+      ncomp = ncomp,
+      nfeat = nfeat,
+      selectedFeat = selectedFeat,
+      center = center,
+      scale = scale,
+      DRinfo = DRinfo,
+      assay2rank = assay2rank
+    )
+
+    if(!is.list(query)){
+
+      if(storeUnNorm) reducedDim(query, "PhiSpaceNonNorm") <- PhiRes$PhiSpaceScore
+      reducedDim(query, "PhiSpace") <- normPhiScores(PhiRes$PhiSpaceScore)
+    } else {
+
+      for(i in 1:length(query)){
+
+        if(storeUnNorm) reducedDim(query[[i]], "PhiSpaceNonNorm") <- PhiRes$PhiSpaceScore[[i]]
+        reducedDim(query[[i]], "PhiSpace") <- normPhiScores(PhiRes$PhiSpaceScore[[i]])
+      }
+    }
+
+    if(updateRef){
+
+      if(storeUnNorm) reducedDim(reference, "PhiSpaceNonNorm") <- PhiRes$YrefHat
+      reducedDim(reference, "PhiSpace") <- normPhiScores(PhiRes$YrefHat)
+
+      return(
+        list(
+          reference = reference,
+          query = query
+        )
+      )
+    } else {
+
+      return(query)
     }
   }
 
-  if(updateRef){
 
-    if(storeUnNorm) reducedDim(reference, "PhiSpaceNonNorm") <- PhiRes$YrefHat
-    reducedDim(reference, "PhiSpace") <- normPhiScores(PhiRes$YrefHat)
 
-    return(
-      list(
-        reference = reference,
-        query = query
-      )
-    )
-  } else {
 
-    return(query)
-  }
 
 
 
