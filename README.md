@@ -1,4 +1,6 @@
-# Φ-Space: Continuous phenotyping for single-cell and spatial multiomics data.
+# Φ-Space: Continuous phenotyping of bulk, single-cell and spatial omics data.
+
+News: Version 1.0.0.9000 is released. This is a under-development version towards Φ-Space ST, a unified approach for spatial transcriptomics (ST) data analysis. New manuscript and vignettes coming soon!
 
 <img src="./figs/PhiSpace.png" width="20%" style="display: block; margin: auto;" />
 
