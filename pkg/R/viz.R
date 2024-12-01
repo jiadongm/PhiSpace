@@ -10,7 +10,7 @@
 #' @param pointSize Point size.
 #' @param manualCol Manual specification of colours.
 #' @param manualAlpha Manual specification of alpha colours.
-#' @param groupKey Column name of plot_dat storing group information.
+#' @param colBy Numeric or charactor vectors to specify colour of points.
 #' @param fsize Figure font size.
 #'
 #' @export
@@ -18,7 +18,7 @@ matrixPlot <- function(
     scores,
     max_ncomp = NULL,
     comp_idx = NULL,
-    groupKey = NULL,
+    colBy = NULL,
     pointAlpha = NULL,
     pointSize = 1,
     manualCol = NULL,
@@ -42,6 +42,8 @@ matrixPlot <- function(
   }
 
 
+  Ngroups <- length(unique(colBy))
+
   if(length(comp_idx) >= 3){
 
     # Density plots on diagonal
@@ -62,21 +64,24 @@ matrixPlot <- function(
 
 
 
-      if(is.null(groupKey)){
+      if(is.null(colBy)){
 
         p <- p +
-          geom_jitter(aes(y = 0),
-                      height = diff(layer_scales(p)$y$range$range)/20)
+          geom_jitter(aes(y = 0), height = diff(layer_scales(p)$y$range$range)/20)
         out_diag[[comp_i]] <- p
 
       } else {
 
         p <- p +
-          geom_jitter(aes(y = 0, colour = !! sym(groupKey)),
+          geom_jitter(aes(y = 0, colour = colBy),
                       height = diff(layer_scales(p)$y$range$range)/20)
 
         if(!is.null(manualCol)){
           p <- p + scale_color_manual(values = manualCol)
+        } else {
+
+          if(is.numeric(colBy)) p <- p + scale_colour_gradientn(colours = MATLAB_cols)
+
         }
 
         out_diag[[comp_i]] <- p
@@ -88,7 +93,7 @@ matrixPlot <- function(
     }
 
     # Get the legend
-    if(!is.null(groupKey)) suppressWarnings( p_legend <- cowplot::get_legend(p))
+    if(!is.null(colBy)) suppressWarnings(p_legend <- cowplot::get_legend(p))
 
 
     # Scatter plots on non-diagonal
@@ -99,7 +104,7 @@ matrixPlot <- function(
       var1 <- paste0("comp", combs[comb, 1])
       var2 <- paste0("comp", combs[comb, 2])
 
-      if(is.null(groupKey)){
+      if(is.null(colBy)){
 
         p <- scores %>%
           ggplot(aes(x = !! sym(var1), y = !! sym(var2))) +
@@ -118,7 +123,7 @@ matrixPlot <- function(
         p <-
           scores %>%
           ggplot(aes(x = !! sym(var1), y = !! sym(var2))) +
-          geom_point(aes(colour = !! sym(groupKey)), size = pointSize, stroke = 0) +
+          geom_point(aes(colour = colBy), size = pointSize, stroke = 0) +
           theme_bw(base_size = fsize) +
           theme(
             legend.position = "none",
@@ -139,13 +144,13 @@ matrixPlot <- function(
 
     # Arrange plots
     out <- c(out_nondiag, out_diag)
-    if(!is.null(groupKey)){
+    if(!is.null(colBy)){
       out[[length(out) + 1]] <- p_legend
     }
     layoutM <- matrix(NA, length(comp_idx), length(comp_idx))
     layoutM[upper.tri(layoutM, diag = F)] <- 1:nrow(combs)
     diag(layoutM) <- (nrow(combs)+1):(nrow(combs)+length(comp_idx))
-    if(!is.null(groupKey)) layoutM[ceiling(length(comp_idx)/2)+1, ceiling(length(comp_idx)/2)-1] <- length(out)
+    if(!is.null(colBy)) layoutM[ceiling(length(comp_idx)/2)+1, ceiling(length(comp_idx)/2)-1] <- length(out)
     p <- gridExtra::grid.arrange(grobs = out, layout_matrix = layoutM)
 
   } else if (length(comp_idx) == 1){
@@ -157,7 +162,7 @@ matrixPlot <- function(
       scores %>%
       ggplot(aes(x = !! sym(var2plot))) +
       geom_density(bw = "sj")
-    if(is.null(groupKey)){
+    if(is.null(colBy)){
       out <-
         out +
         geom_jitter(aes(y=0),
@@ -167,7 +172,7 @@ matrixPlot <- function(
     } else {
       out <-
         out +
-        geom_jitter(aes(y=0, colour = !! sym(groupKey), alpha = !! sym(groupKey)),
+        geom_jitter(aes(y=0, colour = colBy, alpha = !! sym(colBy)),
                     height = diff(layer_scales(out)$y$range$range)/20,
                     size = pointSize,
                     shape = 16)
@@ -178,9 +183,8 @@ matrixPlot <- function(
         scale_color_manual(values = manualCol)
     }
 
+    # Colour scale
     if(is.null(manualAlpha)){
-
-      Ngroups <- length(unique(scores[,groupKey]))
 
       if(is.null(pointAlpha)) pointAlpha <- 1
 
@@ -200,7 +204,7 @@ matrixPlot <- function(
     var1 <- paste0("comp", comp_idx[1])
     var2 <- paste0("comp", comp_idx[2])
 
-    if(is.null(groupKey)){
+    if(is.null(colBy)){
 
       p <-
         scores %>%
@@ -213,7 +217,7 @@ matrixPlot <- function(
       p <-
         scores %>%
         ggplot(aes(x = !! sym(var1), y = !! sym(var2))) +
-        geom_point(aes(colour = !! sym(groupKey)), size = pointSize)
+        geom_point(aes(colour = colBy), size = pointSize)
 
       if(!is.null(manualCol)){
         p <- p +

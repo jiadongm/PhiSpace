@@ -8,7 +8,7 @@ matrixPlot(
   scores,
   max_ncomp = NULL,
   comp_idx = NULL,
-  groupKey = NULL,
+  colBy = NULL,
   pointAlpha = NULL,
   pointSize = 1,
   manualCol = NULL,
@@ -23,7 +23,7 @@ matrixPlot(
 
 \item{comp_idx}{Default NULL. Indices of components to plot.}
 
-\item{groupKey}{Column name of plot_dat storing group information.}
+\item{colBy}{Numeric or charactor vectors to specify colour of points.}
 
 \item{pointAlpha}{Alpha value.}
 
