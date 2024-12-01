@@ -13,7 +13,9 @@ matrixPlot(
   pointSize = 1,
   manualCol = NULL,
   manualAlpha = NULL,
-  fsize = 14
+  fsize = 14,
+  returnPlotList = F,
+  legendTitle = ""
 )
 }
 \arguments{
@@ -34,6 +36,10 @@ matrixPlot(
 \item{manualAlpha}{Manual specification of alpha colours.}
 
 \item{fsize}{Figure font size.}
+
+\item{returnPlotList}{Logical. Whether to return individual plots.}
+
+\item{legendTitle}{Legend title.}
 }
 \description{
 Density and pairwise scatter plots for visualising score matrices.

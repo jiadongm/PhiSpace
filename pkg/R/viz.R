@@ -12,6 +12,8 @@
 #' @param manualAlpha Manual specification of alpha colours.
 #' @param colBy Numeric or charactor vectors to specify colour of points.
 #' @param fsize Figure font size.
+#' @param returnPlotList Logical. Whether to return individual plots.
+#' @param legendTitle Legend title.
 #'
 #' @export
 matrixPlot <- function(
@@ -23,7 +25,9 @@ matrixPlot <- function(
     pointSize = 1,
     manualCol = NULL,
     manualAlpha = NULL,
-    fsize = 14
+    fsize = 14,
+    returnPlotList = F,
+    legendTitle = ""
   ){
 
   if(is.null(max_ncomp) & is.null(comp_idx)){
@@ -93,7 +97,17 @@ matrixPlot <- function(
     }
 
     # Get the legend
-    if(!is.null(colBy)) suppressWarnings(p_legend <- cowplot::get_legend(p))
+    if(!is.null(colBy)){
+      suppressWarnings(
+        p_legend <- cowplot::get_legend(
+          p + theme(
+            legend.position = "right"
+          ) + guides(
+            colour = guide_legend(title = legendTitle)
+          )
+        )
+      )
+    }
 
 
     # Scatter plots on non-diagonal
@@ -147,14 +161,46 @@ matrixPlot <- function(
 
     # Arrange plots
     out <- c(out_nondiag, out_diag)
+    # Arrange diagonal
+    diagIdx <- 1
+    toAdd <- length(comp_idx)
+    for(kk in 1:length(comp_idx)){
+
+      out[[diagIdx]] <- out_diag[[kk]]
+      diagIdx <- diagIdx + toAdd
+      toAdd <- toAdd - 1
+    }
+    # Non-diagonal, arrange column by column
+    startIdxMat <- 2
+    toAdd <- length(comp_idx) - 2
+    startIdxNondiag <- 1
+    for(kk in 1:(length(comp_idx)-1)){
+      endIdxMat <- startIdxMat + toAdd
+      endIdxNondiag <- startIdxNondiag + toAdd
+      out[startIdxMat:endIdxMat] <- out_nondiag[startIdxNondiag:endIdxNondiag]
+      startIdxMat <- endIdxMat + 2
+      startIdxNondiag <- endIdxNondiag + 1
+      toAdd <- toAdd - 1
+    }
+
+
+    layoutM <- matrix(NA, length(comp_idx), length(comp_idx))
+    layoutM[lower.tri(layoutM, diag = T)] <- 1:length(out)
+    # diag(layoutM) <- (nrow(combs)+1):(nrow(combs)+length(comp_idx))
     if(!is.null(colBy)){
       out[[length(out) + 1]] <- p_legend
+      layoutM[1, length(comp_idx)] <- length(out)
     }
-    layoutM <- matrix(NA, length(comp_idx), length(comp_idx))
-    layoutM[upper.tri(layoutM, diag = F)] <- 1:nrow(combs)
-    diag(layoutM) <- (nrow(combs)+1):(nrow(combs)+length(comp_idx))
-    if(!is.null(colBy)) layoutM[ceiling(length(comp_idx)/2)+1, ceiling(length(comp_idx)/2)-1] <- length(out)
     p <- gridExtra::grid.arrange(grobs = out, layout_matrix = layoutM)
+
+
+    ## Return
+    if(returnPlotList){
+      return(list(matrixPlot = p, plotList = out))
+    } else {
+
+      return(p)
+    }
 
   } else if (length(comp_idx) == 1){
 
@@ -199,6 +245,8 @@ matrixPlot <- function(
         scale_alpha_manual(values = manualAlpha)
     }
 
+    return(out)
+
 
   } else {
 
@@ -225,6 +273,8 @@ matrixPlot <- function(
       if(!is.null(manualCol)){
         p <- p +
           scale_color_manual(values = manualCol)
+      } else {
+        if(is.numeric(colBy)) p <- p + scale_colour_gradientn(colours = MATLAB_cols)
       }
     }
 
