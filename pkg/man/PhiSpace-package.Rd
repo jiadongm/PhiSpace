@@ -3,9 +3,9 @@
 \docType{package}
 \name{PhiSpace-package}
 \alias{PhiSpace-package}
-\title{PhiSpace: Phenotype space analysis of single-cell multiomics and spatial transcriptomics data}
+\title{PhiSpace: Analysing compelx phenotypes of bulk, single-cell and spatial omics data}
 \description{
-Continous phenotyping of single-cell multiomics data using partial least squares regression.
+Continous phenotyping of bulk, single-cell and spatial omics data using partial least squares regression.
 }
 \author{
 \strong{Maintainer}: Jiadong Mao \email{chiatungmao@gmail.com} (\href{https://orcid.org/0000-0002-3818-1981}{ORCID})

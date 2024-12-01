@@ -5,6 +5,7 @@
 #' @import SingleCellExperiment
 #' @import SummarizedExperiment
 #' @import Matrix
+#' @import methods
 #' @importFrom magrittr %>%
 ## usethis namespace: end
 NULL

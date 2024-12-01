@@ -1,5 +1,5 @@
 Package: PhiSpace
-Title: Analysing compelx phenotypes of bulk, single-cell and spatial omics data.
+Title: Analysing compelx phenotypes of bulk, single-cell and spatial omics data
 Version: 1.0.0.9000
 Authors@R: 
     person("Jiadong", "Mao", , "chiatungmao@gmail.com", role = c("aut", "cre"),
@@ -12,7 +12,8 @@ RoxygenNote: 7.3.2
 Depends:
     SummarizedExperiment,
     SingleCellExperiment,
-    Matrix
+    Matrix,
+    methods
 Imports: 
     ComplexHeatmap,
     cowplot,
