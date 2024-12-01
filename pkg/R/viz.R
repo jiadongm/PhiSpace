@@ -67,7 +67,7 @@ matrixPlot <- function(
       if(is.null(colBy)){
 
         p <- p +
-          geom_jitter(aes(y = 0), height = diff(layer_scales(p)$y$range$range)/20)
+          geom_jitter(aes(y = 0), height = diff(layer_scales(p)$y$range$range)/20, size = pointSize, stroke = 0)
         out_diag[[comp_i]] <- p
 
       } else {
@@ -134,6 +134,9 @@ matrixPlot <- function(
 
         if(!is.null(manualCol)){
           p <- p + scale_color_manual(values = manualCol)
+        } else {
+
+          if(is.numeric(colBy)) p <- p + scale_colour_gradientn(colours = MATLAB_cols)
         }
       }
 
