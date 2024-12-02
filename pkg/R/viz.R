@@ -268,7 +268,8 @@ matrixPlot <- function(
       p <-
         scores %>%
         ggplot(aes(x = !! sym(var1), y = !! sym(var2))) +
-        geom_point(aes(colour = colBy), size = pointSize)
+        geom_point(aes(colour = colBy), size = pointSize, stroke = 0) +
+        theme_bw(base_size = fsize)
 
       if(!is.null(manualCol)){
         p <- p +
