@@ -25,9 +25,9 @@ PhiSpaceR_1ref(
 
 \item{query}{SCE or a list of SCE. The query.}
 
-\item{phenotypes}{Charater. Which types of phenotypes to predict. If \code{NULL}, then have to specify \code{response}.}
+\item{phenotypes}{Charater. Which types of phenotypes to predict. If \code{NULL}, then have to specify \code{response}. Currently only support categorical phenotypes. For continuous ones, specify \code{response} directly.}
 
-\item{response}{Named matrix. Rows correpond to cells (columns) in reference; columns correspond to phenotypes. If not \code{NULL}, then will override \code{phenotypes}.}
+\item{response}{Named matrix. Rows correspond to cells (columns) in reference; columns correspond to phenotypes. If not \code{NULL}, then will override \code{phenotypes}. Can be continuous values such as age and BMI.}
 
 \item{PhiSpaceAssay}{Character. Which assay to use to train}
 
