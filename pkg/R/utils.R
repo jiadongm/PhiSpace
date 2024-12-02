@@ -144,6 +144,19 @@ scal <- function(X, center = NULL, scale = NULL){
 
 
 
+## Double centring
+#' Double center a matrix by column and row means, resulting in a new matrix with zero row and column means.
+#'
+#' @param X A matrix or an object convertible to one.
+#'
+#' @return A double-centred matrix.
+#' @export
+doubleCent <- function(X){
 
+  X <- as.matrix(X)
+  X <- sweep(X, 1, rowMeans(X))
+  X <- sweep(X, 2, colMeans(X))
+  return(X)
+}
 
 
