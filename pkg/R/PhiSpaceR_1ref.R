@@ -2,8 +2,8 @@
 #'
 #' @param reference SCE. The reference.
 #' @param query SCE or a list of SCE. The query.
-#' @param phenotypes Charater. Which types of phenotypes to predict. If `NULL`, then have to specify `response`.
-#' @param response Named matrix. Rows correpond to cells (columns) in reference; columns correspond to phenotypes. If not `NULL`, then will override `phenotypes`.
+#' @param phenotypes Charater. Which types of phenotypes to predict. If `NULL`, then have to specify `response`. Currently only support categorical phenotypes. For continuous ones, specify `response` directly.
+#' @param response Named matrix. Rows correspond to cells (columns) in reference; columns correspond to phenotypes. If not `NULL`, then will override `phenotypes`. Can be continuous values such as age and BMI.
 #' @param PhiSpaceAssay Character. Which assay to use to train
 #' @param regMethod Character. Regression method: one of PLS and PCA
 #' @param ncomp Integer.
@@ -55,7 +55,7 @@ PhiSpaceR_1ref <- function(
   ## Build Y matrix
   if(!is.null(response)){ # If response is provided
 
-    YY <- response
+    YY <- as.matrix(response)
     phenoDict <- NULL
 
   } else {
