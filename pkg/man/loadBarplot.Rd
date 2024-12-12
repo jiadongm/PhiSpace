@@ -11,7 +11,7 @@ loadBarplot(
   absVal = T,
   showNeg = F,
   nfeat = 30,
-  fsize = 6,
+  fsize = 14,
   xlab = ""
 )
 }

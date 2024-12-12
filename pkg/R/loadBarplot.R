@@ -13,7 +13,7 @@
 #' @export
 loadBarplot <- function(
     Loadings, comp = "comp1", showInt = F, absVal = T, showNeg = F,
-    nfeat = 30, fsize = 6, xlab = ""
+    nfeat = 30, fsize = 14, xlab = ""
 ){
 
   if(absVal){
