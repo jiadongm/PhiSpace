@@ -5,7 +5,7 @@
 \title{Visualising features (eg gene expression), metadata (eg cell type) or reducedDim component (eg PhiSpace cell type score) in 2D tissue space.}
 \usage{
 VizSpatial(
-  sce,
+  obj,
   x_coord = "x",
   y_coord = "y",
   ptSize = 2,
@@ -18,19 +18,19 @@ VizSpatial(
   censor = FALSE,
   quant = 0.5,
   legend.position = "right",
-  legend.symb.size = 3,
-  bigLegendSymb = F,
-  fsize = 8,
+  legend.symb.size = NULL,
+  legend.title = NULL,
+  fsize = 14,
   reOrder = F,
   ...
 )
 }
 \arguments{
-\item{sce}{SCE object.}
+\item{obj}{Input object; either \code{SingleCellExperiemnt} or \code{SpatialExperiment}. If \code{SingleCellExperiemnt}, then \code{colData(obj)} has to contain columns named by \code{x_coord} and \code{y_coord} below.}
 
-\item{x_coord}{x coordinate name of a column of colData.}
+\item{x_coord}{x coordinate name of a column of colData (if \code{type(ojb) == SingleCellExperiemnt}).}
 
-\item{y_coord}{y coordinate name of a column of colData.}
+\item{y_coord}{y coordinate name of a column of colData (if \code{type(ojb) == SingleCellExperiemnt}).}
 
 \item{ptSize}{Size of point, representing spatial cell like objects (segmented cells, spots etc).}
 
@@ -54,7 +54,7 @@ VizSpatial(
 
 \item{legend.symb.size}{Legend symbol size (for discrete legend).}
 
-\item{bigLegendSymb}{Logical. Whether to enlarge legend symbols (for discrete legend).}
+\item{legend.title}{Alternative legend name to replace the original.}
 
 \item{fsize}{Base font size of figure.}
 

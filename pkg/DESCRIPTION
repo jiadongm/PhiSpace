@@ -12,6 +12,7 @@ RoxygenNote: 7.3.2
 Depends:
     SummarizedExperiment,
     SingleCellExperiment,
+    SpatialExperiment,
     Matrix,
     methods
 Imports: 

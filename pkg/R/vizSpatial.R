@@ -186,9 +186,9 @@ basicPlotFormat <- function(
 #'
 #' The 2D spatial coordinates (x and y) should be stored as two columns in colData.
 #'
-#' @param sce SCE object.
-#' @param x_coord x coordinate name of a column of colData.
-#' @param y_coord y coordinate name of a column of colData.
+#' @param obj Input object; either `SingleCellExperiemnt` or `SpatialExperiment`. If `SingleCellExperiemnt`, then `colData(obj)` has to contain columns named by `x_coord` and `y_coord` below.
+#' @param x_coord x coordinate name of a column of colData (if `type(ojb) == SingleCellExperiemnt`).
+#' @param y_coord y coordinate name of a column of colData (if `type(ojb) == SingleCellExperiemnt`).
 #' @param ptSize Size of point, representing spatial cell like objects (segmented cells, spots etc).
 #' @param ptShape Shape of point.
 #' @param groupBy Name of a metadata column to colour points by.
@@ -200,7 +200,7 @@ basicPlotFormat <- function(
 #' @param quant A value between 0 and 1. Colour values below `quant` will be set to zero if `censor=TRUE`.
 #' @param legend.position Position of legened, one of "right", "bottome", "left" and "top".
 #' @param legend.symb.size Legend symbol size (for discrete legend).
-#' @param bigLegendSymb Logical. Whether to enlarge legend symbols (for discrete legend).
+#' @param legend.title Alternative legend name to replace the original.
 #' @param fsize Base font size of figure.
 #' @param reOrder Logical. Whether to reorder points according to their values (ascending) or not. Set to be `TRUE` to avoid overplotting.
 #' @param ... Other arguments to pass to `basicPlotFormat`.
@@ -209,7 +209,7 @@ basicPlotFormat <- function(
 #' @export
 #'
 VizSpatial <- function(
-    sce,
+    obj,
     x_coord = "x",
     y_coord = "y",
     ptSize = 2,
@@ -223,25 +223,54 @@ VizSpatial <- function(
     quant = 0.5,
     ## Plot format
     legend.position = "right",
-    legend.symb.size = 3,
-    bigLegendSymb = F,
-    fsize = 8,
+    legend.symb.size = NULL,
+    legend.title = NULL,
+    fsize = 14,
     reOrder = F,
     ...
 ){
 
+  if(class(obj) == "SpatialExperiment"){
+
+    coordNames <- spatialCoordsNames(obj)
+
+    if(is.null(coordNames)){
+      warning("Coordinate names nonexistent; will use generic names.")
+      coordNames <- paste0("coord", 1:length(coordNames))
+      spatialCoordsNames(obj) <- coordNames
+    }
+
+    plot_dat <- colData(obj) %>% as.data.frame()
+
+    # If coordNames already present in colData(obj), then delete those columns from colData
+    if(any(coordNames %in% colnames(colData(obj)))){
+
+      plot_dat[,coordNames[which(coordNames %in% colnames(colData(obj)))]] <- NULL
+    }
+    plot_dat <- cbind(plot_dat, spatialCoords(obj))
+
+    if(ncol(spatialCoords(obj)) > 2) message("There are more than 2 spatial coordinates in obj, only using the first two as x and y coordinates.")
+
+    x_coord = coordNames[1]
+    y_coord = coordNames[2]
+
+  } else {
+
+    if(class(obj) != "SingleCellExperiment") stop("The input obj has to be either SpatialExperiment object or SingleCellExperiment.")
+    plot_dat <- colData(obj) %>% as.data.frame()
+
+    if(!all(coordNames %in% colnames(colData(obj)))) stop("Not all spatial coordinates are present in colData of obj.")
+  }
 
 
-
-  plot_dat <- colData(sce) %>% as.data.frame()
 
   if(!is.null(feature)){
 
-    if(!(feature %in% rownames(sce))) stop("Feature not in sce object.")
+    if(!(feature %in% rownames(obj))) stop("Feature not in obj.")
 
     if(is.null(assay2use)) assay2use <- "counts"
 
-    plot_dat[[feature]] <- as.numeric(assay(sce, assay2use)[feature, ])
+    plot_dat[[feature]] <- as.numeric(assay(obj, assay2use)[feature, ])
 
     if(reOrder){
       plot_dat <- dplyr::arrange(plot_dat, !!sym(feature))
@@ -250,17 +279,17 @@ VizSpatial <- function(
 
   } else if (!is.null(reducedDim)) {
 
-    if(!(reducedDim2use %in% reducedDimNames(sce))) stop("Non-existent reducedDim2use.")
+    if(!(reducedDim2use %in% reducedDimNames(obj))) stop("Non-existent reducedDim2use.")
 
     if(censor){
 
       plot_dat[[reducedDim]] <- censor(
-        as.numeric(reducedDim(sce, reducedDim2use)[,reducedDim]),
+        as.numeric(reducedDim(obj, reducedDim2use)[,reducedDim]),
         quant = quant
       )
     } else {
 
-      plot_dat[[reducedDim]] <- as.numeric(reducedDim(sce, reducedDim2use)[,reducedDim]) %>% matrix()
+      plot_dat[[reducedDim]] <- as.numeric(reducedDim(obj, reducedDim2use)[,reducedDim]) %>% matrix()
     }
 
     if(reOrder){
@@ -334,7 +363,7 @@ VizSpatial <- function(
     axis.title.x.blank = T, axis.title.y.blank = T, base_size = fsize, ...
   )
 
-  if(bigLegendSymb){
+  if(!is.null(legend.symb.size)){
 
     p <- p +
       guides(
@@ -342,6 +371,11 @@ VizSpatial <- function(
           override.aes = list(size = legend.symb.size)
         )
       )
+  }
+
+  if(!is.null(legend.title)){
+
+    p <- p + guides(colour=guide_legend(title=legend.title))
   }
 
   return(p)
