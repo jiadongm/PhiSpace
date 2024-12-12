@@ -256,6 +256,8 @@ VizSpatial <- function(
 
   } else {
 
+    coordNames <- c(x_coord, y_coord)
+
     if(class(obj) != "SingleCellExperiment") stop("The input obj has to be either SpatialExperiment object or SingleCellExperiment.")
     plot_dat <- colData(obj) %>% as.data.frame()
 
