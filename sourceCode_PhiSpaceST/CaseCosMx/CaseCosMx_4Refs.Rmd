@@ -1,0 +1,609 @@
+---
+title: "CaseCosMx: Annotate Non-small cell lung cancer CosMx samples using 4 scRNA-seq references"
+output: html_notebook
+---
+
+
+# Preparation
+Load necessary packages.
+```{R}
+# Install latest version of PhiSpace from github
+suppressMessages(devtools::install_github("jiadongm/PhiSpace/pkg"))
+
+# Load packages and predefined quantities
+suppressPackageStartupMessages(library(PhiSpace))
+suppressPackageStartupMessages(library(ggplot2))
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(tidyr))
+suppressPackageStartupMessages(library(magrittr))
+suppressPackageStartupMessages(library(scuttle))
+suppressPackageStartupMessages(library(scran))
+suppressPackageStartupMessages(library(ggpubr))
+suppressPackageStartupMessages(library(qs)) # quick read and write of R objects
+
+suppressPackageStartupMessages(library(ComplexHeatmap))
+suppressPackageStartupMessages(library(seriation))
+
+
+source("utils.R")
+dat_dir <- "/data/projects/punim0613/JiaDong/PhiSpace/"
+
+PhiAssay <- "log1p"
+```
+
+In this case study we downloaded 4 scRNA-seq reference datasets from healthy and fibrotic lungs, each containing cells from a different lineage (immune, epithelial, endothelial and mesenchymal):
+
+Vannan, A., Lyu, R., Williams, A. L., Negretti, N. M., Mee, E. D., Hirsh, J., … Banovich, N. E. (2023). Image-based spatial transcriptomics identifies molecular niche dysregulation associated with distal lung remodeling in pulmonary fibrosis. bioRxiv : The Preprint Server for Biology. Retrieved from https://doi.org/10.1101/2023.12.15.571954
+
+The query dataset contained CosMx NSCLC lung samples, as described in:
+
+He, S., Bhatt, R., Brown, C., Brown, E. A., Buhr, D. L., Chantranuvatana, K., … Beechem, J. M. (2022). High-plex imaging of RNA and proteins at subcellular resolution in fixed tissue by spatial molecular imaging. Nature Biotechnology, 40(12), 1794–1806.
+
+
+
+Load 4 refernce datasets from 4 lineages as a list.
+```{r}
+YtrainName <- c("manual_annotation_1")
+ref_list <- lapply(
+  c("immune", "epithelial", "endothelial", "mesenchymal"),
+  function(lineage){
+    
+    qread(paste0(dat_dir, "data/LungFibrosis/scRNA-seq/", lineage, "_sce.qs"))
+  }
+)
+names(ref_list) <- c("immune", "epithelial", "endothelial", "mesenchymal")
+```
+
+
+Process query datasets and load annotations. See `runPhiSpace4Refs.R` for details.
+```{r}
+tissueNames <- tissueNames_CosMx
+query_list <- qread(paste0(dat_dir, "data/CosMx_lung/SCE_obj/allTissue_SCE.qs"))
+PhiResPath <- paste0(
+  dat_dir, "output/Case3/CosMxAllLungsPhiRes4Refs_", PhiAssay, ".qs"
+)
+sc_list <- qread(PhiResPath)
+for(ii in 1:length(tissueNames)){
+  tissueName <- tissueNames[ii]
+  query <- query_list[[tissueName]]
+  sc4Refs <- lapply(sc_list, function(x) x[[tissueName]])
+  reducedDim(query, "PhiSpace") <- Reduce(cbind, sc4Refs)
+  query_list[[ii]] <- query
+}
+# Simplify cell type names
+originalNames <- simpleNames <- colnames(reducedDim(query_list[[1]], "PhiSpace"))
+simpleNames[c(2, 4, 9, 10, 12, 18, 21, 23, 24, 25, 26, 43)] <- c(
+  "MoMacroph(immune)", "InflamMono(immune)",  "AlveolarMacroph(immune)",
+  "ProlifImm(immune)", "InterstMacroph(immune)", "ProlifEpi(epithelial)",
+  "SecretSCGB3A2+(epithelial)", "TransAT2(epithelial)", "SecretSCGB1A1+/MUC5B+(epithelial)",
+  "SecretSCGB1A1+/SCGB3A2+(epithelial)", "DiffCiliated(epithelial)", "MyoFB Act(mesenchymal)"
+)
+# cbind(originalNames, simpleNames)
+for(ii in 1:length(query_list)){
+  query <- query_list[[ii]]
+  colnames(reducedDim(query, "PhiSpace")) <- simpleNames
+  query_list[[ii]] <- query 
+}
+```
+
+
+# Analyses
+
+Spatial heatmaps showing PhiSpace annotation results of all 
+```{r eval=FALSE}
+for(ii in 1:length(tissueNames)){
+  tissueName <- tissueNames[ii]
+  outPlots <- tempSavePlots(
+    sce = query_list[[tissueName]],
+    tissueName = tissueName,
+    freeColScale = T, censQuant = 0.5
+  )
+}
+```
+
+
+Clustering cell-like objects based on their PhiSpace cell type scores by k-means.
+```{r}
+LungName <- "Lung5_Rep1"
+query <- query_list[[LungName]]
+clustResPath <- paste0(dat_dir, "output/Case3/Lung5_Rep1_PhiClusts4Refs.qs")
+if(!file.exists(clustResPath)){
+  
+  PhiPCRes <- getPC(
+    reducedDim(query, "PhiSpace"), ncomp = ncol(reducedDim(query, "PhiSpace")) - 1
+  )
+  plot(1-PhiPCRes$accuProps)
+  mat2clust <- PhiPCRes$scores[,1:25]
+    set.seed(94863)
+  clust_res <- kmeans(
+    mat2clust, centers = 9, iter.max = 200L, nstart = 50
+  )
+  qsave(clust_res, clustResPath)
+} else {
+  clust_res <- qread(clustResPath)
+}
+query$PhiClust <- as.character(clust_res$cluster)
+tempClustCols <- c(
+  "1" = "#E5D8BD", "2" = "#CCEBC5", "3" = "#FED9A6", "4" = "#B3CDE3", 
+  "5" = "gray", "6" = "#FBB4AE", "7" =  "#DECBE4", "8" =  "#FFFFCC", "9" = "gray50"
+)
+p <- VizSpatial(
+  query, x_coord = "sdimx", y_coord = "sdimy", groupBy = "PhiClust", ptSize = 0.3
+) +
+  # scale_colour_brewer(palette = "Set1") +
+  scale_colour_manual(values = tempClustCols) +
+  guides(
+    colour = guide_legend(
+      override.aes = list(size = 2), nrow = 1
+    )
+  ) +
+  theme(
+    legend.title = element_text(face = "bold"),
+    legend.position = "top",
+    legend.key.spacing = unit(0, "pt")
+  ) +
+  labs(colour = "") 
+p
+ggsave(
+  "figs/clusts/PhiClust.png", 
+  p + theme(legend.position = "none"),
+  width = 2.5, height = 2.5
+)
+png(
+  paste0("figs/clusts/PhiClust_leg.png"),
+  width = 4, height = 0.4, units = "in", res = 300
+)
+op <- par(mar = rep(0, 4))
+grid::grid.draw(get_legend(p))
+par(op)
+dev.off()
+```
+
+
+Compare to clustering cell-like objects based on their gene expression.
+```{r}
+clustResPhi <- clust_res
+clustResPath <- paste0(dat_dir, "output/Case3/Lung5_Rep1_OmicsClusts4Refs.qs")
+if(!file.exists(clustResPath)){
+  
+  mat2clust <- getPC(
+    t(assay(query, "log1p")), ncomp = 20
+  )$scores
+  set.seed(94858)
+  clust_res <- kmeans(
+    mat2clust, centers = 9, iter.max = 200L, nstart = 50
+  )
+  qsave(clust_res, clustResPath)
+} else {
+  clust_res <- qread(clustResPath)
+}
+query$GenClust <- align_clusters(as.character(clust_res$cluster), query$PhiClust)
+p <- VizSpatial(
+  query, x_coord = "sdimx", y_coord = "sdimy", groupBy = "GenClust", ptSize = 0.3
+) +
+  # scale_colour_brewer(palette = "Set1") +
+  scale_colour_manual(values = tempClustCols) +
+  guides(
+    colour = guide_legend(
+      override.aes = list(size = 2)
+    )
+  ) +
+  theme(
+    legend.title = element_text(face = "bold"),
+    legend.position = "right",
+    legend.key.spacing = unit(0, "pt")
+  ) +
+  labs(colour = "")
+p
+ggsave(
+  "figs/clusts/OmicsClust.png", 
+  p + theme(legend.position = "none"),
+  width = 2.5, height = 2.5
+)
+```
+
+Plotting spatial domains annotated by data generators.
+```{r eval=FALSE}
+for(ii in 1:length(tissueNames)){
+  
+  tissueName <- tissueNames[ii]
+  query <- query_list[[tissueName]]
+  p <- VizSpatial(
+    query, "sdimx", "sdimy",
+    ptSize = 0.5,
+    groupBy = "niche",
+    legend.position = "bottom"
+  ) +
+    scale_colour_manual(values = nicheCol) +
+    guides(
+      colour = guide_legend(
+        override.aes = list(size = 2),
+        nrow = 3
+      )
+    ) +
+    theme(
+      legend.box.spacing = unit(0, "cm"),
+      legend.key.size = unit(0, "cm")
+    )
+  ggsave(
+    paste0("figs/niches/originalNiche_", tissueName, ".png"), 
+    p,
+    width = 5, height = 5
+  )
+}
+```
+
+
+
+
+Calculate cell type divergence for each cell-like object and visualise.
+```{r}
+query$divergence <- apply(
+  reducedDim(query, "PhiSpace"), 1, quantile, prob = 0.75
+)
+p <- VizSpatial(query, "sdimx", "sdimy", ptSize = 0.3, groupBy = "divergence", reOrder = T, fsize = 6) +
+  scale_colour_stepsn(colours = MATLAB_cols, values = c(0, 0.25, 0.5, 0.75, 1)) +
+  theme(legend.position = "bottom")
+png(
+  paste0("figs/divergence_leg.png"),
+  width = 2, height = 0.4, units = "in", res = 300
+)
+op <- par(mar = rep(0, 4))
+grid::grid.draw(get_legend(p))
+par(op)
+dev.off()
+ggsave("figs/divergence.png", p + theme(legend.position = "none"), width = 2, height = 2)
+```
+
+Viz niche specific divergence
+```{r}
+pBox <- colData(query) %>% as.data.frame() %>%
+  ggplot(aes(x = PhiClust, y = divergence)) +
+  geom_boxplot(aes(fill = PhiClust), outlier.size = 0.5, linewidth = 0.1, outlier.stroke = 0) +
+  theme_bw(base_size = 6) +
+  theme(
+    legend.position = "none"
+  ) + scale_fill_manual(values = tempClustCols) + 
+  xlab("PhiSpace Clusters") + ylab("Divergence")
+ggsave("figs/clusts/divergence.png", pBox, width = 1, height = 2)
+
+nicheClust <- table(query$niche, query$PhiClust) %>% t %>% as.data.frame.matrix()
+pNicheClust <- nicheClust %>% as.data.frame() %>%
+  mutate(
+    cluster = rownames(nicheClust) %>% as.factor()
+  ) %>% pivot_longer(
+  ! cluster, names_to = "niche", values_to = "counts"
+) %>% ggplot(aes(cluster, counts)) + geom_col(aes(fill = niche), position = "fill") +
+  scale_fill_manual(values = nicheCol) +
+  theme_bw(base_size = 6) +
+  theme(
+    legend.position = "none"
+  ) +
+  xlab("PhiSpace clusters") + ylab("Proportions")
+ggsave("figs/clusts/nicheClust.png", pNicheClust, width = 1, height = 2)
+```
+
+
+Look at clusters 5 and 9 in detail.
+```{r}
+clustIdx = 6
+topK = 10
+topBoxes <- c()
+for(clustIdx in c(5, 9)){
+  plotDat <- reducedDim(query, "PhiSpace") %>% as.data.frame() %>%
+    mutate(clusters = colData(query)[,"PhiClust"]) %>%
+    pivot_longer(!clusters, names_to = "cellType", values_to = "scores") %>%
+    filter(clusters == clustIdx) %>%
+    group_by(cellType) %>% mutate(MedianValue = median(scores)) %>% 
+    ungroup() %>% mutate(cellType = reorder(cellType, MedianValue))
+  topBox <- plotDat %>%
+      distinct(cellType, MedianValue) %>%
+      arrange(desc(MedianValue)) %>%
+      slice(1:topK) %>%
+      pull(cellType) %>%
+    as.character()
+  topBoxes <- c(topBoxes, topBox)
+}
+unique(topBoxes)
+
+tempCTypeCols <- c(
+  "Mesothelial(mesenchymal)" = "#E41A1C", "SecretSCGB1A1+/MUC5B+(epithelial)" = "#377EB8",
+  "TransAT2(epithelial)" = "#4DAF4A", "Basal(epithelial)" = "#B3DE69", 
+  "KRT5-/KRT17+(epithelial)" = "#CCEBC5", "Lymphatic(endothelial)"  = "#984EA3", 
+  "Adventitial FB(mesenchymal)" = "#FF7F00", "aCap(endothelial)" = "#FFFF33",
+  "SecretSCGB3A2+(epithelial)" = "#A65628", "InterstMacroph(immune)" = "#F781BF", 
+  "Inflamed(endothelial)" = "#FB8072"
+)
+p1 <- tempClustSignature(query, "PhiClust", clustIdx = 5, fsize = 6) + 
+  theme(
+    legend.position = "none", 
+    axis.text.x = element_text(face = "bold"), axis.title.x = element_blank()
+  ) 
+p2 <- tempClustSignature(query, "PhiClust", clustIdx = 9, fsize = 6) + 
+  theme(
+    legend.position = "none", 
+    axis.text.x = element_text(face = "bold"), axis.title.x = element_blank()
+  ) 
+p1; p2
+ggsave("figs/clusts/clust5.png", p1, width = 1.5, height = 2.5)
+ggsave("figs/clusts/clust9.png", p2, width = 1.5, height = 2.5)
+```
+
+
+
+
+
+# Multi-sample analysis
+Enriched cell types of individual tumours.
+```{r}
+tumourSig <- tumourSig_indiv  <- regCoef_list <- regCoefIndiv_list <-  vector("list", length(tissueNames)) %>%
+  `names<-`(tissueNames)
+#Individual tumours
+for(ii in 1:length(tissueNames)){
+  
+  tissueName <- tissueNames[ii]
+  query <- query_list[[tissueName]]
+  Y <- codeY(query, "cell_type")
+  X <- reducedDims(query)[["PhiSpace"]]
+  ncomp <- ncol(Y) - 1
+  pls_res <- mvr(X, Y, ncomp = ncomp, method = "PLS")
+  regCoef <- pls_res$coefficients[,,ncomp]
+  regCoefIndiv_list[[ii]] <- regCoef
+  selectedPheno <- selectFeat(regCoef, nfeat = 5, absVal = F)
+  tumourSig_indiv[[ii]] <- selectedPheno$orderedFeatMat[,grepl("tumor", selectedPheno$orderedFeatMat %>% colnames)]
+}
+# Niche
+for(ii in 1:length(tissueNames)){
+  
+  tissueName <- tissueNames[ii]
+  query <- query_list[[tissueName]]
+  Y <- codeY(query, "niche")
+  X <- reducedDims(query)[["PhiSpace"]]
+  ncomp <- ncol(Y) - 1
+  pls_res <- mvr(X, Y, ncomp = ncomp, method = "PLS")
+  regCoef <- pls_res$coefficients[,,ncomp]
+  regCoef_list[[ii]] <- regCoef
+  selectedPheno <- selectFeat(regCoef, nfeat = 5, absVal = F)
+  tumourSig[[ii]] <- selectedPheno$orderedFeatMat[,"tumor interior"]
+}
+```
+
+Print top 5 markers of each niche, in different tissues
+```{r}
+nMks <- 5
+nicheNames <- lapply(
+  regCoef_list, function(x) colnames(x)
+) %>% unlist() %>% unique() %>% sort()
+nicheMkTab <- lapply(
+  regCoef_list,
+  function(x){
+    
+    featTab <- selectFeat(x, absVal = F)$orderedFeat[1:nMks,]
+    commonNiche <- intersect(colnames(featTab), nicheNames)
+    out <- matrix(NA, nrow = nMks, ncol = length(nicheNames)) %>%
+      `colnames<-`(nicheNames)
+    out[,commonNiche] <- featTab[,commonNiche]
+    return(out)
+  }
+)
+xtable::xtable(nicheMkTab[[1]], type = "latex")
+tab <- selectFeat(regCoef_list$Lung5_Rep1, absVal = F)$orderedFeat[1:nMks,]
+knitr::kable(tab)
+write.csv(tab, "figs/signatures/Lung5_Rep1_tumour.csv")
+```
+
+Enriched cell types of individual tumours.
+```{r}
+tumTab <- do.call("cbind", tumourSig)[1:10,]
+knitr::kable(tumTab)
+# xtable::xtable(tumTab, type = "latex")
+write.csv(tumTab, "figs/signatures/allTumours.csv")
+```
+
+
+
+
+Hypothesis: combinations of cell states in cancer cells are very unique, enough to distinguish them from other niche.
+First check if correlation matrices (vectorised) indeed cluster according to niche label.
+
+Co-presence matrix of tumour interior niche of Lung5_Rep1, as an example.
+```{r eval=FALSE}
+tissueName <- "Lung5_Rep1"
+# query <- query_list[[tissueName]]
+x <- "tumor interior"
+qu_sub <- query[,query$niche==x]
+corMat <- cor(
+  reducedDims(qu_sub)[["PhiSpace"]]
+)
+cVars <- colVars(corMat)
+selectedTypes <- names(cVars)[rank(-cVars) <= 25]
+corMat <- corMat[selectedTypes, selectedTypes]
+hm <- tempHeatmap(
+  corMat, binColour = F, fsize = 6, useSeriate = T
+)
+hm
+png(paste0("figs/specialCases/", tissueName, "_", gsub(" ", "_", x), "_heatmap.png"), 
+    width = 3.1, height = 2, units = "in", res = 300)
+draw(hm)
+dev.off() 
+```
+
+
+
+Compute all cell type co-presence matrices and vectorise them for PCA.
+```{r fig.asp=1}
+corMatVec <- lapply(
+  1:length(tissueNames),
+  function(ii){
+    
+    tissueName <- tissueNames[ii]
+    query <- query_list[[tissueName]]
+    tempNicheNames <- unique(query$niche)
+    # List of correlation matrices (corMats)
+    corMat_list <- lapply(
+      tempNicheNames,
+      function(x){
+        
+        nicheName <- x
+        corMat <- cor(
+          reducedDim(query[,query$niche==nicheName], "PhiSpace")
+        )
+        return(corMat)
+      }
+    ) 
+    names(corMat_list) <- tempNicheNames
+    # Labels for entries in each corMat
+    cTypeCombo <- outer(
+          rownames(corMat_list[[1]]), colnames(corMat_list[[1]]),
+          function(x, y) paste0(x, "<->", y)
+        )
+    # Vectorise corMats
+    corMatVec <- sapply(
+      corMat_list,
+      function(x) as.vector(x[lower.tri(x)])
+    ) %>%
+      `colnames<-`(
+        paste0(tempNicheNames, "_", tissueName)
+      ) %>%
+      `rownames<-`(
+        cTypeCombo[lower.tri(cTypeCombo)]
+      ) %>%
+      t()
+    corMatVec <- corMatVec %>%
+      as.data.frame() %>%
+      mutate(
+        niche = tempNicheNames,
+        sample = rep(tissueName, nrow(corMatVec))
+      )
+    return(corMatVec)
+  }
+)
+corMatVec <- do.call(rbind, corMatVec)
+# Delete niches with fewer than 50 cells
+minNicheCells <- 50
+nicheTabs <- lapply(
+  1:length(query_list),
+  function(x){
+    
+    tissueName <- names(query_list)[x]
+    out <- table(query_list[[x]]$niche)
+    names(out) <- paste0(names(out), "_", tissueName)
+    return(out)
+  }
+)
+nPerNiche <- do.call("c", nicheTabs) 
+corMatVec <- corMatVec[names(nPerNiche)[nPerNiche >= minNicheCells], ]
+```
+
+
+
+PCA analysis
+```{r}
+set.seed(012361)
+pca_res <- getPC(
+  corMatVec %>% select(!c(niche, sample)) %>% as.matrix(), 
+  ncomp = 5
+)
+tempPCAplot(pca_res, c(1,2), fsize = 6) + expand_limits(x = c(-6, 5))
+# tempPCAplot(pca_res, c(2,3), fsize = 6) 
+p12 <- tempPCAplot(pca_res, c(1,2), fsize = 6) + expand_limits(x = c(-9, 4))
+p23 <- tempPCAplot(pca_res, c(2,3), fsize = 6) + expand_limits(x = c(-2.9, 5.8))
+ggsave(
+  paste0("figs/multiSample/CosMx_PhiNet_MDS12", ".png"),
+  p12 + theme(legend.position = "none"), width = 2.5, height = 2.5
+)
+ggsave(
+  paste0("figs/multiSample/CosMx_PhiNet_MDS23", ".png"),
+  p23 + theme(legend.position = "none"), width = 3, height = 3
+)
+png(
+  paste0("figs/multiSample/CosMx_PhiNet_MDS123", "_legend.png"),
+  width = 4, height = 0.4, units = "in", res = 300
+)
+op <- par(mar = rep(0, 4))
+grid::grid.draw(get_legend(p12))
+par(op)
+dev.off()
+
+# Loading
+p1_load <- loadBarplot(pca_res$loadings, "comp1", showInt = T, nfeat = 30, fsize = 6)
+p2_load <- loadBarplot(pca_res$loadings, "comp2", showInt = T, nfeat = 30, fsize = 6)
+ggsave(
+  paste0("figs/multiSample/CosMx_PhiNet_loading1", ".png"),
+  p1_load, width = 2.5, height = 3
+)
+ggsave(
+  paste0("figs/multiSample/CosMx_PhiNet_loading2", ".png"),
+  p2_load, width = 2.5, height = 3
+)
+```
+
+
+DWD separating cancer from non-cancer niches. We use the `kerndwd` implementation of DWD:
+
+Wang, B., & Zou, H. (2018). Another look at distance-weighted discrimination. Journal of the Royal Statistical Society. Series B, Statistical Methodology, 80(1), 177–198. Retrieved 12 November 2024 from 
+
+```{r}
+suppressPackageStartupMessages(library(kerndwd))
+# Define binary class labels
+nicheBinary <- as.numeric(corMatVec$niche %in% c("tumor interior", "tumor-stroma boundary"))
+nicheBinary[nicheBinary == 0] <- -1
+nicheBinaryByName <- rep("Non-cancer niches", length(nicheBinary))
+nicheBinaryByName[nicheBinary == 1] <- "Cancer niches"
+# Centre input matrix
+X = corMatVec %>% select(!c(niche, sample)) %>% as.matrix
+X_cent <- scale(X, center = T, scale = F)
+# Tune DWD
+set.seed(012361)
+lambda = 10^(seq(3, -3, length.out=50))
+kern = vanilladot()
+cv_res = cv.kerndwd(X_cent, nicheBinary, kern, qval=1, lambda=lambda, eps=1e-5, maxit=1e5)
+da_res = kerndwd(X_cent, nicheBinary, kern, qval=1, lambda=cv_res$lambda.min, eps=1e-5, maxit=1e5)
+# Calculate DWD scores and loadings
+A <- da_res$alpha[-1,,drop=F]
+dwdLoad <- crossprod(X_cent, A) %>% `colnames<-`("comp1") # worked out by looking at predict.dwd
+rownames(dwdLoad) <- gsub("\\([^\\)]*\\)", "", rownames(dwdLoad))
+dwdScore <- predict.kerndwd(da_res, kern, X_cent, X_cent, "link") %>% `colnames<-`("comp1")
+# dwd_res <- list(
+#   scores = dwdScore %>% as.data.frame(), loadings = dwdLoad %>% as.data.frame()
+# )
+```
+
+
+
+Viz DWD
+```{r}
+p_dens <- dwdScore %>% as.data.frame() %>%
+  mutate(
+    niche = nicheBinaryByName
+  ) %>% ggplot() +
+  geom_density(
+    aes(comp1, fill = niche), alpha = 0.5
+  ) + theme_pubr(base_size = 6) +
+  theme(legend.title = element_text(face ="bold")) +
+  xlab("DWD score")
+ggsave(
+  "figs/multiSample/nicheDWD_densPlot.png",
+  p_dens + theme(legend.position = "none"),
+  width = 1.5, height = 1
+)
+png(
+  paste0("figs/multiSample/nicheDWD_densPlot_legend.png"),
+  width = 2, height = 0.4, units = "in", res = 300
+)
+op <- par(mar = rep(0, 4))
+grid::grid.draw(get_legend(p_dens))
+par(op)
+dev.off()
+p_load <- loadBarplot(dwdLoad, "comp1", nfeat = 10, fsize = 7) +
+  theme(
+    axis.title.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.text.x = element_blank()
+  )
+ggsave(
+  "figs/multiSample/nicheDWD_loading.png",
+  p_load,
+  width = 3, height = 1.5
+)
+```
