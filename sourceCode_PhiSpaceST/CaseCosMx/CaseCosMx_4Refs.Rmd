@@ -26,7 +26,7 @@ suppressPackageStartupMessages(library(seriation))
 
 
 source("utils.R")
-dat_dir <- "/data/projects/punim0613/JiaDong/PhiSpace/"
+dat_dir <- "/data/projects/punim0613/JiaDong/PhiSpace/PhiSpace-ST_submit/" # replace with your own directory
 
 PhiAssay <- "log1p"
 ```

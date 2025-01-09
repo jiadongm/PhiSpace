@@ -1,0 +1,6 @@
+"","plasmablast-enriched stroma","stroma","lymphoid structure","tumor-stroma boundary","immune","myeloid-enriched stroma","tumor interior","neutrophils","macrophages"
+"1","Plasma(immune)","InflamMono(immune)","CD4(immune)","MyoFB Act(mesenchymal)","CD4(immune)","aCap(endothelial)","Mesothelial(mesenchymal)","SecretSCGB1A1+/MUC5B+(epithelial)","aCap(endothelial)"
+"2","pDC(immune)","MyoFB Act(mesenchymal)","cDC1(immune)","KRT5-/KRT17+(epithelial)","Ciliated(epithelial)","InterstMacroph(immune)","Basal(epithelial)","MyoFB Act(mesenchymal)","InterstMacroph(immune)"
+"3","MyoFB Act(mesenchymal)","Venule(endothelial)","B cells(immune)","TransAT2(epithelial)","gCap(endothelial)","Pericyte(mesenchymal)","SecretSCGB1A1+/MUC5B+(epithelial)","AlveolarMacroph(immune)","Pericyte(mesenchymal)"
+"4","B cells(immune)","Alveolar FB(mesenchymal)","SecretSCGB3A2+(epithelial)","AlveolarMacroph(immune)","PLIN2+ FB(mesenchymal)","MoMacroph(immune)","SecretSCGB3A2+(epithelial)","MyoFB(mesenchymal)","MoMacroph(immune)"
+"5","Ciliated(epithelial)","DiffCiliated(epithelial)","Systemic venous(endothelial)","ProlifImm(immune)","B cells(immune)","gCap(endothelial)","AlveolarMacroph(immune)","Ciliated(epithelial)","moDC(immune)"

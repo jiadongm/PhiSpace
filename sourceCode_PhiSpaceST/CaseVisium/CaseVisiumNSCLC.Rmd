@@ -1,0 +1,659 @@
+---
+title: "Visium NSCLC: benchmarking cell type deconvolution methods"
+output: html_notebook
+---
+
+Load necessary packages.
+```{R}
+# Install latest version of PhiSpace from github
+suppressMessages(devtools::install_github("jiadongm/PhiSpace/pkg"))
+# Load packages and predefined quantities
+suppressPackageStartupMessages(library(PhiSpace))
+suppressPackageStartupMessages(library(ggplot2))
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(tidyr))
+suppressPackageStartupMessages(library(magrittr))
+suppressPackageStartupMessages(library(ggpubr))
+suppressPackageStartupMessages(library(qs)) # quick read and write of R objects
+
+suppressPackageStartupMessages(library(ComplexHeatmap))
+suppressPackageStartupMessages(library(seriation))
+
+# suppressPackageStartupMessages(library(Seurat))
+
+source("utils.R")
+dat_dir <- "/data/projects/punim0613/JiaDong/PhiSpace/"
+
+PhiAssay <- "log1p"
+tissueNames <- tissueNames_Visium[1:18]
+Visium_cancerTypes <- Visium_cancerTypes[1:18]
+# No need to include replicates since will be very similar 
+```
+
+
+See `prepareData.R`.
+Load reference and get importance scores.
+Compare this list to Azimuth lung cell type markers [here](https://azimuth.hubmapconsortium.org/references/#Human%20-%20Lung%20v2%20%28HLCA%29)
+We have downloaded and processed the Azimuth markers. See `AzimuthLungMarkers.R`
+```{r}
+# Reference
+YtrainName <- refLabName <- "ann_finest_level"
+refPath <- paste0(
+  dat_dir, "data/LungRef/AzimuthLung2.0_sce_0.1sub.qs"
+)
+impScPath <- paste0(
+  dat_dir, "output/Case3/refImpScores.rds"
+)
+reference <- qread(refPath)
+impScores <- readRDS(impScPath)
+
+# Feature selection: include Azimuth markers in selectedFeat as well
+AzimuthMarkers <- readRDS(
+  paste0(dat_dir, "data/LungRef/AzimuthLungMarkers.rds")
+)
+selectedFeat <- selectFeat(impScores, 500)$selectedFeat
+length(selectedFeat)
+# We set absVal = F, so tha genes having positive contribution to predicting
+# cell types will be selected. This is because cell type markers are defined as
+# genes up-reguated in a cell type. (Pullin & McCarthy, 2024)
+orderedFeat <- selectFeat(
+  impScores, nfeat = 5, absVal = F
+)$orderedFeatMat[, sort(colnames(impScores))]
+
+# Query
+visListPath <- paste0(
+  dat_dir, "data/Visium_NSCLC/allTissues.qs"
+)
+query_list <- qread(visListPath)
+```
+
+
+# Marker analysis for Visium spots
+Rationale: different methods give different spatial patterns. Which one makes more biological sense? This relies on a marker analysis.
+
+The number of Azimuth marker genes is 10 for each cell type, much smaller than DEGs. We increase the number of markers by finding the genes most highly correlated with Azimuth markers. Here we use `sparse.cor` function defined [here](https://stackoverflow.com/questions/5888287/running-cor-or-any-variant-over-a-sparse-matrix-in-r) for computing correlation matrix using a sparse matrix.
+```{r}
+AzExpandPath <- paste0(
+  dat_dir, "data/LungRef/AzimuthLungMarkersExpanded.qs"
+)
+AzimuthMkExpanded <- qread(
+  AzExpandPath
+)
+Mk2Use <- c("exp", "noexp")[1]
+if(Mk2Use == "exp"){
+  AzimuthMk2Use <- AzimuthMkExpanded
+} else {
+  AzimuthMk2Use <- AzimuthMarkers
+}
+```
+
+
+
+## Special case: P11_T3
+Look at the performance of PhiSpace, RCTD, cell2location (c2l) and TACCO on a specific tissue first. P11_T3 means a tumourours sample (T3) from the patient P11.
+
+See `runRCTD.R` for getting RCTD results. See folder `JupiterNotebooks` for Python code for getting c2l and TACCO results.
+```{r}
+VisTissueName <- "P11_T3"
+qu_vis <- query_list[[VisTissueName]]
+## RCTD
+RCTDpath <- paste0(
+    dat_dir,
+    "output/Case3/RCTD/NSCLC_Visium",
+    VisTissueName,
+    "_RCTDres.rds"
+)
+# Run runRCTD.R
+myRCTD <- readRDS(RCTDpath)
+spots2keep <- rownames(myRCTD@results$weights)
+qu_vis <- qu_vis[,spots2keep]
+reducedDim(qu_vis, "RCTD") <- spacexr::normalize_weights(myRCTD@results$weights)
+## PhiSpace
+PhiResPath <- paste0(
+  dat_dir,
+  "output/Case3/PhiSpace/combo_PhiRes.qs"
+)
+PhiRes <- qread(PhiResPath)
+PhiScores <- PhiRes$PhiSpaceScore[[VisTissueName]]
+PhiScores_norm <- normPhiScores(PhiScores)
+reducedDim(qu_vis, "PhiSpace") <- PhiScores_norm[spots2keep,]
+## Cell2location 
+q05path <- paste0(
+  dat_dir,
+  "output/Case3/c2l/cell2location_", VisTissueName, "/cell2location_map/q05_abundance.csv"
+)
+q05_res <- read.csv(q05path, row.names = 1)
+colnames(q05_res) <- colnames(reducedDim(qu_vis, "PhiSpace"))
+reducedDim(qu_vis,"c2l_q05") <- q05_res[spots2keep,]
+## TACCO
+# Run part of CaseCosMx_prepareH5AD.R to prepare data for python
+# Then go to RPC to run TACCO.
+tacco_res <- read.csv(
+  paste0(
+    dat_dir,
+    "output/Case3/TACCO/Visium_NSCLC_", VisTissueName, "_TACCO.csv"
+  ), 
+  row.names = 1
+)
+reducedDim(qu_vis, "TACCO") <- tacco_res[spots2keep,] %>%
+  `colnames<-`(colnames(reducedDim(qu_vis, "PhiSpace")))
+
+## DEG results
+degResPath <- paste0(
+  dat_dir,
+  "output/Case3/DEG/Visium", VisTissueName, "_degRes.qs"
+)
+outList_Phi <- qread(degResPath)
+degResPath <- paste0(
+  dat_dir,
+  "output/Case3/DEG/Visium", VisTissueName, "_degRes_TACCO.qs"
+)
+outList_TACCO <- qread(degResPath)
+degResPath <- paste0(
+  dat_dir,
+  "output/Case3/DEG/Visium", VisTissueName, "_degRes_RCTD.qs"
+)
+outList_RCTD <- qread(degResPath)
+degResPath <- paste0(
+  dat_dir,
+  "output/Case3/DEG/Visium", VisTissueName, "_degRes_c2l.qs"
+)
+outList_c2l <- qread(degResPath)
+```
+
+
+Cancer and B cell marker spatial distribution.
+```{r}
+qu_vis$divergence <- apply(
+  reducedDim(qu_vis, "PhiSpace"), 1, quantile, prob = 0.75
+)
+VizSpatial(
+    qu_vis, groupBy = "divergence", assay2use = "log1p", ptSize = 2
+  ) + scale_colour_gradientn(colours = MATLAB_cols)
+VizSpatial(
+    qu_vis, groupBy = "nCount_Spatial", assay2use = "log1p", ptSize = 2
+  ) + scale_colour_gradientn(colours = MATLAB_cols)
+VizSpatial(
+    qu_vis, feature = "KRT19", assay2use = "log1p", ptSize = 2
+  ) + scale_colour_gradientn(colours = MATLAB_cols)
+tempMarkerPlot <- function(marker){
+  p <- VizSpatial(
+    qu_vis, feature = marker, assay2use = "log1p", ptSize = 0.6
+  )
+  p <- p + xlim(1400, 12500) + ylim(-14000, -3500) +
+    theme(
+      legend.text = element_text(size = 6),
+      legend.title = element_text(size = 6)
+    ) +
+    theme_void()
+  ggsave(
+    paste0("figs/specialCases/", VisTissueName, "_", marker, "_spatial.png"),
+    p + theme(legend.position = "none"),
+    width = 1.5, height = 1.5
+  )
+
+  return(p)
+}
+tempMarkerPlot("KRT19") #also known as CYFRA21-1
+tempMarkerPlot("CD79A")
+```
+
+
+B cell spatial distribution
+```{r}
+cType <- "B cells"
+p_list <- list(
+  PhiSpace = 
+    VizSpatial(qu_vis, ptSize = 0.6, reducedDim = cType, reducedDim2use = "PhiSpace", censor = T),
+  RCTD = VizSpatial(qu_vis, ptSize = 0.6, reducedDim = cType, reducedDim2use = "RCTD"),
+  cell2location = VizSpatial(qu_vis, ptSize = 0.6, reducedDim = cType, reducedDim2use = "c2l_q05"),
+  TACCO = VizSpatial(qu_vis, ptSize = 0.6, reducedDim = cType, reducedDim2use = "TACCO")
+)
+p_list <- lapply(
+  1:length(p_list),
+  function(x){
+    
+    methodName <- names(p_list)[x]
+    p_list[[methodName]]  + 
+      theme(
+        legend.position = "top",
+        legend.title = element_text(size = 6),
+        legend.text = element_text(size = 6)
+      ) +
+      xlim(1400, 12500) + ylim(-14000, -3500) +
+      theme_void()
+  }
+)
+ggarrange(
+  plotlist = p_list, nrow = 1, legend = "none"
+)
+ggsave(
+  "figs/specialCases/InconsistentAnn.png",
+  width = 6, height = 1.5
+)
+```
+
+
+Signatures of cancer regions (according to marker).
+```{r eval=FALSE}
+tempSavePlots(
+  qu_vis, "PhiSpace", tissueName = VisTissueName, coordNames = c("x", "y"), 
+  freeColScale = T, censQuant = 0.5, psize = 1
+)
+```
+
+
+Venn diagram for number of meaningful markers for B cell abundance prediction.
+```{r fig.asp=1, eval=FALSE}
+p <- tempVenn(
+      outList_Phi[[cType]],  AzimuthMarkers = AzimuthMk2Use, title = "PhiSpace", fsize = 5
+    )$plot
+ggsave(
+    paste0("figs/specialCases/", VisTissueName, "_", gsub(" ", "_", cType), "_Venn", 1, ".png"),
+    p,
+    width = 1.5, height = 1.5
+)
+p <- tempVenn(
+      outList_RCTD[[cType]],
+      AzimuthMarkers = AzimuthMk2Use,
+      title = "RCTD", fsize = 5
+    )$plot
+ggsave(
+    paste0("figs/specialCases/", VisTissueName, "_", gsub(" ", "_", cType), "_Venn", 2, ".png"),
+    p,
+    width = 1.5, height = 1.5
+)
+p <- tempVenn(
+      outList_c2l[[cType]], 
+      AzimuthMarkers = AzimuthMk2Use,
+      title = "cell2location", fsize = 5
+    )$plot
+ggsave(
+    paste0("figs/specialCases/", VisTissueName, "_", gsub(" ", "_", cType), "_Venn", 3, ".png"),
+    p,
+    width = 1.5, height = 1.5
+)
+p <- tempVenn(
+      outList_TACCO[[cType]], 
+      AzimuthMarkers = AzimuthMk2Use,
+      title = "TACCO", fsize = 5
+    )$plot
+ggsave(
+    paste0("figs/specialCases/", VisTissueName, "_", gsub(" ", "_", cType), "_Venn", 4, ".png"),
+    p,
+    width = 1.5, height = 1.5
+)
+```
+
+
+
+Bar chart for numbers of meaningful markers for prediction of all cell types in P11_T3.
+```{r eval=FALSE}
+if(T){
+  
+  cTypes <- names(outList_Phi)
+} else {
+  
+  cTypes <- intersect(
+    names(outList_Phi), names(AzimuthMarkers)
+  )
+}
+mks <- matrix(NA, length(cTypes), 4) %>%
+  `rownames<-`(cTypes) %>%
+  `colnames<-`(c(
+    "PhiSpace", 
+    "cell2location", 
+    "RCTD",
+    "TACCO"
+  ))
+for(i in 1:length(cTypes)){
+  
+  cType <- cTypes[i]
+  mks[cType,] <- c(
+    PhiSpace = tempVenn(
+      outList_Phi[[cType]], 
+      AzimuthMarkers = AzimuthMk2Use,
+      plotVenn = F
+    )$intersection,
+    cell2location = tempVenn(
+      outList_c2l[[cType]], 
+      AzimuthMarkers = AzimuthMk2Use,
+      plotVenn = F
+    )$intersection,
+    RCTD = tempVenn(
+      outList_RCTD[[cType]],
+      AzimuthMarkers = AzimuthMk2Use,
+      plotVenn = F
+    )$intersection,
+    TACCO = tempVenn(
+      outList_TACCO[[cType]], 
+      AzimuthMarkers = AzimuthMk2Use,
+      plotVenn = F
+    )$intersection 
+  )
+}
+
+p <- ggplot(
+  mks %>%
+    as.data.frame() %>%
+    pivot_longer(
+      everything(),
+      names_to = "method",
+      values_to = "num_mks"
+    ) %>%
+    mutate(
+      method = factor(method, levels = c("TACCO", "cell2location", "RCTD", "PhiSpace"))
+    ),
+  aes(x = num_mks, y = method)
+) +
+  geom_boxplot(
+    aes(colour = method), outliers = F
+  ) +
+  geom_jitter(
+    aes(colour = method), size = 0.5
+  ) +
+  theme_pubr(base_size = 6) +
+  xlab(paste0("Number of meaningful markers (", VisTissueName, ")")) + ylab("") +
+  theme(
+    legend.position = "none"
+  )
+p
+ggsave(
+  paste0("figs/specialCases", VisTissueName, "_markerBox.png"),
+  p,
+  width = 3, height = 1.5
+) 
+mks %>% colMeans()
+```
+
+The distribtuions appear to be zero-inflated. Fit a ZINB.
+```{r eval=FALSE}
+fitRes <- apply(mks, 2, fitZINB) %>%
+  unlist()
+fitRes
+```
+This provides some more in-detail comparison of four methods. A method may have lower NB mean but also lower ZI rate, resulting in a higher overall mean (e.g. RCTD when taking top 50 DEGs).
+ 
+
+
+
+
+
+# All tissues
+Run `DEG_res_all_tissues.R` first to get spatial DEG results for all tissues.
+```{r eval=FALSE}
+deg_summ <- readRDS(paste0(dat_dir, "output/Case3/DEG_summ", Mk2Use, ".rds"))
+out <- deg_summ[[1]]
+outList <- deg_summ[[2]]
+
+# mean marker socres
+MMS <- out %>%
+  as.data.frame() %>%
+  mutate(tissueNames = tissueNames) %>%
+  pivot_longer(
+    ! c(tissueNames),
+    names_to = "methods",
+    values_to = "mean marker score"
+  ) %>%
+  mutate(
+    methods = factor(methods, levels = c("TACCO", "cell2location", "RCTD", "PhiSpace"))
+  )
+
+# ZINB parameters
+ZINBparam <- do.call(
+  "rbind", outList
+) %>%
+  pivot_longer(
+    mu:ZIprob,
+    names_to = "parameter_type",
+    values_to = "parameter"
+  )
+
+p_MMS <-  ggplot(
+    MMS,
+    aes(x = `mean marker score`, y = methods, colour = methods)
+  ) +
+    geom_boxplot(
+      outliers = F
+    ) +
+    geom_jitter(
+      size = 0.5
+    ) +
+    theme_pubr(base_size = 6) +
+    xlab("Mean number of meaningful markers (all tissues)") + ylab("") +
+    theme(
+      legend.position = "none"
+    )
+p_MMS
+ggsave(
+  paste0("figs/MMS_box_", Mk2Use, ".png"),
+  p_MMS,
+  width = 3, height = 1.5
+)
+```
+
+
+
+
+
+
+
+
+
+
+# Cell type co-presence.
+Visium has larger spots, hence the cell type correlation inferred here should be interpreted as cell-cell interaction.
+```{r}
+PhiResPath <- paste0(
+  dat_dir,
+  "output/Case3/PhiSpace/combo_PhiRes.qs"
+)
+PhiRes <- qread(PhiResPath)[1:18]
+
+# Victorise cell type correlation matrices
+VisTissueNames <- tissueNames_Visium[1:18]
+corMat_list <- vector("list", length(VisTissueNames)) %>% `names<-`(VisTissueNames)
+for(ii in 1:length(VisTissueNames)){
+  
+  VisTissueName <- VisTissueNames[ii]
+  PhiScores_norm <- normPhiScores(PhiRes$PhiSpaceScore[[VisTissueName]])
+  corMat <- cor(PhiScores_norm)
+  corMat_list[[ii]] <- corMat
+}
+cTypeCombo <- outer(
+  rownames(corMat_list[[1]]), colnames(corMat_list[[1]]),
+  function(x, y) paste0(x, "<->", y)
+)
+corMatVec <- sapply(
+  corMat_list,
+  function(x) as.vector(x[lower.tri(x)])
+) %>%
+  `colnames<-`(VisTissueNames) %>%
+  `rownames<-`(
+    cTypeCombo[lower.tri(cTypeCombo)]
+  ) %>%
+  t()
+
+## PCA analysis of all co-presence matrices
+intVars <- colVars(corMatVec)
+selectedInt <- names(intVars)
+set.seed(92394)
+pca_res <- getPC(corMatVec[,selectedInt], ncomp = 2, center = T, scale = F)
+p <- tempPCAplot(pca_res) + expand_limits(x = c(-5.5, 7.5))
+p
+ggsave(
+  "figs/copresence/Visium_PhiNet_MDS.png",
+  p + theme(legend.position = "none"), width = 3, height = 3
+)
+png(
+  "figs/copresence/Visium_PhiNet_MDS_legend.png",
+  width = 2, height = 0.2, units = "in", res = 300
+)
+op <- par(mar = rep(0, 4))
+grid::grid.draw(get_legend(p))
+par(op)
+dev.off()
+# Specialised PCA plots (PCA of signs, PCA of absolute values)
+if(F){
+  pcaAbs_res <- getPC(abs(corMatVec[,selectedInt]), ncomp = 2, center = T, scale = F)
+  pcaSign_res <- getPC(sign(corMatVec[,selectedInt]), ncomp = 2, center = T, scale = F)
+  tempPCAplot(pca_res)
+  tempPCAplot(pcaAbs_res)
+  tempPCAplot(pcaSign_res) 
+}
+## Loading plots
+loadBarplot(pca_res$loadings, nfeat = 20, fsize = 6) + theme(axis.text.x = element_text(angle = 45))
+ggsave("figs/copresence/Visium_cTypeInt_comp1_loading.png", width = 3, height = 3)
+```
+
+
+
+
+
+Prognosis markers
+CELSR2 is a marker for better prognosis in LUSC; KRT17, KRT6A, S100A2, TRIM29, REPS1, and GPC1 are markers for worse prognosis in LUAD
+```{r}
+# Common gene of all Visium slides
+commonGeneNames <- Reduce(
+  intersect,
+  lapply(
+    query_list[1:18], function(x) rownames(x)
+  )
+)
+mk_list <- list(
+  LUSC_good = c("CELSR2"),
+  LUAD_bad = c("KRT17", "KRT6A", "S100A2", "TRIM29", "REPS1", "GPC1"),
+  LUAD_good = c("PERP", "ELFN2", "ARHGAP12", "QSOX1")
+)
+mk_list <- lapply(mk_list, function(x) intersect(x, commonGeneNames))
+# Function for calculate mean expression level of marker genes in all tissues
+assay2use <- "counts"
+meanGeneLvls <- sapply(
+  query_list[1:18],
+  function(x){
+    mean(rowSums(assay(x, assay2use)))
+  }
+)
+mkLvls_LUSC <- data.frame(favourable = meanEsts(mk_list[["LUSC_good"]])) 
+mkLvls_LUAD_good <- data.frame(favourable = meanEsts(mk_list[["LUAD_good"]]))
+mkLvls_LUAD_bad <- data.frame(favourable = meanEsts(mk_list[["LUAD_bad"]]))
+mkLvls_LUAD <- mkLvls_LUAD_good/mkLvls_LUAD_bad
+p <- data.frame(
+  favourable = c(
+    mkLvls_LUSC[Visium_cancerTypes == "LUSC",],
+    mkLvls_LUAD[Visium_cancerTypes == "LUAD",]
+  ),
+  sample = c(
+    tissueNames[Visium_cancerTypes == "LUSC"],
+    tissueNames[Visium_cancerTypes == "LUAD"]
+  ), 
+  cancerType = c(
+    Visium_cancerTypes[Visium_cancerTypes == "LUSC"],
+    Visium_cancerTypes[Visium_cancerTypes == "LUAD"]
+  )
+) %>%
+  ggplot() +
+  geom_bar(
+    aes(
+      sample, favourable, fill = cancerType
+    ),
+    stat = "identity"
+  ) +
+  # scale_y_continuous(transform = "log2") +
+  scale_fill_manual(values = VisiumCancerCols) +
+  theme_bw(base_size = 6) +
+  theme(
+    axis.text.x = element_text(angle = 90),
+    axis.title.x = element_blank()
+  ) +
+  facet_wrap(~cancerType, scales = "free", ncol = 1) +
+  theme(
+    legend.position = "none",
+    axis.title.y = element_blank()
+  ) 
+p
+ggsave(
+  "figs/copresence/sample_prognosis_score.png", 
+  p, width = 1, height = 3
+)
+```
+
+
+
+Interactions involving immune cell types.
+```{r}
+immuneDF <- data.frame(
+  celltype = rownames(corMat_list[[1]]),
+  immuneOrNot = c(
+    "immune", "immune", "other",
+    "immune", "other", "other",
+    "other", "immune", "other",
+    "other", "immune", "other",
+    "other", "immune", "other",
+    "other", "other", "other",
+    "immune", "immune", "immune",
+    "other", "other", "other",
+    "immune", "other", "other",
+    "other", "other", "other",
+    "other", "other", "other",
+    "other", "other", "other",
+    "immune", "immune", "other",
+    "immune", "immune", "immune",
+    "other", "other", "other",
+    "other", "other", "other",
+    "other", "other", "other",
+    "immune", "other", "other",
+    "other", "immune", "immune",
+    "other", "other", "other",
+    "immune"
+  )
+)
+immuneCellTypes <- immuneDF$celltype[immuneDF$immuneOrNot == "immune"]
+intDF <- do.call("rbind", stringr::str_split(colnames(corMatVec), "<->"))
+intIdx <- apply(
+  intDF, 1,
+  function(x) (x[1] %in% immuneCellTypes) | (x[2] %in% immuneCellTypes)
+)
+set.seed(92399)
+corMatVec_immune <- corMatVec[,intIdx]
+pcaImmune_res <- getPC(corMatVec_immune, ncomp = 2, center = T, scale = F)
+p <- tempPCAplot(pcaImmune_res) + expand_limits(x = c(-4, 4))
+ggsave(
+  "figs/copresence/Visium_PhiNetImmune_MDS.png",
+  p + theme(legend.position = "none"), width = 3, height = 2.5
+)
+## Loading plots
+p_load <- loadBarplot(pcaImmune_res$loadings, "comp1", nfeat = 20, fsize = 6)
+ggsave("figs/copresence/Visium_cTypeIntImmune_comp1_loading.png", p_load, width = 3.5, height = 2.5)
+```
+
+
+See `computTime.R` for evaluating computational time needed for PhiSpace and RCTD.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,802 @@
+---
+title: "Annotating AML mouse spleen Stereo-seq data using a matched scRNA-seq as bridge"
+output: html_notebook
+---
+
+
+
+First load necessary packages
+```{r}
+suppressPackageStartupMessages(library(PhiSpace))
+suppressPackageStartupMessages(library(ggplot2))
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(magrittr))
+suppressPackageStartupMessages(library(ggpubr))
+suppressPackageStartupMessages(library(tidyr))
+suppressPackageStartupMessages(library(qs))
+
+suppressPackageStartupMessages(library(ComplexHeatmap))
+suppressPackageStartupMessages(library(seriation))
+
+source("utils.R")
+dat_dir <- "/data/projects/punim0613/JiaDong/Dawson/MouseSpleen/"
+```
+
+
+# Finding meta-clones
+
+Load the stereo-seq data. Here we choose Bin50, leading to bins of side length 25 microns (diameter of Visium spots is 55 microns).
+
+See `prepareData.R` for data pre-processing.
+```{r}
+binsize <- 50
+queryPath <- paste0(
+    dat_dir, "stereo-seq_m4_additional_bin_sizes/mouse4_bin",
+    binsize, "_bc_sce.qs"
+)
+if(!file.exists(queryPath)){
+  
+  query <- qread(queryPath)
+  query <- RankTransf(query, "counts")
+  query <- logTransf(query, targetAssay = "log1p", use_log1p = TRUE)
+  qsave(query, queryPath)
+} else {
+  
+  query <- qread(queryPath)
+}
+```
+
+The object `query` contains gene expression data and metadata for the bins. Next we visualise the spatial location of the bins. We see a spleen section.
+```{r}
+p <- VizSpatial(query, ptSize = 1, groupBy = "total_counts") + scale_colour_gradientn(colours = MATLAB_cols)
+p
+boxplot(query$total_counts)
+quantile(query$total_counts, c(0,0.01,0.05,0.1))
+cell2keep <- colnames(query)[query$total_counts > quantile(query$total_counts, 0.01)]
+query <- query[,cell2keep]
+```
+
+Next we load the barcode information, containing the spatial location of detected barcodes. We will convert the raw data object `bcRaw` to a 'barcode-seq' format comparable to stereo-seq data assays.
+```{r}
+bcRaw <- read.table(
+  paste0(
+    dat_dir,"stereo-seq_m4_additional_bin_sizes/mouse4_bin",
+    binsize, "_bc_counts.tsv"
+  ),
+  sep = "\t", header = T, row.names = 1
+)
+bcRaw$bin_y <- -bcRaw$bin_y
+bcRaw$y_center <- -bcRaw$y_center
+isin_data <- (bcRaw$isin_adata == "True")
+# Simplify barcode names
+bcRaw$barcode <- gsub("GFP_", "", bcRaw$barcode)
+# Bins that do not contain barcodes
+noBarIdx <- setdiff(query$cell_id, bcRaw$cell_id[bcRaw$isin_adata == "True"])
+```
+
+
+# Visualisation of spatial distribution of clone
+We visualise the spatial distributions of some of the dominating clones. This helps us see if a clone tends to concentrate within a spatial region, and if different clones tend to concentrate in different regions.
+
+For this purpose we define some useful quantities for plotting.
+```{r}
+# Which coordinates to use
+xCoordName <- "x_center"
+yCoordName <- "y_center"
+# X and Y limits
+xylimits <- bcRaw[isin_data, c(xCoordName, yCoordName)] %>% 
+      apply(2, quantile, probs = c(0,1))
+## Convex hull defining spleen region 
+ch <- colData(query)[, c("x", "y")] %>% as.matrix()
+ch <- ch[chull(ch),]
+sortedBC <- table(bcRaw$barcode) %>% sort(decreasing = T)
+```
+
+
+Plot the top 16 most abundant clones.
+```{r eval=FALSE}
+sortedBC <- table(bcRaw$barcode) %>% sort(decreasing = T)
+
+xx_eval <- bcRaw[, c(xCoordName, yCoordName)] %>%
+  `colnames<-`(c("x", "y"))
+out <- lapply(
+  1:16,
+  function(x){
+    # Which clone
+    bcName <- names(sortedBC)[x]
+    # Data for density est
+    xx <- bcRaw[bcRaw$barcode == bcName, c(xCoordName, yCoordName)]
+    
+    suppressWarnings(kde_res <- tempDenPlot(xx, xx_eval, xylimits, ch, F, psize = 0.1, bcName, spleenOnly = T))
+    
+    return(kde_res)
+  }
+)
+estValues <- lapply(
+  out, function(x) x$kde_res$estimate
+) %>% unlist
+estRange <- range(estValues)
+outPlots <- lapply(
+  out,
+  function(x){
+    p <- x$p
+    suppressMessages(
+      p <- p +
+        scale_colour_gradientn(colours = MATLAB_cols, limits = estRange) 
+    )
+  }
+)
+suppressWarnings(
+  ggsave(
+    "figs/spleen_densities.png",
+      ggarrange(plotlist = outPlots, nrow = 4, ncol = 4, legend = "none"),
+      width = 7.5, height = 7.5
+  )
+)
+```
+
+Each spot represents a bin (measurement location) and the colour represents the density value. There are several things notable about this plot:
+
+- There is considerable 'bin bleeding' present, ie many bins are outside the spleen region. This is probably related to handling of the tissue section during sequencing, which is common in spatial sequencing (Zhang et al., 2023, BayesTME). (Note that the majority of bins are still in the spleen region. If you look at a higher resolution rendition of the same plot, bins within the spleen region is much denser.)
+
+- Some clones tend to concentrate in a small area. This can be seen by the deep read colour present in some subplots, meaning very high density regions.
+
+- Some clones (eg 131914, third most abundant clone), though abundant, tend to have very flat spatial densities. This means they do not tend to concentrate in a small region, but are really everywhere. 
+
+- When clones tend to concentrate, the high density regions tend to be located close to the boundary of the spleen region. Does this have a biological interpretation?
+
+
+
+## Barcode filtering
+
+To evaluate the spatial distribution of all the clones, instead of viewing them one by one, we aggregate the high abundance clones to make a 'barcode-seq' assay.
+
+We first filter out low abundance barcodes. The idea is that, most barcodes have very low abundance (eg detected in only one bin) and it's not very interesting analysing them. (However there is a possibility to utilise them for statitical inference. That is, we might be able to model the spatial distribution of those low abundance barcodes as a proxy to some sort of background noise.)
+
+```{r}
+sortedBC_filt <- sortedBC[sortedBC >= 50]
+length(sortedBC_filt)
+bcFilt <- bcRaw %>%
+  filter(barcode %in% names(sortedBC_filt)) %>%
+  mutate(
+    barcode = as.factor(barcode)
+  )
+```
+
+Only 35 barcodes have reads no smaller than 50. 
+
+
+## Define barcode-seq assay
+First we create the raw barcode-seq assay, where each row is a bin and each column one of the highly abundant bins identified above. Each value of the assay is a 
+
+```{r}
+binIDs <- unique(bcFilt$cell_id)
+barAssayRaw <- sapply(
+  1:length(binIDs),
+  function(x){
+    
+    binID <- binIDs[x]
+    idx <- (bcFilt$cell_id == binID)
+    
+    table(bcFilt[idx,"barcode"])
+    
+  }
+) %>%
+  t() %>%
+  `rownames<-`(binIDs)
+```
+
+## Spatially enhanced bins
+
+We only kept those ones as the features in our barcode-seq assay, which describes the abundance of the 35 selected barcodes in the close proximity of each bin. More specifically, for a given bin, we count the barcodes present in the surronding bins whose distances to that given bin is no larger than `xyRange`. We tentatively selected `xyRange <- 50` but the influence of this parameter on downstream results should be benchmarked in the future.
+```{r}
+xyRange <- 500
+binIDs <- unique(bcFilt$cell_id)
+barAssay <- sapply(
+  1:length(binIDs),
+  function(x){
+    
+    binID <- binIDs[x]
+    coords <- bcFilt %>%
+      filter(cell_id == binID)
+    coords <- coords[1, c("x_center", "y_center")]
+    
+    xcond <- (abs(bcFilt$x_center - coords[1,1]) < xyRange)
+    ycond <- (abs(bcFilt$y_center - coords[1,2]) < xyRange)
+    idx <- xcond & ycond
+    
+    table(bcFilt[idx,"barcode"])
+    
+  }
+) %>%
+  t() %>%
+  `rownames<-`(binIDs)
+```
+
+
+Now this barcode-seq assay has a similar interpretation as microbiome data, where counts of different taxa of bacteria are identified. Here the barcodes are our taxa.
+
+A interesting statistical question is whether we need to normalise `barAssay` for downstream analysis. For example, we may define the total count of detected barcodes in the neibourhood of a bin as some sort of library size. Do we need to normalise this library size out? This depends on whether we think this library size contains biological information or not. 
+```{r}
+libSizes <- rowSums(barAssay)
+boxplot(libSizes)
+```
+
+
+Next we cluster the bins using the barcode-seq assay. Bins belonging to the same cluster tend to have similar composition of barcodes. We try different choices of number of clusters.
+```{r}
+plot_dat <- unique(
+  bcFilt[,c("cell_id", xCoordName, yCoordName)]
+) %>% as.data.frame()
+clustPath <- paste0(dat_dir,"output/barcode-seq_clustering.rds")
+if(!file.exists(clustPath)){
+  
+  set.seed(523423)
+  outClusts <- lapply(
+    2:10,
+    function(kclust){
+      
+      clust_res <- kmeans(
+        barAssay,
+        centers = kclust,
+        iter.max = 100,
+        nstart = 50
+      )
+  
+      return(clust_res)
+    }
+  )
+  
+  saveRDS(outClusts, clustPath)
+} else {
+  
+  outClusts <- readRDS(clustPath)
+}
+```
+
+
+Plot the clusters. To make the clusters comparable across different run of clustering, we align the clusters using the Hungarian algorithm implemented by `PhiSpace::align_clusters`.
+```{r}
+clust_list <- lapply(
+  outClusts,
+  function(x){
+    factor(x$cluster, levels = sort(unique(x$cluster)))
+  }
+)
+# Align clusters across different results
+outPlots <- vector("list", length(clust_list))
+for(x in length(clust_list):1){
+  
+  clust <- clust_list[[x]]
+  
+  if(x < length(clust_list)){
+    clust_old <-  clust_list[[x+1]]
+    clust <- align_clusters(clust, clust_old) %>% as.factor()
+    clust_list[[x]] <- factor(clust, levels = as.character(sort(as.numeric(levels(clust)))))
+  }
+  
+  plot_dat <- plot_dat %>%
+    mutate(
+      clusters = clust_list[[x]]
+    )
+  
+  outPlots[[x]] <- tempClustPlot(plot_dat, T)
+}
+suppressWarnings(
+  p <- ggarrange(
+      plotlist = outPlots, nrow = 3, ncol = 3, legend = "none"
+  )
+)
+suppressWarnings(
+  ggsave(
+    "figs/clusts/spleen_clusts.png", 
+    p, width = 6, height = 6
+  )
+)
+png(
+  paste0("figs/clusts/", "spleen_clusts_legend.png"),
+  width = 0.5, height = 4, units = "in", res = 300
+)
+op <- par(mar = rep(0, 4))
+suppressWarnings(grid::grid.draw(get_legend(outPlots[[length(outPlots)]])))
+par(op)
+dev.off()
+```
+
+
+
+## Clone composition of clusters
+To interpret the clusters, we look at clone composition of each cluster. We look at the non-aggregated counts (ie barcode counts in each individual bin).
+```{r}
+clustIdx <- 7
+clust <- clust_list[[clustIdx]]
+barSelected <- names(sortedBC)[1:5]
+plot_dat_wide <- barAssayRaw[,barSelected] %>% as.data.frame() %>%
+  mutate(
+    clust = clust
+  ) %>%
+  group_by(clust) %>%
+  summarise(
+    across(
+      starts_with("Barcode"), sum
+    )
+  ) 
+
+plot_prop <- plot_dat_wide %>% select(!clust) %>% as.matrix() 
+plot_prop <- (plot_prop/rowSums(plot_prop)) %>% 
+  as.data.frame() %>%
+  mutate(
+    clust = plot_dat_wide$clust
+  ) %>%
+  pivot_longer(
+    !clust,
+    values_to = "count",
+    names_to = "barcode"
+  ) %>%
+  mutate(
+    barcode = factor(
+      barcode, levels = rev(barSelected)
+    )
+  ) 
+plot_prop <- plot_prop %>% filter(clust != "9")
+p <- plot_prop %>%
+  ggplot(
+    aes(count, barcode)
+  ) +
+  geom_bar(
+    aes(fill = clust),
+    stat = "identity"
+  ) +
+  theme_bw(base_size = 6) +
+  scale_fill_manual(
+    values = clust_cols
+  ) +
+  facet_wrap(~ clust, nrow = 2) +
+  theme(
+    legend.position = "none",
+    axis.title = element_blank(),
+    strip.text.x = element_text(size = 6, face = "bold")
+  )
+p
+ggsave(
+  "figs/clusts/clust_bc_composition.png",
+  p, width = 4, height = 1.5
+)
+p_clust <- outPlots[[clustIdx]] + theme_void(base_size = 8) +
+  theme(
+    legend.position = "none"
+  )
+p_clust
+ggsave(
+  "figs/clusts/clust_selected.png",
+  p_clust, width = 2.2, height = 1.5
+)
+```
+
+
+I also tried different choices of `xyRange`, controlling the level of aggregation. See `fig/clusts/` folder for the plots. In conclusion,
+
+- The clone compositions using raw and aggregated counts are very similar. This means that aggregation has not distorted the representation of clone composition. (This is because we have not chosen overly large `xyRange`.)
+
+- When `xyRange=50`, so that little aggregation is done. We can still roughly see clusters 2, 8 and 10.
+
+- When `xyRange=100`, we start to see clusters 1 and 3.
+
+- When `xyRange=1000`, not too bad! Clusters still seem sensible.
+
+- When `xyRange=2000`,
+
+Use the following code to plot clustering results and clone compositions for different choices of `xyRange`.
+
+See `bench_xyRange.R`.
+
+
+
+# Some other characteristics of spatial data
+Marker genes
+```{r}
+p1 <- VizSpatial(
+  query, feature = "Marco", assay2use = "log1p", ptSize = 0.3
+) +
+  theme(
+    legend.title = element_blank(),
+    legend.position = "right",
+    legend.key.spacing = unit(0, "pt")
+  ) 
+p2 <-VizSpatial(
+  query, feature = "Cd74", assay2use = "log1p", ptSize = 0.3
+) +
+  theme(
+    legend.title = element_blank(),
+    legend.position = "right",
+    legend.key.spacing = unit(0, "pt")
+  ) 
+p3 <-VizSpatial(
+  query, feature = "Elane", assay2use = "log1p", ptSize = 0.3,
+) +
+  theme(
+    legend.title = element_blank(),
+    legend.position = "right",
+    legend.key.spacing = unit(0, "pt")
+  )
+p4 <- VizSpatial(
+  query, feature = "Slpi", assay2use = "log1p", ptSize = 0.3
+) +
+  theme(
+    legend.title = element_blank(),
+    legend.position = "right",
+    legend.key.spacing = unit(0, "pt")
+  ) 
+png(
+  "figs/spatialHeatMap/logGEX_leg.png", 
+  width = 0.5, height = 2, units = "in", res = 300
+)
+op <- par(mar = rep(0, 4))
+grid::grid.draw(get_legend(p3))
+par(op)
+dev.off()
+ggsave(
+  "figs/spatialHeatMap/logGEX_Marco.png", 
+  p1 + theme(legend.position = "none"), width = 1.5, height = 1.2
+)
+ggsave(
+  "figs/spatialHeatMap/logGEX_Cd74.png", 
+  p2 + theme(legend.position = "none"), width = 1.5, height = 1.2
+)
+ggsave(
+  "figs/spatialHeatMap/logGEX_Elane.png", 
+  p3 + theme(legend.position = "none"), width = 1.5, height = 1.2
+)
+ggsave(
+  "figs/spatialHeatMap/logGEX_Slpi.png", 
+  p4 + theme(legend.position = "none"), width = 1.5, height = 1.2
+)
+```
+
+Density of barcoded bins.
+```{r}
+xx_eval <- colData(query)[query$barcode != "nan", c("x", "y")] 
+xx <- colData(query)[query$barcode != "nan", c("x", "y")] 
+suppressWarnings(
+  kde_res <- tempDenPlot(xx, xx_eval, xylimits, ch, F, psize = 0.3, "", spleenOnly = F)
+)
+estValues <- kde_res$kde_res$estimate
+estRange <- range(estValues)
+p <- kde_res$p + scale_colour_gradientn(colours = MATLAB_cols, limits = estRange) 
+ggsave(
+  "figs/spatialHeatMap/barcoded.png", 
+  p + theme(title = element_blank()), width = 1.5, height = 1.2
+)
+```
+
+
+
+
+# PhiSpace
+We use a bridging strategy to annotate the query Stereo-seq data. First using the four scRNA-seq references to annotate the AML spleen scRNA-seq data from Fennel et al. (2022) and then use this intermediate scRNA-seq data to annotate the query Stereo-seq data. Note that the intermediate scRNA-seq and the Stereo-seq data were from the same mouse spleen.
+
+See `runPhiSpace.R` for the annotation of the intermediate scRNA-seq dataset.
+```{r}
+querySC <- qread(
+  paste0(dat_dir, "mouse4_scRNAseq_sce.qs")
+)
+pathPhiSc <- paste0(
+  dat_dir,
+  "output/Mouse4_scRNA-seq_PhiSc_list.rds"
+)
+impScPath <- paste0(
+  dat_dir,
+  "output/ImpScores_for_Mouse4_scRNA-seq.rds"
+)
+scPhiSc_list <- readRDS(pathPhiSc)
+reducedDim(querySC, "PhiSpace") <- do.call("cbind", scPhiSc_list)
+newNames <- c(
+  "RBC", "CD8 T", "Plasma", "Mature B", "cDC",
+  "NK", "Neutro", "CD4 T", "Cr2 B", "HSPC",
+  "Trans B", "Mono", "T", "Pre-B cycl", "Endo",
+  "Cd7+ NK", "Macro", "pDC", "Baso", "Pre-B", 
+  "Mono", "Naive B", "Granulo", "Macro", "Imm B",
+  "HPC", "Late pro-B", "Imm NK", "ProEryThBla", "T",
+  "ErythBla", "T3", "MAT 3", "MAT 2", "IMM 1",
+  "MAT 4", "MAT 1", "IMM 2", "T1", "T2",
+  "PreNeu", "MAT 5", "MZ B", "Trans B", "Mat B",
+  "CD122+ B", "Ifit3+CD4 T", "CD4 T", "pDC", "CD8 T",
+  "B1 B", "NKT", "Ifit3+ B", "NK", "GD T",
+  "ICOS+ Tregs", "Tregs", "Ly6+ mono", "Neutro", "Cycl B/T",
+  "cDC2", "Ly6- mono", "RedPulp macro", "RBC", "Mig DC",
+  "Ifit3+CD8 T", "cDC1", "Act CD4 T", "Plasma", "MZ/Marco+ macro"
+)
+newNames <- paste0(
+  newNames,
+  rep(
+    c("(Spleen)", "(BM)", "(Neutro)", "(CITE)"),
+    sapply(scPhiSc_list, ncol)
+  )
+)
+colnames(reducedDim(querySC, "PhiSpace")) <- newNames
+```
+
+PhiSpace annotation of the query Stereo-seq.
+```{r}
+querySC <- logTransf(querySC, targetAssay = "log1p", use_log1p = T)
+PhiRes <- PhiSpaceR_1ref(
+  querySC, 
+  query, 
+  response = reducedDim(querySC, "PhiSpace"), 
+  PhiSpaceAssay = "log1p",
+  nfeat = 500,
+  regMethod = "PLS",
+  scale = FALSE
+)
+reducedDim(query, "PhiSpace") <- normPhiScores(PhiRes$PhiSpaceScore)
+```
+
+
+
+Visualise clones in phenotype space.
+```{r eval=FALSE}
+tempSavePlots(
+  query,  methodName = "PhiSpace", tissueName = "DawsonMouseSpleenAML", 
+  coordNames = c("x", "y"),
+  freeColScale = T, censQuant = 0.5, returnPlot = F, psize = 0.8
+)
+```
+
+
+Clustering based on PhiSpace scores.
+```{r}
+tempClustCols <- c(
+  "1" = "#A65628", "2" = "#FFFF33", "3" = "#377EB8", "4" = "#FF7F00", 
+  "5" = "#F781BF", "6" = "#984EA3", "7" = "#E41A1C", "8" =  "#4DAF4A"
+)
+PhiPCRes <- getPC(
+  reducedDim(query, "PhiSpace"), ncomp = ncol(reducedDim(query, "PhiSpace")) - 1
+)
+PhiPCRes$accuProps
+plot(1-PhiPCRes$accuProps)
+mat2clust <- PhiPCRes$scores[,1:30]
+names(tempClustCols) <- 1:8
+set.seed(94863)
+clust_res <- kmeans(
+  mat2clust, centers = 8, iter.max = 200L, nstart = 50
+)
+query$PhiClust <- as.character(clust_res$cluster)
+
+p <- VizSpatial(
+  query, groupBy = "PhiClust", ptSize = 0.5
+) +
+  scale_colour_manual(values = tempClustCols) +
+  guides(
+    colour = guide_legend(
+      override.aes = list(size = 2)
+    )
+  ) +
+  theme(
+    legend.title = element_text(face = "bold"),
+    legend.position = "right",
+    legend.key.spacing = unit(0, "pt")
+  )
+p
+png(
+  "figs/clusts/PhiClust_leg.png", 
+  width = 0.5, height = 2, units = "in", res = 300
+)
+op <- par(mar = rep(0, 4))
+grid::grid.draw(get_legend(p))
+par(op)
+dev.off()
+ggsave(
+  "figs/clusts/PhiClust.png", 
+  p + theme(legend.position = "none"),
+  width = 2, height = 1.8
+)
+
+clustMeans <- aggregate(
+  reducedDim(query, "PhiSpace"),
+  list(query$PhiClust),
+  mean
+)[,-1]
+selectFeat(clustMeans %>% t)$orderedFeatMat[1:10,]
+clustResPhi <- clust_res
+```
+
+Clustering based on PCs of gene expression.
+```{r}
+clustResPhi <- clust_res
+mat2clust <- getPC(
+  t(assay(query, "log1p")), ncomp = 30
+)$scores
+set.seed(94858)
+clust_res <- kmeans(
+  mat2clust, centers = 8, iter.max = 200L, nstart = 50
+)
+query$GenClust <- align_clusters(as.character(clust_res$cluster), query$PhiClust)
+p <- VizSpatial(
+  query, groupBy = "GenClust", ptSize = 0.5
+) +
+  scale_colour_manual(values = tempClustCols) +
+  guides(
+    colour = guide_legend(
+      override.aes = list(size = 2)
+    )
+  ) +
+  theme(
+    legend.title = element_text(face = "bold"),
+    legend.position = "right",
+    legend.key.spacing = unit(0, "pt")
+  )
+p
+ggsave(
+  "figs/clusts/OmicsClust.png", 
+  p + theme(legend.position = "none"),
+  width = 2, height = 1.8
+)
+```
+
+
+
+DWD analysis: barcoded vs nonbarcoded.
+```{r}
+library(kerndwd)
+barcodeVec <- as.character(query$barcode)
+barcodeVec[barcodeVec != "nan"] <- 1
+barcodeVec[barcodeVec == "nan"] <- -1
+barcodeVec <- as.numeric(barcodeVec)
+X_cent <- reducedDim(query, "PhiSpace") %>% as.matrix()
+X_cent <- scale(X_cent, center = T, scale = F) 
+lambda = 10^(seq(-2, -5, length.out=50))
+kern = vanilladot()
+cv_res = cv.kerndwd(X_cent, barcodeVec, kern, qval=1, lambda=lambda, eps=1e-5, maxit=1e5)
+plot(cv_res)
+da_res = kerndwd(X_cent, barcodeVec, kern, qval=1, lambda=cv_res$lambda.min, eps=1e-5, maxit=1e5)
+dwdLoad <- da_res$alpha[-1,,drop=F] %>% `dimnames<-`(list(colnames(X_cent),"comp1")) # worked out by looking at predict.dwd
+dwdScore <- predict.kerndwd(da_res, kern, X_cent, X_cent, "link") %>% `colnames<-`("comp1")
+dwd_res <- list(
+  scores = dwdScore %>% as.data.frame(), loadings = dwdLoad %>% as.data.frame()
+)
+```
+Visualise DWD results.
+```{r}
+barcodedOrNo <- barcodeVec
+barcodedOrNo[barcodeVec==1] <- "Barcoded"
+barcodedOrNo[barcodeVec==-1] <- "Nonbarcoded"
+p_dens <- dwd_res$scores %>%
+  mutate(
+    niche = barcodedOrNo
+  ) %>%
+  ggplot() +
+  geom_density(
+    aes(comp1, fill = niche), alpha = 0.5
+  ) +
+  theme_pubr(base_size = 6) +
+  theme(
+    legend.title = element_blank()
+  ) +
+  xlab("DWD score")
+p_load <- loadBarplot(
+  dwd_res$loadings, comp = "comp1", showInt = F, 
+  nfeat = 10, fsize = 7, xlab = "DWD loading", absVal = T
+)
+p_dens
+p_load
+ggsave(
+  "figs/DWD_barcoded_dens.png",
+  p_dens, width = 2, height = 1.5
+)
+ggsave(
+  "figs/DWD_barcoded_load.png",
+  p_load, width = 2, height = 1.7
+)
+```
+
+
+
+
+Boxplots: which cell types enriched in which clone cluster
+```{r}
+clustBar <- clust_list[[clustIdx]] %>%
+  `names<-`(rownames(barAssay)) # containing all barcoded bins in and out spleen
+plot_dat <- reducedDim(query, "PhiSpace") %>% as.data.frame() 
+clustBar <- clustBar[
+  intersect(rownames(plot_dat), names(clustBar)) # all barcoded bins in spleen
+]
+clust <- rep("background", nrow(plot_dat))
+names(clust) <- rownames(plot_dat)
+clust[names(clustBar)] <- as.character(clustBar)
+# Select some clusters
+selectedClust <- c(
+  "2", "3", "5", "6", "7", "8", "10", "background"
+)
+clust <- clust[clust %in% selectedClust]
+clust <- factor(
+  clust, levels = selectedClust
+)
+plot_dat <- plot_dat[names(clust), ] %>%
+    mutate(
+      cluster = clust,
+      x = query[,names(clust)]$x,
+      y = query[,names(clust)]$y
+    )
+cTypes <- colnames(reducedDim(query, "PhiSpace"))
+suppressWarnings(
+  p_boxs <- tempSaveBox(
+    plot_dat, cTypes, width = 7, height = 10, fignrow = 8, figncol = 9, fsize = 5, returnPlot = T
+  )
+)
+
+p <- p_boxs[[1]] + 
+  theme_bw(base_size = 8) +
+  theme(
+    legend.position = "top", 
+    axis.text.y = element_text(),
+    legend.title = element_text(face = "bold")
+  ) +
+  guides(
+    fill = guide_legend(
+      nrow = 1
+    )
+  )
+png(
+  paste0("figs/cTypeEnrichBoxplots/box_legend.png"),
+  width = 5, height = 0.5, units = "in", res = 300
+)
+op <- par(mar = rep(0, 4))
+suppressWarnings(grid::grid.draw(get_legend(p)))
+par(op)
+dev.off()
+```
+
+
+Statistical tests: which clusters have significantly different cell time enrichment compared to background
+```{r eval=FALSE}
+cTypes <- colnames(reducedDim(query, "PhiSpace"))
+pvals <- sapply(
+  cTypes,
+  function(cType){
+    
+    sc_split <- split(
+      reducedDim(query, "PhiSpace")[names(clust),cType],
+      clust
+    )
+    bkgrd <- sc_split$background
+    sc_split[["background"]] <- NULL 
+    testRes <- sapply(
+      sc_split,
+      function(x) wilcox.test(x, bkgrd)$p.value
+    )
+    # testRes <- testRes[levels(clust)]
+    return(testRes)
+  }
+) %>% t() 
+fc <- sapply(
+  cTypes,
+  function(cType){
+    
+    sc_split <- split(
+      reducedDim(query, "PhiSpace")[names(clust),cType],
+      clust
+    )
+    bkgrd <- sc_split$background
+    sc_split[["background"]] <- NULL
+    
+    foldChange <- sapply(
+      sc_split,
+      function(x) (mean(x) - mean(bkgrd))/sd(bkgrd)
+    )
+    # foldChange <- foldChange[levels(clust)]
+    return(
+      foldChange
+    )
+  }
+) %>% t()
+sigScores <- fc * (-log10(pvals)) # feature significance score 
+# most enriched
+tab <- selectFeat(sigScores, absVal = F)$orderedFeatMat[1:5, colnames(sigScores) != "9"]
+knitr::kable(tab)
+write.csv(tab, "figs/tab_enrich_cluster.csv")
+# most depleted
+tab <- selectFeat(-sigScores, absVal = F)$orderedFeatMat[1:5, colnames(sigScores) != "9"]
+knitr::kable(tab)
+write.csv(tab, "figs/tab_depleted_cluster.csv")
+```
+

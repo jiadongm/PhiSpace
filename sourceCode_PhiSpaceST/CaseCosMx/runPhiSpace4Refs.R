@@ -5,9 +5,8 @@ suppressPackageStartupMessages(library(tidyr))
 suppressPackageStartupMessages(library(magrittr))
 suppressPackageStartupMessages(library(qs)) # quick read and write of R objects
 
-dat_dir <- "/data/projects/punim0613/JiaDong/PhiSpace/"
-
-source("/data/projects/punim0613/JiaDong/PhiSpace/CaseCosMx/utils.R")
+dat_dir <- "/data/projects/punim0613/JiaDong/PhiSpace/PhiSpace-ST_submit/" # replace with your own directory
+source(paste0(dat_dir, "CaseCosMx/utils.R"))
 
 PhiAssay <- "log1p"
 
