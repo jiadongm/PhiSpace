@@ -15,7 +15,8 @@ matrixPlot(
   manualAlpha = NULL,
   fsize = 14,
   returnPlotList = F,
-  legendTitle = ""
+  legendTitle = "",
+  compName = "comp"
 )
 }
 \arguments{
@@ -40,6 +41,8 @@ matrixPlot(
 \item{returnPlotList}{Logical. Whether to return individual plots.}
 
 \item{legendTitle}{Legend title.}
+
+\item{compName}{Name of the components, default is "comp", so that the 1st column is named comp1 etc.}
 }
 \description{
 Density and pairwise scatter plots for visualising score matrices.

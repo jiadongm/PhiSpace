@@ -26,13 +26,13 @@ loadBarplot <- function(
 
     if(showNeg){
       plot_dat <- Loadings %>% as.data.frame() %>%
-        dplyr::arrange(desc(-(!!sym(comp))))  %>%
+        dplyr::arrange(dplyr::desc(-(!!sym(comp))))  %>%
         dplyr::slice_head(n = nfeat) %>%
         dplyr::arrange((!!sym(comp)))
     } else {
 
       plot_dat <- Loadings %>% as.data.frame() %>%
-        dplyr::arrange(desc(!!sym(comp)))  %>%
+        dplyr::arrange(dplyr::desc(!!sym(comp)))  %>%
         dplyr::slice_head(n = nfeat) %>%
         dplyr::arrange((!!sym(comp)))
     }

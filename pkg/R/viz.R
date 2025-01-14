@@ -14,6 +14,7 @@
 #' @param fsize Figure font size.
 #' @param returnPlotList Logical. Whether to return individual plots.
 #' @param legendTitle Legend title.
+#' @param compName Name of the components, default is "comp", so that the 1st column is named comp1 etc.
 #'
 #' @export
 matrixPlot <- function(
@@ -27,7 +28,8 @@ matrixPlot <- function(
     manualAlpha = NULL,
     fsize = 14,
     returnPlotList = F,
-    legendTitle = ""
+    legendTitle = "",
+    compName = "comp"
   ){
 
   if(is.null(max_ncomp) & is.null(comp_idx)){
@@ -37,10 +39,10 @@ matrixPlot <- function(
   if(!is.null(max_ncomp)) comp_idx <- 1:max_ncomp
 
 
-  if(!all(paste0("comp", comp_idx) %in% colnames(scores))){
+  if(!all(paste0(compName, comp_idx) %in% colnames(scores))){
 
     missingComps <-
-      paste0("comp", comp_idx)[!(paste0("comp", comp_idx) %in% colnames(scores))]
+      paste0(compName, comp_idx)[!(paste0(compName, comp_idx) %in% colnames(scores))]
     stop(paste0("These components are missing from scores: ", missingComps))
 
   }
@@ -55,7 +57,7 @@ matrixPlot <- function(
 
     for(comp_i in 1:length(comp_idx)){
 
-      var2plot <- paste0("comp", comp_idx[comp_i])
+      var2plot <- paste0(compName, comp_idx[comp_i])
 
       p <- scores %>%
         ggplot(aes(x = !!sym(var2plot))) +
@@ -115,8 +117,8 @@ matrixPlot <- function(
     out_nondiag <- vector("list", nrow(combs))
     for(comb in 1:nrow(combs)){
 
-      var1 <- paste0("comp", combs[comb, 1])
-      var2 <- paste0("comp", combs[comb, 2])
+      var1 <- paste0(compName, combs[comb, 1])
+      var2 <- paste0(compName, combs[comb, 2])
 
       if(is.null(colBy)){
 
@@ -204,7 +206,7 @@ matrixPlot <- function(
 
   } else if (length(comp_idx) == 1){
 
-    var2plot <- paste0("comp", comp_idx)
+    var2plot <- paste0(compName, comp_idx)
 
     ## Only density plot is given
     out <-
@@ -252,8 +254,8 @@ matrixPlot <- function(
 
     ## Plot 2 components
 
-    var1 <- paste0("comp", comp_idx[1])
-    var2 <- paste0("comp", comp_idx[2])
+    var1 <- paste0(compName, comp_idx[1])
+    var2 <- paste0(compName, comp_idx[2])
 
     if(is.null(colBy)){
 

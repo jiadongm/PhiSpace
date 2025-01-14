@@ -230,7 +230,7 @@ VizSpatial <- function(
     ...
 ){
 
-  if(class(obj) == "SpatialExperiment"){
+  if(methods::is(obj, "SpatialExperiment")){
 
     coordNames <- spatialCoordsNames(obj)
 
@@ -258,7 +258,7 @@ VizSpatial <- function(
 
     coordNames <- c(x_coord, y_coord)
 
-    if(class(obj) != "SingleCellExperiment") stop("The input obj has to be either SpatialExperiment object or SingleCellExperiment.")
+    if(!methods::is(obj, "SingleCellExperiment")) stop("The input obj has to be either SpatialExperiment object or SingleCellExperiment.")
     plot_dat <- colData(obj) %>% as.data.frame()
 
     if(!all(coordNames %in% colnames(colData(obj)))) stop("Not all spatial coordinates are present in colData of obj.")

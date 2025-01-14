@@ -31,6 +31,9 @@ mvr <- function(
   ){
 
 
+  # Make sure X and Y are matrices (hance have dims, can be used as argument of eg colMeans)
+  X <- as.matrix(X)
+  Y <- as.matrix(Y)
 
   if(method == "PCA"){
 
