@@ -6,6 +6,7 @@
 - [1 Nov 2024] Version 1.0.0.9000 is released. This is a under-development version towards Φ-Space ST, a unified approach for spatial transcriptomics (ST) data analysis. New manuscript and vignettes coming soon!
 
 <img src="./figs/PhiSpace.png" width="20%" style="display: block; margin: auto;" />
+<img src="./figs/PhiSpaceST_logo.png" width="20%" style="display: block; margin: auto;" />
 
 Mao, Jiadong, Deng, Yidi and Lê Cao, Kim-Anh. (2024). Φ-Space: Continuous phenotyping of single-cell multi-omics data. *bioRxiv*.
 
