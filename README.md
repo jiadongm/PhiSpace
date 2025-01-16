@@ -7,8 +7,8 @@
 
 
 <p float="left">
-  <img src="./figs/PhiSpace.png" width="20%" /> 
-  <img src="./figs/PhiSpaceST.png" width="20%" />
+  <img src="./figs/PhiSpace.png" width="30%" /> 
+  <img src="./figs/PhiSpaceST.png" width="30%" />
 </p>
 
 
