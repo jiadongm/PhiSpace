@@ -6,3 +6,7 @@
 ^PhiSpace\.Rhistory$
 .Rhistory
 .DS_Store
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^\.github$
