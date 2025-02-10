@@ -1,4 +1,4 @@
-# Φ-Space: Continuous phenotyping of bulk, single-cell and spatial omics data.
+# Φ-Space: Continuous phenotyping of single-cell and spatial omics data.
 
 ### News
 - [10 Feb 2025] Our PhiSpace ST paper is on [bioRxiv](https://www.biorxiv.org/content/10.1101/2025.02.05.636735v1).
