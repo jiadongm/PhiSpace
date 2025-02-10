@@ -1,15 +1,13 @@
 ---
-title: "Getting Started: mapping scRNA-seq to bulk RNA-seq atlas"
+title: "Multiomic annotation: using CITE-seq reference to annotate CITE-seq query"
 author: "Jiadong Mao"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Getting Started: mapping scRNA-seq to bulk RNA-seq atlas}
+  %\VignetteIndexEntry{Multiomic annotation: using CITE-seq reference to annotate CITE-seq query}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
-
-In this example, 
 
 Load the packages.
 ```{r}
@@ -27,7 +25,7 @@ suppressPackageStartupMessages(library(zeallot)) # use operator %<-%
 suppressPackageStartupMessages(library(plotly)) # plot 3d interative plots
 ```
 
-Download the processed reference dataset [ref_dc.rds](https://www.dropbox.com/scl/fi/xiqb8fr2se5go6n17jvj0/ref_dc.rds?rlkey=uhxaazcyej30geu8fu8jclxpn&st=pocmrvx6&dl=0).
+TBC
 
 
 

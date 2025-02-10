@@ -91,7 +91,7 @@ suppressPackageStartupMessages(library(magrittr))
 suppressPackageStartupMessages(library(ggpubr))
 suppressPackageStartupMessages(library(tidyr))
 # Other utils
-suppressPackageStartupMessages(library(ComplexHeatmap)) $ plot heatmap
+suppressPackageStartupMessages(library(ComplexHeatmap)) # plot heatmap
 suppressPackageStartupMessages(library(zeallot)) # use operator %<-%
 suppressPackageStartupMessages(library(plotly)) # plot 3d interative plots
 ```

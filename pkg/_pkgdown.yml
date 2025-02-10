@@ -3,7 +3,9 @@ destination: ../docs
 template:
   bootstrap: 5
 articles:
-  - title: "Getting Started with PhiSpace"
-    desc: "A beginner's guide with examples to help you use the package."
+  - title: "PhiSpace multiomics: using PhiSpace for single-cell multiomics"
+    navbar: ~
+    desc: "Using bulk or single-cell RNA-seq referecences to annotate single-cell multiomics queries."
     contents:
       - getting_started
+      - CITE-seq
