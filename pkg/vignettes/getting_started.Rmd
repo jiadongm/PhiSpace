@@ -1,0 +1,12 @@
+---
+title: "Getting Started with PhiSpace"
+author: "Jiadong Mao"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting Started with PhiSpace}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+test
