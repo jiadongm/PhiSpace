@@ -3,4 +3,7 @@ pkgdown: 2.1.1
 pkgdown_sha: ~
 articles:
   getting_started: getting_started.html
-last_built: 2025-02-10T04:24Z
+last_built: 2025-02-10T05:36Z
+urls:
+  reference: https://jiadongm.github.io/PhiSpace/reference
+  article: https://jiadongm.github.io/PhiSpace/articles

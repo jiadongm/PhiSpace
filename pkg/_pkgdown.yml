@@ -1,2 +1,9 @@
+url: "https://jiadongm.github.io/PhiSpace/"
 destination: ../docs
-
+template:
+  bootstrap: 5
+articles:
+  - title: "Getting Started with PhiSpace"
+    desc: "A beginner's guide with examples to help you use the package."
+    contents:
+      - getting_started
