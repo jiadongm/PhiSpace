@@ -1,0 +1,7 @@
+library(usethis)
+library(pkgdown)
+
+init_site()
+# use_pkgdown_github_pages()
+build_site()
+
