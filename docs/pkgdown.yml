@@ -4,7 +4,9 @@ pkgdown_sha: ~
 articles:
   CITE-seq: CITE-seq.html
   getting_started: getting_started.html
-last_built: 2025-02-10T23:31Z
+  Multiome: Multiome.html
+  Visium: Visium.html
+last_built: 2025-02-11T10:28Z
 urls:
   reference: https://jiadongm.github.io/PhiSpace/reference
   article: https://jiadongm.github.io/PhiSpace/articles

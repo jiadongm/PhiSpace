@@ -1,5 +1,5 @@
 Package: PhiSpace
-Title: Analysing compelx phenotypes of bulk, single-cell and spatial omics data
+Title: Continuous cell state annotation for single-cell and spatial omics data
 Version: 1.0.0.9000
 Authors@R: 
     person("Jiadong", "Mao", , "chiatungmao@gmail.com", role = c("aut", "cre"),

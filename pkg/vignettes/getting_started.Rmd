@@ -9,7 +9,19 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-In this example, 
+PhiSpace is inspired by stem cell research, where the focus is often on transitional cell *states* 
+instead of terminally differentiated cell *types*. 
+
+In the first case study in our [manuscript](https://www.biorxiv.org/content/10.1101/2024.06.19.599787v1), we
+used
+
+- Reference bulk RNA-seq: [Stemformatics DC atlas](https://journals.aai.org/jimmunol/article/209/12/2352/237295/The-Human-Dendritic-Cell-Atlas-An-Integrated)
+- Query scRNA-seq: [Rosa et al. (2022)](https://www.science.org/doi/10.1126/sciimmunol.abg5539) 
+
+Dendritic cells (DCs) are a type of immune cells. DCs are relatively rare in human blood samples. Hence it is desirable to culture *in vivo* like 
+DCs using *in vitro* methods. Rosa et al. (2022) claimed that they successfully reprogrammed human embryonic fibroblasts (HEFs) into induced DCs after 9 days *in vitro* cell culturing. 
+
+The Stemformatics DC atlas is a bulk RNA-seq atlas of different subtypes of human DC samples (FACs sorted). Moreover, these DC samples had different *sample sources*, including *in vitro*, *in vivo*, *ex vivo*, etc. Hence the DC atlas is comprehensive enough for veriying the cell identity of induced DCs from Rosa et al. (2022).
 
 Load the packages.
 ```{r}
@@ -21,14 +33,59 @@ suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(magrittr))
 suppressPackageStartupMessages(library(ggpubr))
 suppressPackageStartupMessages(library(tidyr))
+suppressPackageStartupMessages(library(qs)) # For fast saving and writing R objects
 # Other utils
 suppressPackageStartupMessages(library(ComplexHeatmap)) # plot heatmap
 suppressPackageStartupMessages(library(zeallot)) # use operator %<-%
 suppressPackageStartupMessages(library(plotly)) # plot 3d interative plots
 ```
 
-Download the processed reference dataset [ref_dc.rds](https://www.dropbox.com/scl/fi/xiqb8fr2se5go6n17jvj0/ref_dc.rds?rlkey=uhxaazcyej30geu8fu8jclxpn&st=pocmrvx6&dl=0).
+Download the processed reference dataset [ref_dc.qs](https://www.dropbox.com/scl/fi/w5j9h6ty0zym8buo07qt8/ref_dc.qs?rlkey=pijs0db60vzdr12fevxk5s86h&st=jinploi0&dl=0) and the processed and query dataset [query_Rosa_sub.qs](https://www.dropbox.com/scl/fi/dm0wr4bvd5lgus7yogl0f/query_Rosa.qs?rlkey=17he2c5v8k5mijrcnmm7v8vak&st=2biiokdc&dl=0).
 
+We first donwsample query data to ensure that we can run this example on a local machine, otherwise a larger RAM is needed. The function we use for subsampling is `PhiSpace::subsample`, which has the following features
+
+- It allows stratified subsampling, eg subsample a proportion from each cell type;
+- When doing stratified subsampling, we can set a minimal number of cells `minCellNum` from each cell type;
+- It sets a random seed implicitly.
+
+The second feature above is to prevent rare cell types from being underrepresented after subsampling. The third feature comes handy as we sometime forget to set seed, but setting random seed is absolutely essential for reproducibility.
+```{r}
+dat_dir <- "~/Dropbox/Research_projects/PhiSpace/VignetteData/DC/" # replace this by your own directory where you store ref_dc.qs and query_dc.qs
+query <- qread(paste0(dat_dir, "query_Rosa.qs"))
+reference <- qread(paste0(dat_dir,"ref_dc.qs"))
+query <- PhiSpace::subsample(query, key = "celltype", proportion = 0.2, minCellNum = 50, seed = 5202056)
+```
+
+TBC
+
+```{r}
+# Rank normalise reference and query
+query <- RankTransf(query, "counts")
+reference <- RankTransf(reference, "data", sparse = F)
+
+# Customised colour code
+DC_cols <- c(
+  `DC precursor` = "#B3B3B3",DC_prec = "#FFFFB3",
+  MoDC = "#CCEBC5", cDC1 = "#1B9E77", 
+  cDC2 = "#D95F02",`dendritic cell` = "#B3B3B3", 
+  DC = "#B3DE69", monocyte = "#B3B3B3",
+  mono = "#80B1D3",`plasmacytoid dendritic cell` = "#7570B3",
+  DC1 = "#1B9E77",DC2 = "#D95F02",
+  pDC = "#7570B3",HEF = "#FEE5D9", 
+  Day3 = "#FCAE91",Day6 = "#FB6A4A",
+  Day9_SP = "#DE2D26", Day9_DP = "#A50F15",
+  Day9 = "#A50F15",other = "#B3B3B3"
+)
+
+DC_cols_source <- c(
+  ex_vivo = "#B3B3B3",in_vitro = "#A50026",
+  in_vivo = "#313695",`in_vivo_HuMouse` = "#80B1D3", query = "#B3B3B3"
+)
+
+DC_symbs <- c(
+  query = 4, reference = 16
+)
+```
 
 
 

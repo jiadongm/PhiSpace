@@ -1,6 +1,6 @@
 # Φ-Space: Continuous phenotyping of single-cell and spatial omics data.
 
-### News
+## News
 - [10 Feb 2025] Our PhiSpace ST paper is on [bioRxiv](https://www.biorxiv.org/content/10.1101/2025.02.05.636735v1).
 
 - [12 Dec 2024] Added support for SpatialExperiment as input.
@@ -13,6 +13,10 @@
   <img src="./figs/PhiSpaceST.png" width="30%" />
 </p>
 
+
+## Resources
+
+Vignettes: [PhiSpace pkgdown site](jiadongm.github.io/PhiSpace/) 
 
 Mao, Jiadong, Choi, Jarny and Lê Cao, Kim-Anh. (2025). Φ-Space ST: a platform-agnostic method to identify cell states in spatial transcriptomics studies. [*bioRxiv*](https://www.biorxiv.org/content/10.1101/2025.02.05.636735v1).
 
@@ -70,12 +74,13 @@ We have applied Φ-Space to many different use cases, including
 We illustrate how Φ-Space works using the first case study in our [manuscript](https://www.biorxiv.org/content/10.1101/2024.06.19.599787v1).
 
 - Reference bulk RNA-seq: [Stemformatics DC atlas](https://journals.aai.org/jimmunol/article/209/12/2352/237295/The-Human-Dendritic-Cell-Atlas-An-Integrated)
-- Query scRNA-seq: [Rosa et al. (2018)](https://www.science.org/doi/10.1126/sciimmunol.aau4292) 
+- Query scRNA-seq: [Rosa et al. (2022)](https://www.science.org/doi/10.1126/sciimmunol.abg5539) 
 
 Dendritic cells (DCs) are a type of immune cells. DCs are relatively rare in human blood samples. Hence it is desirable to culture *in vivo* like 
-DCs using *in vitro* methods. Rosa et al. (2018) claimed that they successfully reprogrammed human esophagus fibroblasts (HEFs) into induced DCs after 9 days *in vitro* cell culturing. 
+DCs using *in vitro* methods. Rosa et al. (2022) claimed that they successfully reprogrammed human embryonic fibroblasts (HEFs) into induced DCs after 9 days *in vitro* cell culturing. 
 
-The Stemformatics DC atlas is a bulk RNA-seq atlas of different subtypes of human DC samples (FACs sorted). The DC atlas contains 
+The Stemformatics DC atlas is a bulk RNA-seq atlas of different subtypes of human DC samples (FACs sorted). 
+Moreover, these DC samples had different *sample sources*, including *in vitro*, *in vivo*, *ex vivo*, etc. Hence the DC atlas is comprehensive enough for veriying the cell identity of induced DCs from Rosa et al. (2022).
 
 
 ### Read data
