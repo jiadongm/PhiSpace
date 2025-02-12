@@ -101,13 +101,15 @@ suppressPackageStartupMessages(library(zeallot)) # use operator %<-%
 suppressPackageStartupMessages(library(plotly)) # plot 3d interative plots
 ```
 
-Download the processed reference dataset [ref_dc.rds](https://unimelbcloud-my.sharepoint.com/:u:/g/personal/jiadong_mao_unimelb_edu_au/EZVy-qceLC5Ik9YQ9yiASM8BRy0eKn4KYj_fy5A8LVdifA?e=NhIuTt) and the processed and downsampled query dataset [query_Rosa_sub.rds](https://unimelbcloud-my.sharepoint.com/:u:/g/personal/jiadong_mao_unimelb_edu_au/Eep7PpTnTHJIirmK8EM6JGsBRrxRlx_Soqk5DT-8KiheNQ?e=MvFzNA). In addtion, we download the selected genes [ref_dc_feat.rds](https://unimelbcloud-my.sharepoint.com/:u:/g/personal/jiadong_mao_unimelb_edu_au/EYW4m1WMtxhNg9vTUFQdZAQB12sF0VOj3u2pmz3Uce5U6A?e=zdyv2a). See our [manuscript](https://www.biorxiv.org/content/10.1101/2024.06.19.599787v1) for a description of feature selection. 
+Download the processed reference dataset [ref_dc.rds](https://unimelbcloud-my.sharepoint.com/:u:/g/personal/jiadong_mao_unimelb_edu_au/EZVy-qceLC5Ik9YQ9yiASM8BRy0eKn4KYj_fy5A8LVdifA?e=NhIuTt) 
+and the processed and downsampled query dataset [query_Rosa_sub.rds](https://unimelbcloud-my.sharepoint.com/:u:/g/personal/jiadong_mao_unimelb_edu_au/Eep7PpTnTHJIirmK8EM6JGsBRrxRlx_Soqk5DT-8KiheNQ?e=MvFzNA). 
+In addtion, we download the selected genes [ref_dc_feat.rds](https://unimelbcloud-my.sharepoint.com/:u:/g/personal/jiadong_mao_unimelb_edu_au/EYW4m1WMtxhNg9vTUFQdZAQB12sF0VOj3u2pmz3Uce5U6A?e=zdyv2a). See our [manuscript](https://www.biorxiv.org/content/10.1101/2024.06.19.599787v1) for a description of feature selection. 
 
 ``` r
 dat_dir <- "/data/projects/punim0613/JiaDong/PhiSpace/" # replace this by your own directory where you store ref_dc.rds and query_dc.rds
 query <- readRDS(paste0(dat_dir, "query_Rosa_sub.rds"))
 reference <- readRDS(paste0(dat_dir,"ref_dc.rds"))
-selectedFeat <- readRDS(paste0(dat_dir, "ref_dc_test.rds"))
+selectedFeat <- readRDS(paste0(dat_dir, "ref_dc_feat.rds"))
 
 # Rank normalise reference and query
 query <- RankTransf(query, "counts")

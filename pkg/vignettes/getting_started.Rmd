@@ -9,6 +9,22 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+```{r setup, include=FALSE}
+# knitr::opts_chunk$set(eval = FALSE)
+```
+
+## Highlights
+
+- Bulk reference + single-cell query;
+
+- Learning two layers of phenotypes: cell types and sample source;
+
+- Fully data driven gene selection;
+
+- Visualising transitional cell states in phenotype space.
+
+
+# Introduction
 PhiSpace is inspired by stem cell research, where the focus is often on transitional cell *states* 
 instead of terminally differentiated cell *types*. 
 
@@ -25,7 +41,8 @@ The Stemformatics DC atlas is a bulk RNA-seq atlas of different subtypes of huma
 
 Load the packages.
 ```{r}
-# Name of the game
+# Make sure you've installed the latest version of PhiSpace
+# devtools::install_github("jiadongm/PhiSpace/pkg")
 suppressPackageStartupMessages(library(PhiSpace))
 # Tidyverse packages
 suppressPackageStartupMessages(library(ggplot2))
@@ -40,6 +57,9 @@ suppressPackageStartupMessages(library(zeallot)) # use operator %<-%
 suppressPackageStartupMessages(library(plotly)) # plot 3d interative plots
 ```
 
+
+# Data preparation
+
 Download the processed reference dataset [ref_dc.qs](https://www.dropbox.com/scl/fi/w5j9h6ty0zym8buo07qt8/ref_dc.qs?rlkey=pijs0db60vzdr12fevxk5s86h&st=jinploi0&dl=0) and the processed and query dataset [query_Rosa_sub.qs](https://www.dropbox.com/scl/fi/dm0wr4bvd5lgus7yogl0f/query_Rosa.qs?rlkey=17he2c5v8k5mijrcnmm7v8vak&st=2biiokdc&dl=0).
 
 We first donwsample query data to ensure that we can run this example on a local machine, otherwise a larger RAM is needed. The function we use for subsampling is `PhiSpace::subsample`, which has the following features
@@ -53,16 +73,72 @@ The second feature above is to prevent rare cell types from being underrepresent
 dat_dir <- "~/Dropbox/Research_projects/PhiSpace/VignetteData/DC/" # replace this by your own directory where you store ref_dc.qs and query_dc.qs
 query <- qread(paste0(dat_dir, "query_Rosa.qs"))
 reference <- qread(paste0(dat_dir,"ref_dc.qs"))
-query <- PhiSpace::subsample(query, key = "celltype", proportion = 0.2, minCellNum = 50, seed = 5202056)
+query <- subsample(query, key = "celltype", proportion = 0.2, minCellNum = 50, seed = 5202056)
 ```
 
-TBC
+To preprocess the data, we apply rank transform to both reference and query, which is done by `PhiSpace::RankTransf`. Rank transform is helpful for removing batch effects in the DC atlas, which contains hundreds of samples from dozens of studies ([Elahi et al., 2022](https://journals.aai.org/jimmunol/article/209/12/2352/237295/The-Human-Dendritic-Cell-Atlas-An-Integrated)). In general, normalisation methods should be chosen to suit individual cases. The only requirement is that both reference and query are normalised in the same way. In PhiSpace, **no** additional harmonisation of reference and query is needed.
 
 ```{r}
-# Rank normalise reference and query
-query <- RankTransf(query, "counts")
-reference <- RankTransf(reference, "data", sparse = F)
+# We create a folder called output to store intermediate results to save time
+if(!file.exists(paste0(dat_dir, "output/refRanked.qs"))){
+  query <- RankTransf(query, "counts")
+  reference <- RankTransf(reference, "data", sparse = F)
+  qsave(query, paste0(dat_dir, "output/quRanked.qs"))
+  qsave(reference, paste0(dat_dir, "output/refRanked.qs"))
+} else {
+  query <- qread(paste0(dat_dir, "output/quRanked.qs"))
+  reference <- qread(paste0(dat_dir, "output/refRanked.qs"))
+}
+```
 
+# PhiSpace Annotation
+
+Some parameters for PhiSpace. `phenotypes` specifies the types of phenotypes for PhiSpace to learn. In this particular case, we care about both cell type and sample source for the query cells, so that we can predict whether a cell is, say, more in vivo DC-like or in vivo DC-like. `PhiSpaceAssay` specifies the assay in reference and query objects (both `SingleCellExperiment` or SCE) to use to compute PhiSpace; in this case `rank` or the rank normalised counts. Finally `PhiMethod` specifies the method to compute PhiSpace. Currently we support partial least squares (PLS) regression and principal component regression; the default is PLS which often uses fewer components for regression and classification tasks (more about parameter tuning later).  
+```{r}
+phenotypes <- c("Cell Type", "Sample Source")
+PhiSpaceAssay <- "rank"
+PhiMethod <- "PLS"
+```
+
+There are two key parameters to select for running PhiSpace annotation: `ncomp` and `nfeat`, which controls the complexity of regression model. We will discuss their selection towards the end of this article. For now, we use `ncomp=30` and load a pre-computed [gene list](https://www.dropbox.com/scl/fi/njybb0s03vzykjmish8yo/ref_dc_feat.qs?rlkey=2trmplmamwqzhnprwe3zkqzy1&st=aihnt2ry&dl=0), containing genes that are most useful for predicting phenotypes of interest. In our [manuscript](https://www.biorxiv.org/content/10.1101/2024.06.19.599787v1) why this gene list was well selected.
+```{r}
+ncomp <- 30
+selectedFeat <- qread(paste0(dat_dir, "ref_dc_feat.qs"))
+```
+
+
+Now we are ready to apply PhiSpace to continuously annotate the query cells based on bulk reference.
+```{r}
+if(!file.exists(paste0(dat_dir, "output/refPhi.qs"))){
+  c(reference, query) %<-% PhiSpace(
+      reference, 
+      query,
+      ncomp = ncomp,
+      selectedFeat = selectedFeat,
+      phenotypes = phenotypes, 
+      PhiSpaceAssay = PhiSpaceAssay,
+      regMethod = PhiMethod,
+      scale = FALSE,
+      updateRef = TRUE
+  )
+  qsave(reference, paste0(dat_dir, "output/refPhi.qs"))
+  qsave(query, paste0(dat_dir, "output/quPhi.qs"))
+} else {
+  reference <- qread(paste0(dat_dir, "output/refPhi.qs"))
+  query <- qread(paste0(dat_dir, "output/quPhi.qs"))
+}
+```
+
+
+# Visualisation
+
+The most important result from PhiSpace is the predicted phenotype scores, which we refer to as **phenotype space embeddings** of query cells since they characterise the identities (or cell states) of query cells in a new 'phenotype space'. The phenotype space embeddings are stored as a `reducedDim` object in the query SCE object. Print it and you will see that this is an cell by phenotype matrix with each column corresponding to one phenotype defined in the reference.
+```{r}
+head(reducedDim(query, "PhiSpace"))
+```
+
+The phenotype space embeddings can be used for various insightful downstream analyses. In the current introductory vignette we focus on some visualisation ideas. Frist we needt to define some colours.
+```{r}
 # Customised colour code
 DC_cols <- c(
   `DC precursor` = "#B3B3B3",DC_prec = "#FFFFB3",
@@ -76,16 +152,175 @@ DC_cols <- c(
   Day9_SP = "#DE2D26", Day9_DP = "#A50F15",
   Day9 = "#A50F15",other = "#B3B3B3"
 )
-
 DC_cols_source <- c(
   ex_vivo = "#B3B3B3",in_vitro = "#A50026",
   in_vivo = "#313695",`in_vivo_HuMouse` = "#80B1D3", query = "#B3B3B3"
 )
+```
 
-DC_symbs <- c(
-  query = 4, reference = 16
+
+
+
+## Heatmap
+The most straightforward visualisation of phenotype space embeddings is heatmap. Sometimes a heatmap can already provide a lot of insights for interesting cell states. In PhiSpace package we have `plotPhiSpaceHeatMap`, which is a wrapper based on `ComplexHeatmap`.
+```{r}
+PhiScores_norm <- reducedDim(query, "PhiSpace")
+queryLabs <- query$mainTypes
+queryLabs[queryLabs %in% c("Day9_SP", "Day9_DP")] <- "Day9"
+lvls <- c("DC1", "DC2", "pDC", "HEF", "Day3", "Day6", "Day9")
+p <- plotPhiSpaceHeatMap(
+  PhiSpaceScore = PhiScores_norm,
+  reference = reference,
+  phenotypes = phenotypes,
+  queryLabs = queryLabs, 
+  queryLvls = lvls,
+  column_names_rot = 20,
+  name = "Phenotype space embedding",
+  row_names_gp = gpar(fontsize = 6),
+  column_names_gp = gpar(fontsize = 6),
+  show_row_dend = F,
+  show_column_dend = T,
+  # row_title = row_title, 
+  row_title_gp = gpar(fontsize = 6),
+  column_title_gp = gpar(fontsize = 6, fontface = "bold"),
+  heatmap_legend_param = list(
+    title_position = "leftcenter",
+    title_gp = gpar(fontsize = 6),
+    grid_height = unit(2, "mm"),
+    grid_width = unit(2, "mm"),
+    labels_gp = gpar(fontsize = 5),
+    legend_direction = "horizontal"
+  )
+) 
+
+draw(
+  p, heatmap_legend_side = "top"
 )
 ```
+
+Every column of the heatmap corresponds to a phenotype defined in the bulk reference. Every horizontal line of the heatmap represents a query cell. The query cells are grouped according to their cell types:
+
+- Control cell types: DC1 (type 1 conventional DC), DC2 (type 2 conventional DC) and pDC (plasmacytoid DC). These cell types are *in vivo* DC subtypes;
+- HEF: the starting point of DC reprogramming;
+- Day3, Day6, Day9: HEFs after 3, 6 and 9 days of reprogramming.
+
+We can see that the control cell types were predicted to have strong DC1, DC2 and pDC identities. In terms of sample source, they are more *in vivo* like than *in vitro*. HEFs have an ambiguous identity since they were not defined in the reference. However, after 9 days of reprogramming, the HEFs were clearly more DC1-like, with strong *in vitro* identity.
+
+
+## Visualise transitional cell states in phenotype space
+
+The essence of Φ-Space is that we view cell type prediction as dimension reduction. How is it dimension reduction? Look at the heatmap: each cell was represented by the gene expression level of thousands of genes, and now they are represented by 11 dimensions, each measuring their likelihood of belonging to a certain phenotype defined in the reference.
+
+As any other dimension reduction objects, we can use cells' phenotype space embedding for downstream analyses. One of such analyses is phenotype space PCA, which allows us to visualize both bulk samples and single cells in the same space. The idea is that we first compute a PCA using the phenotype space embeddings of the *reference samples*, and then project query cells to this PC space via loadings.
+```{r}
+queryLabs <- query$mainTypes
+queryLabs[queryLabs %in% c("Day9_SP", "Day9_DP")] <- "Day9"
+refLabs <- colData(reference)[,"Cell Type"]
+YrefHat_norm <- reducedDim(reference, "PhiSpace")
+pc_re <- getPC(YrefHat_norm, ncomp = 3)
+refEmbedding <- pc_re$scores %>% as.data.frame() %>% mutate(source = reference$`Sample Source`)
+# Project query cells via loadings
+queryEmbedding <- scale(
+    PhiScores_norm, 
+    center = T, 
+    scale = F
+  ) %*% 
+  pc_re$loadings %>%
+  as.data.frame()
+```
+
+```{r}
+plot_ly(
+    x = ~comp1,
+    y = ~comp2,
+    z = ~comp3,
+) %>%
+  add_markers(
+    data = refEmbedding,
+    colors = DC_cols,
+    color = refLabs,
+    symbol = ~source,
+     marker = list(
+      size = 5
+    )
+  ) %>%
+  add_markers(
+    data = queryEmbedding,
+    color = queryLabs, 
+    marker = list(
+      symbol = ~"x",
+      size = 3
+    )
+  )
+```
+Using plotly, we have rendered the PCA results an interactive plot. It is very interesting to observe that, after 9 days of reprogramming, the induced DCs (red crosses) are closer to in vitro rather than in vivo DC1.
+
+
+
+# PhiSpace parameter tunning
+
+There are two key parameters to select for running PhiSpace annotation:
+
+- `ncomp`: number of PLS (or PCA) components to use for annotation;
+
+- `nfeat`: number of features (eg genes, proteins) to use to predict **each** phenotype (eg cell type, sample source).
+
+PhiSpace uses a regression model to learn phenotypes, such as cell types, continuously. The parameter `ncomp` controls the model complexity: setting `ncomp` too large (small) may cause over-(under-)fitting. `nfeat` controls how many features PhiSpace uses to make prediction. 
+
+PhiSpace provides functions for fully data-driven feature selection based on cross-validation (CV). However, this approach becomes times consuming when the reference sample size becomes large (a common caveat of all CV-based parameter tuning). However, in the current case study where the reference is a bulk atlas, we can still afford to compute CV.
+
+
+## Data-driven parameter tuning (time consuming)
+
+Next we use `PhiSpace::tunePhiSpace` to do a 5-fold CV grid search. The function will first plot a loss function plot for `ncomp` and then for `nfeat`. We will see that `ncomp=30` already leads to a very small loss and choosing larger `ncomp` doesn't help further reducing loss. Moreover, `nfeat = 297` seems to minimise the loss and increasing `nfeat` will actually increase the loss fucntion.
+```{r}
+if(F){ # If you want to run it, change F to T
+  tuneRes <- tunePhiSpace(
+    reference, assayName = "rank", phenotypes = phenotypes, 
+    tune_ncomp = TRUE, tune_nfeat = TRUE, ncomp = c(1,50), nfeatLimits = c(10, 5000),
+    Ncores = 4, Kfolds = 5, seed = 5202056
+  )
+}
+```
+
+After running CV tunning, `tuneRes$selectedFeat` will return the selected features.
+
+
+## Rule-of-thumb for parameter tunning 
+
+As we mentioned, a serious drawback of CV parameter tuning is its high computational cost. Fortunately PhiSpace is quite robust against the value of `ncomp` and a good rule-of-thumb is to set `ncomp` to be the number of biologically interesting groups in the data (ie total number of cell types). In the DC case, setting `ncomp = 11` will lead to a model that is good enough already. To select `nfeat`, we can try this simplified approach:
+```{r}
+if(!file.exists(paste0(dat_dir, "output/tuneRes.rds"))){
+  tuneRes <- tunePhiSpace(
+    reference, assayName = "rank", phenotypes = phenotypes, 
+    tune_ncomp = F, tune_nfeat = F, ncomp = 11
+  )
+  qsave(tuneRes, paste0(dat_dir, "output/tuneRes.rds"))
+} else {
+  tuneRes <- qread(paste0(dat_dir, "output/tuneRes.rds"))
+}
+```
+
+In this case, no CV tuning actually happened. Instead, we were telling PhiSpace to stick to `ncomp=11` and do not tune `nfeat`. What is interesting is `tuneRes$impScores`, which gives the importance score for each gene when used to predict different phenotypes:
+```{r}
+head(tuneRes$impScores)
+```
+
+Then we order the importance of features, in descending order, for each phenotype. Then we can choose the top `nfeat` features for each cell type.
+```{r}
+nfeat <- 300
+selRes <- selectFeat(tuneRes$impScores)
+head(selRes$orderedFeatMat)
+length(unique(as.character(selRes$orderedFeatMat[1:nfeat,])))
+```
+For example, we can see that selecting the top 300 features for each cell type, we end up having 1782 genes selected (due to overlapping genes), which should be enough for accurate prediction. In practice, we can adjust the `nfeat` value till the resulting total number of feature selected reaches a target number (eg the 'magic number' 2000 which is used as default number of genes in Seurat).
+
+
+
+
+
+
+
 
 
 
