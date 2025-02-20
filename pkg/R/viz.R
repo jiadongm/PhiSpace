@@ -221,25 +221,36 @@ matrixPlot <- function(
           aes(y=0),
           height = diff(layer_scales(out)$y$range$range)/20,
           size = pointSize,
-          shape = 16
+          shape = 16,
+          stroke = 0
         )
 
     } else {
-      out <-
-        out +
-        geom_jitter(aes(y=0, colour = colBy),
-                    height = diff(layer_scales(out)$y$range$range)/20,
-                    size = pointSize,
-                    shape = 16)
-    }
-
-    if(!is.null(manualCol)){
       out <- out +
-        scale_color_manual(values = manualCol) +
+        geom_jitter(
+          aes(y=0, colour = colBy),
+          height = diff(layer_scales(out)$y$range$range)/20,
+          size = pointSize,
+          shape = 16,
+          stroke = 0
+        ) +
         labs(
           colour = legendTitle
         )
     }
+
+
+
+
+    if(!is.null(manualCol)){
+      p <- p + scale_color_manual(values = manualCol)
+    } else {
+
+      if(is.numeric(colBy)) p <- p + scale_colour_gradientn(colours = MATLAB_cols)
+    }
+
+
+
 
     # Colour scale
     if(is.null(manualAlpha)){
@@ -269,7 +280,7 @@ matrixPlot <- function(
       p <-
         scores %>%
         ggplot(aes(x = !! sym(var1), y = !! sym(var2))) +
-        geom_point(size = pointSize)
+        geom_point(size = pointSize, stroke = 0)
 
 
     } else {
