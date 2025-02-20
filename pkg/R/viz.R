@@ -243,10 +243,10 @@ matrixPlot <- function(
 
 
     if(!is.null(manualCol)){
-      p <- p + scale_color_manual(values = manualCol)
+      out <- out + scale_color_manual(values = manualCol)
     } else {
 
-      if(is.numeric(colBy)) p <- p + scale_colour_gradientn(colours = MATLAB_cols)
+      if(is.numeric(colBy)) out <- out + scale_colour_gradientn(colours = MATLAB_cols)
     }
 
 
