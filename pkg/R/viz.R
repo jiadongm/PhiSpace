@@ -213,7 +213,8 @@ matrixPlot <- function(
     out <-
       scores %>%
       ggplot(aes(x = !! sym(var2plot))) +
-      geom_density(bw = "sj")
+      geom_density(bw = "sj") +
+      theme_bw(base_size = fsize)
     if(is.null(colBy)){
       out <-
         out +
@@ -238,7 +239,6 @@ matrixPlot <- function(
           colour = legendTitle
         )
     }
-
 
 
 
@@ -277,8 +277,7 @@ matrixPlot <- function(
 
     if(is.null(colBy)){
 
-      p <-
-        scores %>%
+      p <- cores %>%
         ggplot(aes(x = !! sym(var1), y = !! sym(var2))) +
         geom_point(size = pointSize, stroke = 0)
 
