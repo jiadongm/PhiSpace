@@ -214,7 +214,8 @@ matrixPlot <- function(
       scores %>%
       ggplot(aes(x = !! sym(var2plot))) +
       geom_density(bw = "sj") +
-      theme_bw(base_size = fsize)
+      theme_bw(base_size = fsize) +
+      ylab("Density")
     if(is.null(colBy)){
       out <-
         out +
