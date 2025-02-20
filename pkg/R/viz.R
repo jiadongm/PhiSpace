@@ -227,7 +227,7 @@ matrixPlot <- function(
     } else {
       out <-
         out +
-        geom_jitter(aes(y=0, colour = colBy, alpha = !! sym(colBy)),
+        geom_jitter(aes(y=0, colour = colBy),
                     height = diff(layer_scales(out)$y$range$range)/20,
                     size = pointSize,
                     shape = 16)
