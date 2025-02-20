@@ -3,9 +3,18 @@
 \docType{package}
 \name{PhiSpace-package}
 \alias{PhiSpace-package}
-\title{PhiSpace: Analysing compelx phenotypes of bulk, single-cell and spatial omics data}
+\title{PhiSpace: Continuous cell state annotation for single-cell and spatial omics data}
 \description{
+\if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
+
 Continous phenotyping of bulk, single-cell and spatial omics data using partial least squares regression.
+}
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://jiadongm.github.io/PhiSpace/}
+}
+
 }
 \author{
 \strong{Maintainer}: Jiadong Mao \email{chiatungmao@gmail.com} (\href{https://orcid.org/0000-0002-3818-1981}{ORCID})

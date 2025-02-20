@@ -216,10 +216,13 @@ matrixPlot <- function(
     if(is.null(colBy)){
       out <-
         out +
-        geom_jitter(aes(y=0),
-                    height = diff(layer_scales(out)$y$range$range)/20,
-                    size = pointSize,
-                    shape = 16)
+        geom_jitter(
+          aes(y=0),
+          height = diff(layer_scales(out)$y$range$range)/20,
+          size = pointSize,
+          shape = 16
+        )
+
     } else {
       out <-
         out +
@@ -231,7 +234,10 @@ matrixPlot <- function(
 
     if(!is.null(manualCol)){
       out <- out +
-        scale_color_manual(values = manualCol)
+        scale_color_manual(values = manualCol) +
+        guides(
+          colour = guide_legend(title = legendTitle)
+        )
     }
 
     # Colour scale
@@ -271,7 +277,10 @@ matrixPlot <- function(
         scores %>%
         ggplot(aes(x = !! sym(var1), y = !! sym(var2))) +
         geom_point(aes(colour = colBy), size = pointSize, stroke = 0) +
-        theme_bw(base_size = fsize)
+        theme_bw(base_size = fsize) +
+        guides(
+          colour = guide_legend(title = legendTitle)
+        )
 
       if(!is.null(manualCol)){
         p <- p +
