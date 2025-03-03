@@ -135,23 +135,22 @@ pca_res <- getPC(corMatVec, ncomp = 2, center = T, scale = F)
 
 We visualise the first two PCs. As we can see, all samples were well separated into groups according to disease conditions:
 
-- Healthy: samples from healthy donors.
-- TBC
+- Healthy: samples from healthy donors;
+- Background: non-cancerous tissue from cancerous samples;
+- LUAD: lung adenocarcinoma;
+- LUSC: lung squamous cell carcinoma.
 ```{r}
-tempPCAplot(pca_res) + expand_limits(x = c(-5.5, 7.5)) + theme(axis.title = element_blank())
+tempPCAplot(pca_res) + expand_limits(x = c(-5.5, 7.5))
 loadBarplot(pca_res$loadings, nfeat = 20) + theme(axis.text.x = element_text(angle = 45))
 ```
 
 
+In addition to the separation of patients, we can also observe that LUSC samples tend to have the largest PC1 values, healthy and background the lowest, and LUAD samples having intermediate PC1 values. Given that LUSC tends to have worse prognosis than LUAD, layout of the PC plot about seems to suggest that PC1 represent prognosis to some degree. Lacking detailed information about patient prognosis from the original publication, we opt for a data-driven way to find out.
 
-
-Prognosis markers
-CELSR2 is a marker for better prognosis in LUSC; KRT17, KRT6A, S100A2, TRIM29, REPS1, and GPC1 are markers for worse prognosis in LUAD
+According to [Chen & Dhahbi (2021)](https://www.nature.com/articles/s41598-021-92725-8), CELSR2 is a marker for better prognosis in LUSC; KRT17, KRT6A, S100A2, TRIM29, REPS1, and GPC1 are markers for worse prognosis in LUAD; PERP, ELFN2, ARHGAP12 and QSOX1 are markers for better prognosis in LUSC.
 ```{r}
 # Common gene of all Visium slides
-commonGeneNames <- Reduce(
-  intersect, lapply(query_list, function(x) rownames(x))
-)
+commonGeneNames <- Reduce(intersect, lapply(query_list, function(x) rownames(x)))
 mk_list <- list(
   LUSC_good = c("CELSR2"),
   LUAD_bad = c("KRT17", "KRT6A", "S100A2", "TRIM29", "REPS1", "GPC1"),
@@ -160,12 +159,7 @@ mk_list <- list(
 mk_list <- lapply(mk_list, function(x) intersect(x, commonGeneNames))
 # Function for calculate mean expression level of marker genes in all tissues
 assay2use <- "counts"
-meanGeneLvls <- sapply(
-  query_list[1:18],
-  function(x){
-    mean(rowSums(assay(x, assay2use)))
-  }
-)
+meanGeneLvls <- sapply(query_list[1:18], function(x) mean(rowSums(assay(x, assay2use))))
 mkLvls_LUSC <- data.frame(favourable = meanEsts(mk_list[["LUSC_good"]])) 
 mkLvls_LUAD_good <- data.frame(favourable = meanEsts(mk_list[["LUAD_good"]]))
 mkLvls_LUAD_bad <- data.frame(favourable = meanEsts(mk_list[["LUAD_bad"]]))
@@ -183,30 +177,16 @@ data.frame(
     Visium_cancerTypes[Visium_cancerTypes == "LUSC"],
     Visium_cancerTypes[Visium_cancerTypes == "LUAD"]
   )
-) %>%
-  ggplot() +
-  geom_bar(
-    aes(
-      sample, favourable, fill = cancerType
-    ),
-    stat = "identity"
-  ) +
-  # scale_y_continuous(transform = "log2") +
-  scale_fill_manual(values = VisiumCancerCols) +
-  theme_bw(base_size = 6) +
-  theme(
-    axis.text.x = element_text(angle = 90),
-    axis.title.x = element_blank()
-  ) +
+) %>% 
+  ggplot() + geom_bar(aes(sample, favourable, fill = cancerType), stat = "identity") +
+  scale_fill_manual(values = VisiumCancerCols) + theme_bw(base_size = 12) +
+  theme(axis.text.x = element_text(angle = 90), axis.title.x = element_blank()) + 
   facet_wrap(~cancerType, scales = "free", ncol = 1) +
-  theme(
-    legend.position = "none",
-    axis.title.y = element_blank()
-  ) 
+  theme(legend.position = "none", axis.title.y = element_blank()) 
 ```
 
 
-Interactions involving immune cell types.
+To focus on the role of immune cell types, we conduct the above analysis using only immune cell types. The separation of disease conditions was largely retained.
 ```{r}
 immuneDF <- data.frame(
   celltype = rownames(corMat_list[[1]]),
