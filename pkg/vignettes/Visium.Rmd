@@ -22,8 +22,15 @@ vignette: >
 - Insightful cell type colocalisation analysis.
 
 
+# Introduction
+In this case study, we will apply PhiSpace to cell type deconvolution: 
 
-Load the packages.
+- Query: Visium dataset consisting of samples from non-small cell lung cancer (NSCLC) patients ([De Zuani et al., 2024](https://www.nature.com/articles/s41467-024-48700-8)). 
+- Reference: the Human Lung Cell Atlas (HLCA) scRNA-seq data ([Sikkema et al., 2023](https://www.nature.com/articles/s41591-023-02327-2)).
+
+10x Visium is a supercellular spatial transcriptomics (ST) platform. The minimal measurement unit for the Visium platform are 55μm spots, where each spot potentially contains multiple cells. In this context, cell type deconvolution refers to the statistical task of estimating the cell type abundance in each spot.
+
+For this case study, we have defined some util functions, which can be downloaded [here](https://www.dropbox.com/scl/fi/glsnt6cr95pxr6tgaff34/Visium_utils.R?rlkey=hp7m6we4algotq28vogngy0i2&st=r1o4p6lp&dl=0).
 ```{r}
 # Name of the game
 suppressPackageStartupMessages(library(PhiSpace))
@@ -34,10 +41,153 @@ suppressPackageStartupMessages(library(magrittr))
 suppressPackageStartupMessages(library(ggpubr))
 suppressPackageStartupMessages(library(tidyr))
 # Other utils
+suppressPackageStartupMessages(library(qs)) # Fast read and write of large R objects
 suppressPackageStartupMessages(library(ComplexHeatmap)) # plot heatmap
+
+dat_dir <- "~/Dropbox/Research_projects/PhiSpace/VignetteData/Visium/" # replace this by your own directory
+
+source(paste0(dat_dir, "Visium_utils.R"))
 ```
 
-For this case study, we have defined some util functions, which can be downloaded [here](https://www.dropbox.com/scl/fi/glsnt6cr95pxr6tgaff34/Visium_utils.R?rlkey=hp7m6we4algotq28vogngy0i2&st=r1o4p6lp&dl=0).
+# Data preparation 
+Download the following files: 
+
+- [Reference](https://www.dropbox.com/scl/fi/uwadtwn8quzp93tdzvveb/AzimuthLung2.0_sce_0.1sub.qs?rlkey=0129nrgzw538naou6n8zznubw&st=xmd3jo67&dl=0), which is a 10% subset of the HLCA.
+- [Query](https://www.dropbox.com/scl/fi/qzj0jpxscy1zlrc0hqv19/allTissues.qs?rlkey=qqckkewm5n2r8f4txj39tfeso&st=x6q83dkv&dl=0), which is a list of 40 Visium samples from healthy and cancerous lungs. As in our PhiSpace paper, we will only use 18 of them (1 background + 1 cancerous from each of 9 patients) which are of better data quality.
+- The PhiSpace [importance scores](https://www.dropbox.com/scl/fi/vylbs7axes169w6mhxbkq/refImpScores.qs?rlkey=xc6om57frg0q95soqjp5zg1ar&st=lljdmwoq&dl=0), which measures how important all the gene features are for predicting cell types in the reference. 
+```{r}
+reference <- qread(paste0(dat_dir, "data/LungRef/AzimuthLung2.0_sce_0.1sub.qs"))
+impScores <- qread(paste0(dat_dir, "output/refImpScores.qs"))
+query_list <- qread(paste0(dat_dir, "data/Visium_NSCLC/allTissues.qs"))[1:18]
+```
+
+Visualise a cancerous sample P11_T3. Here we look at two markers: KRT19 (also known as CYFRA21-1), a NSCLC marker and CD79A, a B cell marker.
+```{r}
+VisTissueName <- "P11_T3"
+qu_vis <- query_list[[VisTissueName]]
+VizSpatial(qu_vis, feature = "KRT19", assay2use = "log1p")
+VizSpatial(qu_vis, feature = "CD79A", assay2use = "log1p")
+```
+
+
+# Run PhiSpace
+Run PhiSpace using all the genes can be RAM-demanding, hence we select 500 genes that are most useful for predicting each cell type. This gives us 4613 genes. However, if RAM is still not enough, simply download the annotation results from [here](). 
+```{r}
+YtrainName <- "ann_finest_level"
+selectedFeat <- selectFeat(impScores, 500)$selectedFeat
+length(selectedFeat)
+PhiResPath <- paste0(dat_dir, "output/combo_PhiRes.qs")
+if(!file.exists(PhiResPath)){
+  PhiRes <- PhiSpaceR_1ref(
+    reference, 
+    query_list, 
+    phenotypes = YtrainName, 
+    PhiSpaceAssay = "log1p",
+    selectedFeat = selectedFeat,
+    regMethod = "PLS", 
+    center = T,
+    scale = F
+  )
+  qsave(PhiRes$PhiSpaceScore, PhiResPath)
+} else {
+  PhiRes <- qread(PhiResPath)
+}
+```
+
+As an example, we visualise the predicted B cell abundance in sample P11_T3.
+```{r}
+reducedDim(qu_vis, "PhiSpace") <- PhiRes[["P11_T3"]]
+VizSpatial(qu_vis, reducedDim = "B cells", reducedDim2use = "PhiSpace", censor = T)
+```
+
+How about the performance of other deconvolution methods? How to compare their performances when there is no ground truth? See the Visium case study in our [PhiSpace ST paper](https://www.biorxiv.org/content/10.1101/2025.02.05.636735v1) for more details (spoiler alert: PhiSpace was the best).
+
+
+# Multi-sample cell type co-localisation analysis
+
+
+```{r}
+VisTissueNames <- names(query_list)
+corMat_list <- vector("list", length(VisTissueNames)) %>% `names<-`(VisTissueNames)
+for(ii in 1:length(VisTissueNames)){
+  
+  VisTissueName <- VisTissueNames[ii]
+  PhiScores_norm <- normPhiScores(PhiRes[[VisTissueName]])
+  corMat <- cor(PhiScores_norm)
+  corMat_list[[ii]] <- corMat
+}
+cTypeCombo <- outer(
+  rownames(corMat_list[[1]]), colnames(corMat_list[[1]]),
+  function(x, y) paste0(x, "<->", y)
+)
+corMatVec <- sapply(
+  corMat_list,
+  function(x) as.vector(x[lower.tri(x)])
+) %>%
+  `colnames<-`(VisTissueNames) %>%
+  `rownames<-`(
+    cTypeCombo[lower.tri(cTypeCombo)]
+  ) %>%
+  t()
+```
+
+
+```{r}
+## PCA analysis of all correlation matrices
+intVars <- colVars(corMatVec)
+selectedInt <- names(intVars)
+set.seed(92394)
+pca_res <- getPC(corMatVec[,selectedInt], ncomp = 2, center = T, scale = F)
+```
+
+
+```{r}
+p <- matrixPlot(pca_res$scores, comp_idx = 1:2) + expand_limits(x = c(-5.5, 7.5)) + 
+  theme(axis.title = element_blank())
+p
+
+ppoint <- tempPCAplot(pca_res, printText = F) + expand_limits(x = c(-5.5, 7.5)) + theme(axis.title = element_blank())
+  # xlab("PC1 (11%)") + ylab("PC2 (6.6%)")
+ggsave(
+  "figs/Visium_PhiNet_MDS_justPoint.png",
+  ppoint + theme(legend.position = "none"), width = 2.8, height = 2.8
+)
+png(
+  "figs/Visium_PhiNet_MDS_legend.png",
+  width = 2, height = 0.2, units = "in", res = 300
+)
+op <- par(mar = rep(0, 4))
+grid::grid.draw(get_legend(p))
+par(op)
+dev.off()
+# Specialised PCA plots (PCA of signs, PCA of absolute values)
+if(F){
+  pcaAbs_res <- getPC(abs(corMatVec[,selectedInt]), ncomp = 2, center = T, scale = F)
+  pcaSign_res <- getPC(sign(corMatVec[,selectedInt]), ncomp = 2, center = T, scale = F)
+  tempPCAplot(pca_res)
+  tempPCAplot(pcaAbs_res)
+  tempPCAplot(pcaSign_res) 
+}
+## Loading plots
+tempLoadBarplot(pca_res, nfeat = 20) + theme(axis.text.x = element_text(angle = 45))
+ggsave("figs/Visium_cTypeInt_comp1_loading.png", width = 3, height = 3)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

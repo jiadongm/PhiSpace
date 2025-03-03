@@ -24,6 +24,7 @@ Mao, Jiadong, Deng, Yidi and Lê Cao, Kim-Anh. (2024). Φ-Space: Continuous phen
 
 Check out our talk for PhiSpace single-cell multiomics at [mixOmics website](http://mixomics.org/2024/06/phispace/).
 
+Check out our poster for PhiSpace ST at [Lorne Genome 2025](https://github.com/jiadongm/PhiSpace/blob/main/PhiSpaceST_LorneGenome2025.pdf)
 
 ## Installation
 
