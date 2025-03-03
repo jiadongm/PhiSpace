@@ -105,12 +105,13 @@ How about the performance of other deconvolution methods? How to compare their p
 
 # Multi-sample cell type co-localisation analysis
 
+Obtaining interpretable cell type deconvolution results is only the first steps towards discovery of spatial biology. We showcase one type of analysis that can be done based on PhiSpace deconvolution - cell type colocalisation. The main idea is that, from each sample, we calculate a cell type correlation matrix (called co-presence matrix in our [PhiSpace ST paper](https://www.biorxiv.org/content/10.1101/2025.02.05.636735v1)), representing how cell types tend to colocalised. Then we apply dimension reduction methods to these matrices (vectorised) to visualise them.
 
+First we calcualte the sample-specific correlation matrices and vectorise them.
 ```{r}
 VisTissueNames <- names(query_list)
 corMat_list <- vector("list", length(VisTissueNames)) %>% `names<-`(VisTissueNames)
 for(ii in 1:length(VisTissueNames)){
-  
   VisTissueName <- VisTissueNames[ii]
   PhiScores_norm <- normPhiScores(PhiRes[[VisTissueName]])
   corMat <- cor(PhiScores_norm)
@@ -120,65 +121,131 @@ cTypeCombo <- outer(
   rownames(corMat_list[[1]]), colnames(corMat_list[[1]]),
   function(x, y) paste0(x, "<->", y)
 )
-corMatVec <- sapply(
-  corMat_list,
-  function(x) as.vector(x[lower.tri(x)])
-) %>%
+corMatVec <- sapply(corMat_list, function(x) as.vector(x[lower.tri(x)])) %>% 
   `colnames<-`(VisTissueNames) %>%
-  `rownames<-`(
-    cTypeCombo[lower.tri(cTypeCombo)]
-  ) %>%
-  t()
+  `rownames<-`(cTypeCombo[lower.tri(cTypeCombo)]) %>% t()
 ```
 
-
+Next we simply compute a PCA of all correlation matrices. It turns out that a simple PCA suffices here as the signal is very strong.
 ```{r}
-## PCA analysis of all correlation matrices
-intVars <- colVars(corMatVec)
-selectedInt <- names(intVars)
 set.seed(92394)
-pca_res <- getPC(corMatVec[,selectedInt], ncomp = 2, center = T, scale = F)
+pca_res <- getPC(corMatVec, ncomp = 2, center = T, scale = F)
 ```
 
 
+We visualise the first two PCs. As we can see, all samples were well separated into groups according to disease conditions:
+
+- Healthy: samples from healthy donors.
+- TBC
 ```{r}
-p <- matrixPlot(pca_res$scores, comp_idx = 1:2) + expand_limits(x = c(-5.5, 7.5)) + 
-  theme(axis.title = element_blank())
-p
-
-ppoint <- tempPCAplot(pca_res, printText = F) + expand_limits(x = c(-5.5, 7.5)) + theme(axis.title = element_blank())
-  # xlab("PC1 (11%)") + ylab("PC2 (6.6%)")
-ggsave(
-  "figs/Visium_PhiNet_MDS_justPoint.png",
-  ppoint + theme(legend.position = "none"), width = 2.8, height = 2.8
-)
-png(
-  "figs/Visium_PhiNet_MDS_legend.png",
-  width = 2, height = 0.2, units = "in", res = 300
-)
-op <- par(mar = rep(0, 4))
-grid::grid.draw(get_legend(p))
-par(op)
-dev.off()
-# Specialised PCA plots (PCA of signs, PCA of absolute values)
-if(F){
-  pcaAbs_res <- getPC(abs(corMatVec[,selectedInt]), ncomp = 2, center = T, scale = F)
-  pcaSign_res <- getPC(sign(corMatVec[,selectedInt]), ncomp = 2, center = T, scale = F)
-  tempPCAplot(pca_res)
-  tempPCAplot(pcaAbs_res)
-  tempPCAplot(pcaSign_res) 
-}
-## Loading plots
-tempLoadBarplot(pca_res, nfeat = 20) + theme(axis.text.x = element_text(angle = 45))
-ggsave("figs/Visium_cTypeInt_comp1_loading.png", width = 3, height = 3)
+tempPCAplot(pca_res) + expand_limits(x = c(-5.5, 7.5)) + theme(axis.title = element_blank())
+loadBarplot(pca_res$loadings, nfeat = 20) + theme(axis.text.x = element_text(angle = 45))
 ```
 
 
 
 
+Prognosis markers
+CELSR2 is a marker for better prognosis in LUSC; KRT17, KRT6A, S100A2, TRIM29, REPS1, and GPC1 are markers for worse prognosis in LUAD
+```{r}
+# Common gene of all Visium slides
+commonGeneNames <- Reduce(
+  intersect, lapply(query_list, function(x) rownames(x))
+)
+mk_list <- list(
+  LUSC_good = c("CELSR2"),
+  LUAD_bad = c("KRT17", "KRT6A", "S100A2", "TRIM29", "REPS1", "GPC1"),
+  LUAD_good = c("PERP", "ELFN2", "ARHGAP12", "QSOX1")
+)
+mk_list <- lapply(mk_list, function(x) intersect(x, commonGeneNames))
+# Function for calculate mean expression level of marker genes in all tissues
+assay2use <- "counts"
+meanGeneLvls <- sapply(
+  query_list[1:18],
+  function(x){
+    mean(rowSums(assay(x, assay2use)))
+  }
+)
+mkLvls_LUSC <- data.frame(favourable = meanEsts(mk_list[["LUSC_good"]])) 
+mkLvls_LUAD_good <- data.frame(favourable = meanEsts(mk_list[["LUAD_good"]]))
+mkLvls_LUAD_bad <- data.frame(favourable = meanEsts(mk_list[["LUAD_bad"]]))
+mkLvls_LUAD <- mkLvls_LUAD_good/mkLvls_LUAD_bad
+data.frame(
+  favourable = c(
+    mkLvls_LUSC[Visium_cancerTypes == "LUSC",],
+    mkLvls_LUAD[Visium_cancerTypes == "LUAD",]
+  ),
+  sample = c(
+    VisTissueNames[Visium_cancerTypes == "LUSC"],
+    VisTissueNames[Visium_cancerTypes == "LUAD"]
+  ), 
+  cancerType = c(
+    Visium_cancerTypes[Visium_cancerTypes == "LUSC"],
+    Visium_cancerTypes[Visium_cancerTypes == "LUAD"]
+  )
+) %>%
+  ggplot() +
+  geom_bar(
+    aes(
+      sample, favourable, fill = cancerType
+    ),
+    stat = "identity"
+  ) +
+  # scale_y_continuous(transform = "log2") +
+  scale_fill_manual(values = VisiumCancerCols) +
+  theme_bw(base_size = 6) +
+  theme(
+    axis.text.x = element_text(angle = 90),
+    axis.title.x = element_blank()
+  ) +
+  facet_wrap(~cancerType, scales = "free", ncol = 1) +
+  theme(
+    legend.position = "none",
+    axis.title.y = element_blank()
+  ) 
+```
 
 
-
+Interactions involving immune cell types.
+```{r}
+immuneDF <- data.frame(
+  celltype = rownames(corMat_list[[1]]),
+  immuneOrNot = c(
+    "immune", "immune", "other",
+    "immune", "other", "other",
+    "other", "immune", "other",
+    "other", "immune", "other",
+    "other", "immune", "other",
+    "other", "other", "other",
+    "immune", "immune", "immune",
+    "other", "other", "other",
+    "immune", "other", "other",
+    "other", "other", "other",
+    "other", "other", "other",
+    "other", "other", "other",
+    "immune", "immune", "other",
+    "immune", "immune", "immune",
+    "other", "other", "other",
+    "other", "other", "other",
+    "other", "other", "other",
+    "immune", "other", "other",
+    "other", "immune", "immune",
+    "other", "other", "other",
+    "immune"
+  )
+)
+immuneCellTypes <- immuneDF$celltype[immuneDF$immuneOrNot == "immune"]
+intDF <- do.call("rbind", stringr::str_split(colnames(corMatVec), "<->"))
+intIdx <- apply(
+  intDF, 1,
+  function(x) (x[1] %in% immuneCellTypes) | (x[2] %in% immuneCellTypes)
+)
+set.seed(92399)
+corMatVec_immune <- corMatVec[,intIdx]
+pcaImmune_res <- getPC(corMatVec_immune, ncomp = 2, center = T, scale = F)
+tempPCAplot(pcaImmune_res) + expand_limits(x = c(-4, 4))
+loadBarplot(pcaImmune_res$loadings, "comp1", nfeat = 20)
+```
 
 
 
