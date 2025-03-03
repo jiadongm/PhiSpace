@@ -9,6 +9,20 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+```{r setup, include=FALSE}
+# knitr::opts_chunk$set(eval = FALSE)
+```
+
+## Highlights
+
+- Interpretable cell type deconvolution;
+
+- Healthy reference annotates cancerous query;
+
+- Insightful cell type colocalisation analysis.
+
+
+
 Load the packages.
 ```{r}
 # Name of the game
@@ -21,11 +35,9 @@ suppressPackageStartupMessages(library(ggpubr))
 suppressPackageStartupMessages(library(tidyr))
 # Other utils
 suppressPackageStartupMessages(library(ComplexHeatmap)) # plot heatmap
-suppressPackageStartupMessages(library(zeallot)) # use operator %<-%
-suppressPackageStartupMessages(library(plotly)) # plot 3d interative plots
 ```
 
-TBC
+For this case study, we have defined some util functions, which can be downloaded [here](https://www.dropbox.com/scl/fi/glsnt6cr95pxr6tgaff34/Visium_utils.R?rlkey=hp7m6we4algotq28vogngy0i2&st=r1o4p6lp&dl=0).
 
 
 
