@@ -278,7 +278,7 @@ matrixPlot <- function(
 
     if(is.null(colBy)){
 
-      p <- cores %>%
+      p <- scores %>%
         ggplot(aes(x = !! sym(var1), y = !! sym(var2))) +
         geom_point(size = pointSize, stroke = 0)
 
