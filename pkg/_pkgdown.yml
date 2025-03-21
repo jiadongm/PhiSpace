@@ -23,6 +23,7 @@ articles:
     desc: "Platform-agnostic cell state annotation of ST queries using scRNA-seq references."
     contents:
       - Visium
+      - CosMx
 
 navbar:
   title: "PhiSpace"

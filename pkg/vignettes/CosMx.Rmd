@@ -1,0 +1,32 @@
+---
+title: "CosMx: discovery of divergent cell states in lung cancer microenvironment"
+author: "Jiadong Mao"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{CosMx: discovery of divergent cell states in lung cancer microenvironment}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+Load the packages.
+```{r}
+# Name of the game
+suppressPackageStartupMessages(library(PhiSpace))
+# Tidyverse packages
+suppressPackageStartupMessages(library(ggplot2))
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(magrittr))
+suppressPackageStartupMessages(library(ggpubr))
+suppressPackageStartupMessages(library(tidyr))
+# Other utils
+suppressPackageStartupMessages(library(ComplexHeatmap)) # plot heatmap
+suppressPackageStartupMessages(library(zeallot)) # use operator %<-%
+suppressPackageStartupMessages(library(plotly)) # plot 3d interative plots
+```
+
+TBC
+
+
+
+
