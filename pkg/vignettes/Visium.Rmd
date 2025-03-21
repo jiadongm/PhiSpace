@@ -71,7 +71,7 @@ VizSpatial(qu_vis, feature = "CD79A", assay2use = "log1p")
 
 
 # Run PhiSpace
-Run PhiSpace using all the genes can be RAM-demanding, hence we select 500 genes that are most useful for predicting each cell type. This gives us 4613 genes. However, if RAM is still not enough, simply download the annotation results from [here](). 
+Run PhiSpace using all the genes can be RAM-demanding, hence we select 500 genes that are most useful for predicting each cell type. This gives us 4613 genes. However, if RAM is still not enough, simply download the annotation results from [here](https://www.dropbox.com/scl/fi/v2i62f229lbhtzofco430/combo_PhiRes.qs?rlkey=g1k0ubpx83gs83wjfg4h0psu2&st=hbi77arg&dl=0). 
 ```{r}
 YtrainName <- "ann_finest_level"
 selectedFeat <- selectFeat(impScores, 500)$selectedFeat
@@ -147,7 +147,9 @@ loadBarplot(pca_res$loadings, nfeat = 20) + theme(axis.text.x = element_text(ang
 
 In addition to the separation of patients, we can also observe that LUSC samples tend to have the largest PC1 values, healthy and background the lowest, and LUAD samples having intermediate PC1 values. Given that LUSC tends to have worse prognosis than LUAD, layout of the PC plot about seems to suggest that PC1 represent prognosis to some degree. Lacking detailed information about patient prognosis from the original publication, we opt for a data-driven way to find out.
 
-According to [Chen & Dhahbi (2021)](https://www.nature.com/articles/s41598-021-92725-8), CELSR2 is a marker for better prognosis in LUSC; KRT17, KRT6A, S100A2, TRIM29, REPS1, and GPC1 are markers for worse prognosis in LUAD; PERP, ELFN2, ARHGAP12 and QSOX1 are markers for better prognosis in LUSC.
+According to [Chen & Dhahbi (2021)](https://www.nature.com/articles/s41598-021-92725-8), CELSR2 is a marker for better prognosis in LUSC; KRT17, KRT6A, S100A2, TRIM29, REPS1, and GPC1 are markers for worse prognosis in LUAD; PERP, ELFN2, ARHGAP12 and QSOX1 are markers for better prognosis in LUSC. Based on how the favourable prognosis markers are upregulated (see definition of `meanEsts` in `Visium_utils.R`), we calculated the prognosis scores for all patients. 
+
+Note that since the markers are different for LUSC and LUAD, we cannot directly compare prognosis scores between LUSC and LUAD patients. However, the scores are still informative. For example, P24 was predicted to have the worst prognosis (lowest favourable prognosis score) among LUAD patients, which probably explained why it was located closer to LUSC patients on the PCA scatter plot above.
 ```{r}
 # Common gene of all Visium slides
 commonGeneNames <- Reduce(intersect, lapply(query_list, function(x) rownames(x)))
@@ -186,7 +188,7 @@ data.frame(
 ```
 
 
-To focus on the role of immune cell types, we conduct the above analysis using only immune cell types. The separation of disease conditions was largely retained.
+To focus on the role of immune cell types, we repeat the above analysis using only immune cell types. The separation of disease conditions was largely retained. Note how plasmacytoid dendritic cells (pDCs) played an important role in explaining the separation of samples along PC1.
 ```{r}
 immuneDF <- data.frame(
   celltype = rownames(corMat_list[[1]]),

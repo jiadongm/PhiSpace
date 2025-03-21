@@ -75,7 +75,7 @@ multi-cellular spots</h1>
                         <h4 data-toc-skip class="author">Jiadong
 Mao</h4>
             
-            <h4 data-toc-skip class="date">2025-03-03</h4>
+            <h4 data-toc-skip class="date">2025-03-21</h4>
       
 
       <div class="hidden name"><code>Visium.Rmd</code></div>
@@ -169,7 +169,7 @@ marker.</p>
 <p>Run PhiSpace using all the genes can be RAM-demanding, hence we
 select 500 genes that are most useful for predicting each cell type.
 This gives us 4613 genes. However, if RAM is still not enough, simply
-download the annotation results from <a href="">here</a>.</p>
+download the annotation results from <a href="https://www.dropbox.com/scl/fi/v2i62f229lbhtzofco430/combo_PhiRes.qs?rlkey=g1k0ubpx83gs83wjfg4h0psu2&amp;st=hbi77arg&amp;dl=0" class="external-link">here</a>.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">YtrainName</span> <span class="op">&lt;-</span> <span class="st">"ann_finest_level"</span></span>
 <span><span class="va">selectedFeat</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/selectFeat.html">selectFeat</a></span><span class="op">(</span><span class="va">impScores</span>, <span class="fl">500</span><span class="op">)</span><span class="op">$</span><span class="va">selectedFeat</span></span>
@@ -263,7 +263,16 @@ publication, we opt for a data-driven way to find out.</p>
 Dhahbi (2021)</a>, CELSR2 is a marker for better prognosis in LUSC;
 KRT17, KRT6A, S100A2, TRIM29, REPS1, and GPC1 are markers for worse
 prognosis in LUAD; PERP, ELFN2, ARHGAP12 and QSOX1 are markers for
-better prognosis in LUSC.</p>
+better prognosis in LUSC. Based on how the favourable prognosis markers
+are upregulated (see definition of <code>meanEsts</code> in
+<code>Visium_utils.R</code>), we calculated the prognosis scores for all
+patients.</p>
+<p>Note that since the markers are different for LUSC and LUAD, we
+cannot directly compare prognosis scores between LUSC and LUAD patients.
+However, the scores are still informative. For example, P24 was
+predicted to have the worst prognosis (lowest favourable prognosis
+score) among LUAD patients, which probably explained why it was located
+closer to LUSC patients on the PCA scatter plot above.</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Common gene of all Visium slides</span></span>
 <span><span class="va">commonGeneNames</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/funprog.html" class="external-link">Reduce</a></span><span class="op">(</span><span class="va">intersect</span>, <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">query_list</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
@@ -300,9 +309,11 @@ better prognosis in LUSC.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">cancerType</span>, scales <span class="op">=</span> <span class="st">"free"</span>, ncol <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"none"</span>, axis.title.y <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> </span></code></pre></div>
 <p><img src="Visium_files/figure-html/unnamed-chunk-9-1.png" width="700"></p>
-<p>To focus on the role of immune cell types, we conduct the above
+<p>To focus on the role of immune cell types, we repeat the above
 analysis using only immune cell types. The separation of disease
-conditions was largely retained.</p>
+conditions was largely retained. Note how plasmacytoid dendritic cells
+(pDCs) played an important role in explaining the separation of samples
+along PC1.</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">immuneDF</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  celltype <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">corMat_list</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>,</span>
