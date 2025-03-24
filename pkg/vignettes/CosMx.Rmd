@@ -9,7 +9,28 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-Load the packages.
+```{r setup, include=FALSE}
+# knitr::opts_chunk$set(eval = FALSE)
+```
+
+## Highlights
+
+- Annotation using multiple references;
+
+- Healthy reference annotates cancerous query;
+
+- Discovery of spatial niches with diverse cell states.
+
+
+# Introduction
+In this case study, we will apply PhiSpace to drive cell state discovery in lung cancer microenvironment: 
+
+- Query: CosMx dataset consisting of samples from non-small cell lung cancer (NSCLC) patients ([He et al., 2022](https://www.nature.com/articles/s41587-022-01483-z)). 
+- Reference: 4 scRNA-seq datasets from healthy and fibrotic lungs ([Natri et al., 2024](https://www.nature.com/articles/s41588-024-01702-0)).
+
+Nanotring CosMx is a subcellular spatial transcriptomics (ST) platform. It's imaging-based and reaches single-molecule resolution, i.e. it produces a long list of mRNA molecules, their corresponding genes and spatial coordinates. Since single-molecules are difficult to analyse directly, we need some level of aggregation. Here since the cell segmentation was available, we aggregated transcripts within each segmented cell. PhiSpace doens't require cell segmentation to be accurate -- it just treats the segmented cells as some form of mini-bulk.
+
+For this case study, we have defined some util functions, which can be downloaded [here](https://www.dropbox.com/scl/fi/zi12ovivk9ys0b8pk4t0t/CosMx_utils.R?rlkey=s902bst1wz3pkuwhsi7v6gqdq&st=82q6h5pc&dl=0).
 ```{r}
 # Name of the game
 suppressPackageStartupMessages(library(PhiSpace))
@@ -20,13 +41,74 @@ suppressPackageStartupMessages(library(magrittr))
 suppressPackageStartupMessages(library(ggpubr))
 suppressPackageStartupMessages(library(tidyr))
 # Other utils
-suppressPackageStartupMessages(library(ComplexHeatmap)) # plot heatmap
-suppressPackageStartupMessages(library(zeallot)) # use operator %<-%
-suppressPackageStartupMessages(library(plotly)) # plot 3d interative plots
+suppressPackageStartupMessages(library(qs)) # Fast read and write of large R objects
+
+dat_dir <- "~/Dropbox/Research_projects/PhiSpace/VignetteData/CosMx/" # replace this by your own directory
+
+source(paste0(dat_dir, "CosMx_utils.R"))
 ```
 
-TBC
+Load the four reference datasets, which have already been processed and downsampled into sce objects, each contain cells from a lineage (immune, epithelilal, endothelial or mesenchymal). Download thse sce objects from [here](https://www.dropbox.com/scl/fo/7wvz9y8871sgx8u9rxtan/ALd0xPKl3jLgc4-aXJKUSS4?rlkey=vn7s0iqp7n4ni0qi1e73dhoen&st=a8gx9sp5&dl=0).
+```{r}
+ref_list <- lapply(
+  c("immune", "epithelial", "endothelial", "mesenchymal"),
+  function(lineage) qread(paste0(dat_dir, "data/LungFibrosis/", lineage, "_sce.qs"))
+)
+names(ref_list) <- c("immu", "epi", "endo", "mesen")
+```
+
+Lung samples in the query dataset are named Lungx_Repx, denoting lung (patient) and biological replicate. We first showcase the annotation performance of PhiSpace using one particular lung sample Lung5_Rep1.
+```{r}
+YtrainName <- "manual_annotation_1"
+tissueName <- "Lung5_Rep1"
+```
 
 
+
+
+
+
+```{r}
+
+query_list <- vector("list", length(tissueNames)) %>% `names<-`(tissueNames)
+PhiResPath <- paste0(
+  dat_dir, "output/Case3/CosMxAllLungsPhiRes4Refs_", PhiAssay, ".qs"
+)
+sc_list <- qread(PhiResPath)
+for(ii in 1:length(tissueNames)){
+  tissueName <- tissueNames[ii]
+  qs_dir <- paste0(dat_dir, "data/CosMx_lung/", tissueName, "_SCE.qs")
+  query <- qread(qs_dir)
+  query <- zeroFeatQC(query)
+  query <- logTransf(
+    query,
+    use_log1p = TRUE,
+    targetAssay = "log1p"
+  )
+  sc4Refs <- lapply(sc_list, function(x) x[[tissueName]])
+  cbindSc <- Reduce(cbind, sc4Refs)
+  scNames <- colnames(cbindSc)
+  scNames <- gsub("immune", "immu", scNames)
+  scNames <- gsub("epithelial", "epi", scNames)
+  scNames <- gsub("endothelial", "endo", scNames)
+  scNames <- gsub("mesenchymal", "mesen", scNames)
+  colnames(cbindSc) <- scNames
+  reducedDim(query, "PhiSpace") <- cbindSc 
+  query_list[[ii]] <- query
+}
+originalNames <- simpleNames <- colnames(reducedDim(query_list[[1]], "PhiSpace"))
+simpleNames[c(2, 4, 9, 10, 12, 18, 21, 23, 24, 25, 26, 43)] <- c(
+  "MoMacroph(immu)", "InflamMono(immu)",  "AlveolarMacroph(immu)",
+  "ProlifImm(immu)", "InterstMacroph(immu)", "ProlifEpi(epi)",
+  "SecretSCGB3A2+(epi)", "TransAT2(epi)", "SecretSCGB1A1+/MUC5B+(epi)",
+  "SecretSCGB1A1+/SCGB3A2+(epi)", "DiffCiliated(epi)", "MyoFB Act(mesen)"
+)
+cbind(originalNames, simpleNames)
+for(ii in 1:length(query_list)){
+  query <- query_list[[ii]]
+  colnames(reducedDim(query, "PhiSpace")) <- simpleNames
+  query_list[[ii]] <- query 
+}
+```
 
 
