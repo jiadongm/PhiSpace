@@ -195,7 +195,7 @@ nicheClust %>% as.data.frame() %>%
   ! cluster, names_to = "niche", values_to = "counts"
 ) %>% ggplot(aes(y = cluster, x = counts)) + geom_col(aes(fill = niche), position = "fill") +
   scale_fill_manual(values = nicheCol) +
-  theme_bw(base_size = 7) +
+  theme_bw(base_size = 12) +
   theme(
     legend.position = "none"
   ) + ylab("PhiSpace clusters") + xlab("Proportions")

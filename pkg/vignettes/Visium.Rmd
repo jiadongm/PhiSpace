@@ -62,7 +62,7 @@ query_list <- qread(paste0(dat_dir, "data/Visium_NSCLC/allTissues.qs"))[1:18]
 ```
 
 Visualise a cancerous sample P11_T3. Here we look at two markers: KRT19 (also known as CYFRA21-1), a NSCLC marker and CD79A, a B cell marker.
-```{r}
+```{r fig.asp=0.8}
 VisTissueName <- "P11_T3"
 qu_vis <- query_list[[VisTissueName]]
 VizSpatial(qu_vis, feature = "KRT19", assay2use = "log1p")
@@ -95,7 +95,7 @@ if(!file.exists(PhiResPath)){
 ```
 
 As an example, we visualise the predicted B cell abundance in sample P11_T3.
-```{r}
+```{r fig.asp=0.8}
 reducedDim(qu_vis, "PhiSpace") <- PhiRes[["P11_T3"]]
 VizSpatial(qu_vis, reducedDim = "B cells", reducedDim2use = "PhiSpace", censor = T)
 ```
@@ -139,7 +139,7 @@ We visualise the first two PCs. As we can see, all samples were well separated i
 - Background: non-cancerous tissue from cancerous samples;
 - LUAD: lung adenocarcinoma;
 - LUSC: lung squamous cell carcinoma.
-```{r}
+```{r fig.asp=1}
 tempPCAplot(pca_res) + expand_limits(x = c(-5.5, 7.5))
 loadBarplot(pca_res$loadings, nfeat = 20) + theme(axis.text.x = element_text(angle = 45))
 ```
@@ -150,7 +150,7 @@ In addition to the separation of patients, we can also observe that LUSC samples
 According to [Chen & Dhahbi (2021)](https://www.nature.com/articles/s41598-021-92725-8), CELSR2 is a marker for better prognosis in LUSC; KRT17, KRT6A, S100A2, TRIM29, REPS1, and GPC1 are markers for worse prognosis in LUAD; PERP, ELFN2, ARHGAP12 and QSOX1 are markers for better prognosis in LUSC. Based on how the favourable prognosis markers are upregulated (see definition of `meanEsts` in `Visium_utils.R`), we calculated the prognosis scores for all patients. 
 
 Note that since the markers are different for LUSC and LUAD, we cannot directly compare prognosis scores between LUSC and LUAD patients. However, the scores are still informative. For example, P24 was predicted to have the worst prognosis (lowest favourable prognosis score) among LUAD patients, which probably explained why it was located closer to LUSC patients on the PCA scatter plot above.
-```{r}
+```{r fig.asp=1}
 # Common gene of all Visium slides
 commonGeneNames <- Reduce(intersect, lapply(query_list, function(x) rownames(x)))
 mk_list <- list(
@@ -189,7 +189,7 @@ data.frame(
 
 
 To focus on the role of immune cell types, we repeat the above analysis using only immune cell types. The separation of disease conditions was largely retained. Note how plasmacytoid dendritic cells (pDCs) played an important role in explaining the separation of samples along PC1.
-```{r}
+```{r fig.asp=1}
 immuneDF <- data.frame(
   celltype = rownames(corMat_list[[1]]),
   immuneOrNot = c(

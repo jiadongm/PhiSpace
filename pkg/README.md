@@ -27,8 +27,8 @@ devtools::install_github('jiadongm/PhiSpace/pkg')
 of cell states in single-cell and spatial multiomics data. Currently it has two
 modules:
 
-- PhiSpace multiomics for single-cell multiomics data ([Mao et al., 2024](https://www.biorxiv.org/content/10.1101/2024.06.19.599787v1), and
-- PhiSpace ST for spatial transcriptomics data [Mao et al., 2025](https://www.biorxiv.org/content/10.1101/2024.06.19.599787v1))
+- PhiSpace multiomics for single-cell multiomics data ([Mao et al., 2024](https://www.biorxiv.org/content/10.1101/2024.06.19.599787v1)), and
+- PhiSpace ST for spatial transcriptomics data ([Mao et al., 2025](https://www.biorxiv.org/content/10.1101/2024.06.19.599787v1))
 
 Given a bulk or single-cell RNA-seq **reference** dataset with potentially multiple 
 layers of phenotypes defined in the metadata (e.g. cell type and sample source), 

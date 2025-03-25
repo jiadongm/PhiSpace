@@ -176,19 +176,19 @@ p <- plotPhiSpaceHeatMap(
   queryLvls = lvls,
   column_names_rot = 20,
   name = "Phenotype space embedding",
-  row_names_gp = gpar(fontsize = 6),
-  column_names_gp = gpar(fontsize = 6),
+  row_names_gp = gpar(fontsize = 8),
+  column_names_gp = gpar(fontsize = 8),
   show_row_dend = F,
   show_column_dend = T,
   # row_title = row_title, 
-  row_title_gp = gpar(fontsize = 6),
-  column_title_gp = gpar(fontsize = 6, fontface = "bold"),
+  row_title_gp = gpar(fontsize = 8),
+  column_title_gp = gpar(fontsize = 8, fontface = "bold"),
   heatmap_legend_param = list(
     title_position = "leftcenter",
-    title_gp = gpar(fontsize = 6),
+    title_gp = gpar(fontsize = 10),
     grid_height = unit(2, "mm"),
     grid_width = unit(2, "mm"),
-    labels_gp = gpar(fontsize = 5),
+    labels_gp = gpar(fontsize = 10),
     legend_direction = "horizontal"
   )
 ) 
