@@ -162,7 +162,7 @@ DC_cols_source <- c(
 
 
 ## Heatmap
-The most straightforward visualisation of phenotype space embeddings is heatmap. Sometimes a heatmap can already provide a lot of insights for interesting cell states. In PhiSpace package we have `plotPhiSpaceHeatMap`, which is a wrapper based on `ComplexHeatmap`.
+The most straightforward visualisation of phenotype space embeddings is heatmap. Sometimes a heatmap can already provide a lot of insights for interesting cell states. In PhiSpace package we have `plotPhiSpaceHeatMap`, which is a wrapper based on `ComplexHeatmap`. 
 ```{r}
 PhiScores_norm <- reducedDim(query, "PhiSpace")
 queryLabs <- query$mainTypes
@@ -192,10 +192,8 @@ p <- plotPhiSpaceHeatMap(
     legend_direction = "horizontal"
   )
 ) 
-
-draw(
-  p, heatmap_legend_side = "top"
-)
+# If encounter problem running the following line on Mac, try (re-)install newest version of XQuartz
+draw(p, heatmap_legend_side = "top")
 ```
 
 Every column of the heatmap corresponds to a phenotype defined in the bulk reference. Every horizontal line of the heatmap represents a query cell. The query cells are grouped according to their cell types:

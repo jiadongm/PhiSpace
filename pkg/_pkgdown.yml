@@ -17,8 +17,6 @@ articles:
     desc: "Using bulk or single-cell RNA-seq references to annotate single-cell multiomics queries."
     contents:
       - getting_started
-      - CITE-seq
-      - Multiome
   - title: "PhiSpace ST: using PhiSpace for spatial transcriptomics"
     desc: "Platform-agnostic cell state annotation of ST queries using scRNA-seq references."
     contents:

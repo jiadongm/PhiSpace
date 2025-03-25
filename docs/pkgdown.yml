@@ -2,12 +2,10 @@ pandoc: '3.2'
 pkgdown: 2.1.1
 pkgdown_sha: ~
 articles:
-  CITE-seq: CITE-seq.html
   CosMx: CosMx.html
   getting_started: getting_started.html
-  Multiome: Multiome.html
   Visium: Visium.html
-last_built: 2025-03-21T04:56Z
+last_built: 2025-03-25T10:13Z
 urls:
   reference: https://jiadongm.github.io/PhiSpace/reference
   article: https://jiadongm.github.io/PhiSpace/articles
