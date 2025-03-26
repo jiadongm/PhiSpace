@@ -22,6 +22,7 @@ articles:
     contents:
       - Visium
       - CosMx
+      - StereoSeq
 
 navbar:
   title: "PhiSpace"

@@ -4,8 +4,9 @@ pkgdown_sha: ~
 articles:
   CosMx: CosMx.html
   getting_started: getting_started.html
+  StereoSeq: StereoSeq.html
   Visium: Visium.html
-last_built: 2025-03-25T10:48Z
+last_built: 2025-03-26T11:02Z
 urls:
   reference: https://jiadongm.github.io/PhiSpace/reference
   article: https://jiadongm.github.io/PhiSpace/articles

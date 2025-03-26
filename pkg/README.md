@@ -50,8 +50,9 @@ We have applied Φ-Space to many different use cases, including
 | scRNA-seq     |   scRNA-seq   |  | |
 | scRNA-seq     |   scATAC-seq  | requires a bimodal bridge dataset | |
 | CITE-seq (scRNA+Protein-seq)  |  CITE-seq   | using both modalities | |
-| scRNA-seq    |   subcellular spatial transcriptomics | e.g. Stereo-seq, CosMx, 10x Xenium | [CosMx lung cancer microenvironment](articles/CosMx.html) |
-| scRNA-seq    |   supercellular spatial transcriptomics | e.g. 10x Visium, Slide-seqV2 | [Cell type deconvolution for Visium](articles/Visium.html) |
+| scRNA-seq    |   supercellular spatial RNA-seq | e.g. 10x Visium, Slide-seqV2 | [Cell type deconvolution for Visium](articles/Visium.html) |
+| scRNA-seq    |   subcellular spatial RNA-seq (imaging-based) | e.g. CosMx, 10x Xenium | [CosMx lung cancer microenvironment](articles/CosMx.html) |
+| scRNA-seq    |   subcellular spatial RNA-seq (sequencing-based) | e.g. Stereo-seq, 10x Visium HD | [Stereo-seq AML mouse spleen with cancer lieage tracing](articles/StereoSeq.html) |
 
 
 
