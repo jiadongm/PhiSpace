@@ -74,7 +74,7 @@
                         <h4 data-toc-skip class="author">Jiadong
 Mao</h4>
             
-            <h4 data-toc-skip class="date">2025-03-26</h4>
+            <h4 data-toc-skip class="date">2025-03-27</h4>
       
 
       <div class="hidden name"><code>StereoSeq.Rmd</code></div>
@@ -96,7 +96,10 @@ Mao</h4>
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
 <p>In this case study, we will apply PhiSpace to identify clone-specific
-cell states in an acute myeloid leukaemia (AML) mouse model.</p>
+cell states in an acute myeloid leukaemia (AML) mouse model. The results
+show that genetically identical AML clones developed different cell
+states, suggesting that they might commited to different lineages
+(e.g. lymphocytes vs granulocytes).</p>
 <ul>
 <li>Query: Stereo-seq data from a mouse spleen containing AML cells (<a href="https://www.cell.com/cell-reports-methods/fulltext/S2667-2375(24)00094-8?_returnURL=https%3A%2F%2Flinkinghub.elsevier.com%2Fretrieve%2Fpii%2FS2667237524000948%3Fshowall%3Dtrue" class="external-link">Holze
 et al., 2024</a>).</li>
@@ -120,8 +123,8 @@ tissues (healthy and cancerous cell states) (<a href="https://www.science.org/do
 intermediate between the four reference datasets and the Stereo-seq
 query:</p>
 <ul>
-<li>Bridge: scRNA-seq from same mouse spleen as the Stereo-seq data (<a href="https://www.cell.com/cell-reports-methods/fulltext/S2667-2375(24)00094-8?_returnURL=https%3A%2F%2Flinkinghub.elsevier.com%2Fretrieve%2Fpii%2FS2667237524000948%3Fshowall%3Dtrue" class="external-link">Holze
-et al., 2024</a>).</li>
+<li>Bridge: scRNA-seq from same mouse spleen as the Stereo-seq data (<a href="https://www.nature.com/articles/s41586-021-04206-7" class="external-link">Fennell et
+al., 2021</a>).</li>
 </ul>
 <p>For this case study, utility functions and processed data can all be
 found in <a href="https://www.dropbox.com/scl/fo/4w5vweo2ky2vuf7g591fe/AMDVr2OAUL5W1wO7ATzM754?rlkey=aggfds07sjymsd2aomyepbylv&amp;st=a0e2g675&amp;dl=0" class="external-link">this
@@ -172,7 +175,7 @@ common</a> (no data is perfect!).</p>
 <span><span class="op">}</span></span></code></pre></div>
 <p>Visualise total RNA counts. delete bins with too few transcripts.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/VizSpatial.html">VizSpatial</a></span><span class="op">(</span><span class="va">query</span>, ptSize <span class="op">=</span> <span class="fl">1</span>, groupBy <span class="op">=</span> <span class="st">"total_counts"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/VizSpatial.html">VizSpatial</a></span><span class="op">(</span><span class="va">query</span>, ptSize <span class="op">=</span> <span class="fl">1</span>, groupBy <span class="op">=</span> <span class="st">"total_counts"</span>, fsize <span class="op">=</span> <span class="fl">12</span><span class="op">)</span></span></code></pre></div>
 <p><img src="StereoSeq_files/figure-html/unnamed-chunk-3-1.png" width="700"></p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cell2keep</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">query</span><span class="op">)</span><span class="op">[</span><span class="va">query</span><span class="op">$</span><span class="va">total_counts</span> <span class="op">&gt;</span> <span class="fu"><a href="https://rdrr.io/r/stats/quantile.html" class="external-link">quantile</a></span><span class="op">(</span><span class="va">query</span><span class="op">$</span><span class="va">total_counts</span>, <span class="fl">0.01</span><span class="op">)</span><span class="op">]</span></span>
@@ -182,15 +185,62 @@ common</a> (no data is perfect!).</p>
 <h2 id="barcode-seq-analysis-defining-meta-clones">Barcode-seq analysis: defining meta-clones<a class="anchor" aria-label="anchor" href="#barcode-seq-analysis-defining-meta-clones"></a>
 </h2>
 <div class="section level3">
-<h3 id="what-is-splintr">What is SPLINTR<a class="anchor" aria-label="anchor" href="#what-is-splintr"></a>
+<h3 id="decipher-evolution-of-cancer">Decipher evolution of cancer<a class="anchor" aria-label="anchor" href="#decipher-evolution-of-cancer"></a>
 </h3>
-<p>SPLINTR</p>
-<p>Clonal evolution of cancer.</p>
+<p>This Stereo-seq data we analyse here is special since it’s one of the
+first spatial RNA-seq data with cancer clone lineage tracing information
+(<a href="https://www.cell.com/cell-reports-methods/fulltext/S2667-2375(24)00094-8?_returnURL=https%3A%2F%2Flinkinghub.elsevier.com%2Fretrieve%2Fpii%2FS2667237524000948%3Fshowall%3Dtrue" class="external-link">Holze
+et al., 2024</a>).</p>
+<p>A cancer clone refers to descendants from the same ancestor cell
+which share identical genome (i.e. same DNA) <a href="https://www.science.org/doi/10.1126/science.959840" class="external-link">(Nowell,
+1976)</a>. Thanks to increasingly cheaper DNA sequencing, we now know
+that a tumour is usually a patchwork of cancer clones, some more
+populous and hence more ‘successful’ than others. It is now a consensus
+that cancer is an evolutionary process, where many different clones
+compete with each other and the fittest of them survive (<a href="https://www.embopress.org/doi/full/10.15252/embj.2021108389" class="external-link">Vendramin
+et al., 2021</a>). Intriguingly enough, this evolutionary process cannot
+be fully explained by genetics. For example, we now know that some
+cancer clones are more successful in terms of therapeutic resistance not
+because they have a more advantageous gene mutations (e.g. a mutation
+making it easier for them to proliferate), but because of some
+non-genetic mechanisms <a href="https://www.nature.com/articles/s41568-020-00302-4" class="external-link">(Marine et
+al., 2020)</a>.</p>
+<p>The need to understand non-genetic mechanisms underpinning some key
+cancer evolutionary events, such as therapeutic resistance, motivated
+the development of SPLINTR (single-cell profiling and lineage tracing),
+a barcoding technology allowing us to sequencing cancer cells while
+retaining their clonal identities <a href="https://www.nature.com/articles/s41586-021-04206-7" class="external-link">(Fennell et
+al., 2022)</a>. That is, via SPLINTR we can know which cancer cells
+belong to the same clone and what are their transcriptional profiles. It
+is a powerful tool for exploring non-genetic mechanisms since we can see
+how genetically identical clones develop different transcriptional
+programs, and hence exhibiting different cell states. Ultimately we
+might decipher how cancer cells (they are really cunning!) utilise
+diverse transcriptional programs to evade host immune response and
+acquire resistance to cancer therapies.</p>
+<p><strong>Bibliographic note:</strong> the evolutionary theory of
+cancer hasn’t really been a research focus until recent years after we
+have access to powerful and more affordable DNA sequencing. But the
+theoretical framework was discussed as early as 1976 by Peter Nowell in
+his seminal paper <a href="https://www.science.org/doi/10.1126/science.959840" class="external-link"><em>The Clonal
+Evolution of Tumor Cell Populations</em></a>. Though people knew very
+little about cancer genomics back then, the framework of Nowell was
+suprisingly ahead of his time.</p>
+</div>
+<div class="section level3">
+<h3 id="visualise-aml-clones">Visualise AML clones<a class="anchor" aria-label="anchor" href="#visualise-aml-clones"></a>
+</h3>
+<p>Before plunging into the gene expression space, let’s first look at
+what SPLINTR tells us about how the AML clones are distributed in the
+mouse spleen. The input we use here is a so-called barcode-seq file,
+which is a table telling us which clones are detected and what are their
+spatial coordinates. Since cells in the same clone have the same SPLINTR
+barcode, detecting whereabouts of clones is equivalent to detecting
+whereabouts of barcodes.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Load barcode-seq</span></span>
 <span><span class="va">bcRaw</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.table</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">dat_dir</span>, <span class="st">"data/mouse4_bin50_bc_counts.tsv"</span><span class="op">)</span>,</span>
-<span>  sep <span class="op">=</span> <span class="st">"\t"</span>, header <span class="op">=</span> <span class="cn">T</span>, row.names <span class="op">=</span> <span class="fl">1</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">dat_dir</span>, <span class="st">"data/mouse4_bin50_bc_counts.tsv"</span><span class="op">)</span>, sep <span class="op">=</span> <span class="st">"\t"</span>, header <span class="op">=</span> <span class="cn">T</span>, row.names <span class="op">=</span> <span class="fl">1</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co"># Match spatial coordinates with sce object</span></span>
 <span><span class="va">bcRaw</span><span class="op">$</span><span class="va">bin_y</span> <span class="op">&lt;-</span> <span class="op">-</span><span class="va">bcRaw</span><span class="op">$</span><span class="va">bin_y</span></span>
@@ -199,14 +249,60 @@ common</a> (no data is perfect!).</p>
 <span><span class="co"># Simplify barcode names</span></span>
 <span><span class="va">bcRaw</span><span class="op">$</span><span class="va">barcode</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">gsub</a></span><span class="op">(</span><span class="st">"GFP_"</span>, <span class="st">""</span>, <span class="va">bcRaw</span><span class="op">$</span><span class="va">barcode</span><span class="op">)</span></span>
 <span><span class="co"># Bins that do not contain barcodes</span></span>
-<span><span class="va">noBarIdx</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/setops.html" class="external-link">setdiff</a></span><span class="op">(</span><span class="va">query</span><span class="op">$</span><span class="va">cell_id</span>, <span class="va">bcRaw</span><span class="op">$</span><span class="va">cell_id</span><span class="op">[</span><span class="va">bcRaw</span><span class="op">$</span><span class="va">isin_adata</span> <span class="op">==</span> <span class="st">"True"</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">noBarIdx</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/setops.html" class="external-link">setdiff</a></span><span class="op">(</span><span class="va">query</span><span class="op">$</span><span class="va">cell_id</span>, <span class="va">bcRaw</span><span class="op">$</span><span class="va">cell_id</span><span class="op">[</span><span class="va">bcRaw</span><span class="op">$</span><span class="va">isin_adata</span> <span class="op">==</span> <span class="st">"True"</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="co"># Show part of barcode-seq</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">bcRaw</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">##          barcode count_binned bin_x bin_y  cell_id x_center y_center isin_adata</span></span>
+<span><span class="co">## 0  Barcode_32756           13    90  -123   90_123    13645   -17865      False</span></span>
+<span><span class="co">## 1     Barcode_25           11  -128  -194 -128_194     2745   -21415      False</span></span>
+<span><span class="co">## 2 Barcode_131914           10  -104   -83  -104_83     3945   -15865      False</span></span>
+<span><span class="co">## 3 Barcode_131914            9  -124  -207 -124_207     2945   -22065      False</span></span>
+<span><span class="co">## 4 Barcode_131914            9   208   -22   208_22    19545   -12815      False</span></span>
+<span><span class="co">## 5   Barcode_2613            8   -35  -103  -35_103     7395   -16865      False</span></span></code></pre>
+<p>There were 370 clones/barcodes detected but most of them were very
+scarce.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">bcTab</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">bcRaw</span><span class="op">$</span><span class="va">barcode</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span>decreasing <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">bcTab</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] 370</span></span></code></pre>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">bcTab</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">30</span><span class="op">]</span></span></code></pre></div>
+<pre><code><span><span class="co">## </span></span>
+<span><span class="co">##     Barcode_25   Barcode_2613 Barcode_131914  Barcode_25027   Barcode_6595 </span></span>
+<span><span class="co">##           5428           3073           2922           1376           1183 </span></span>
+<span><span class="co">##  Barcode_19949   Barcode_5687  Barcode_25727  Barcode_42724  Barcode_32756 </span></span>
+<span><span class="co">##            814            723            707            490            470 </span></span>
+<span><span class="co">##  Barcode_12424   Barcode_1190      Barcode_8   Barcode_1794 Barcode_120950 </span></span>
+<span><span class="co">##            435            328            320            280            238 </span></span>
+<span><span class="co">##  Barcode_87074  Barcode_10626   Barcode_3036  Barcode_70639   Barcode_1209 </span></span>
+<span><span class="co">##            189            174            122            115            114 </span></span>
+<span><span class="co">##  Barcode_49666 Barcode_108275 Barcode_150642 Barcode_146599  Barcode_69630 </span></span>
+<span><span class="co">##            114            103            103             99             90 </span></span>
+<span><span class="co">##  Barcode_50878     Barcode_43  Barcode_28543   Barcode_6537   Barcode_5925 </span></span>
+<span><span class="co">##             85             82             73             70             67</span></span></code></pre>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">bcTab</span><span class="op">[</span><span class="fl">341</span><span class="op">:</span><span class="fl">370</span><span class="op">]</span></span></code></pre></div>
+<pre><code><span><span class="co">## </span></span>
+<span><span class="co">## Barcode_62985 Barcode_67039 Barcode_68225  Barcode_6850  Barcode_6957 </span></span>
+<span><span class="co">##             1             1             1             1             1 </span></span>
+<span><span class="co">## Barcode_70428 Barcode_70487  Barcode_7114 Barcode_71766  Barcode_7262 </span></span>
+<span><span class="co">##             1             1             1             1             1 </span></span>
+<span><span class="co">## Barcode_73834 Barcode_74003 Barcode_76770 Barcode_79993 Barcode_80014 </span></span>
+<span><span class="co">##             1             1             1             1             1 </span></span>
+<span><span class="co">##  Barcode_8051 Barcode_82825 Barcode_82916  Barcode_8369 Barcode_84496 </span></span>
+<span><span class="co">##             1             1             1             1             1 </span></span>
+<span><span class="co">## Barcode_87623 Barcode_88641 Barcode_88652 Barcode_88815  Barcode_8942 </span></span>
+<span><span class="co">##             1             1             1             1             1 </span></span>
+<span><span class="co">## Barcode_91999   Barcode_922 Barcode_93569 Barcode_95213  Barcode_9983 </span></span>
+<span><span class="co">##             1             1             1             1             1</span></span></code></pre>
 <p>We visualise the spatial distributions of some of the dominating
 clones. This helps us see if a clone tends to concentrate within a
 spatial region, and if different clones tend to concentrate in different
-regions.</p>
-<p>For this purpose we first define some useful quantities for
-plotting.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+regions. In solid tumours (e.g. lung tumours) clones are normally
+clustered together spatially but we are dealing with liquid tumour here
+(leukaemia) so the spatial clonal patterns are not well understood.</p>
+<p>We first define some useful quantities for plotting.</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Which coordinates to use</span></span>
 <span><span class="va">xCoordName</span> <span class="op">&lt;-</span> <span class="st">"x_center"</span></span>
 <span><span class="va">yCoordName</span> <span class="op">&lt;-</span> <span class="st">"y_center"</span></span>
@@ -216,18 +312,21 @@ plotting.</p>
 <span><span class="va">ch</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">query</span><span class="op">)</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x"</span>, <span class="st">"y"</span><span class="op">)</span><span class="op">]</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">ch</span> <span class="op">&lt;-</span> <span class="va">ch</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/grDevices/chull.html" class="external-link">chull</a></span><span class="op">(</span><span class="va">ch</span><span class="op">)</span>,<span class="op">]</span></span>
 <span><span class="va">sortedBC</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">bcRaw</span><span class="op">$</span><span class="va">barcode</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span>decreasing <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span></code></pre></div>
-<p>Density of barcoded bins.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<p>We first plot the density of all clones using two-dimensional kernel
+density estimation (KDE). This tells us if AML cells tend to occupy
+certain spatial niches or that they are spreading evenly. (Need to
+install <code>ks</code> package for kernel smoothing.)</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">xx_eval</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">query</span><span class="op">)</span><span class="op">[</span><span class="va">query</span><span class="op">$</span><span class="va">barcode</span> <span class="op">!=</span> <span class="st">"nan"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x"</span>, <span class="st">"y"</span><span class="op">)</span><span class="op">]</span> </span>
 <span><span class="va">xx</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">query</span><span class="op">)</span><span class="op">[</span><span class="va">query</span><span class="op">$</span><span class="va">barcode</span> <span class="op">!=</span> <span class="st">"nan"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x"</span>, <span class="st">"y"</span><span class="op">)</span><span class="op">]</span> </span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/warning.html" class="external-link">suppressWarnings</a></span><span class="op">(</span><span class="va">kde_res</span> <span class="op">&lt;-</span> <span class="fu">tempDenPlot</span><span class="op">(</span><span class="va">xx</span>, <span class="va">xx_eval</span>, <span class="va">xylimits</span>, <span class="va">ch</span>, <span class="cn">F</span>, psize <span class="op">=</span> <span class="fl">1</span>, <span class="st">""</span>, spleenOnly <span class="op">=</span> <span class="cn">F</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">estValues</span> <span class="op">&lt;-</span> <span class="va">kde_res</span><span class="op">$</span><span class="va">kde_res</span><span class="op">$</span><span class="va">estimate</span></span>
 <span><span class="va">estRange</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/range.html" class="external-link">range</a></span><span class="op">(</span><span class="va">estValues</span><span class="op">)</span></span>
 <span><span class="va">kde_res</span><span class="op">$</span><span class="va">p</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_gradient.html" class="external-link">scale_colour_gradientn</a></span><span class="op">(</span>colours <span class="op">=</span> <span class="fu">PhiSpace</span><span class="fu">:::</span><span class="va">MATLAB_cols</span>, limits <span class="op">=</span> <span class="va">estRange</span><span class="op">)</span> </span></code></pre></div>
-<p><img src="StereoSeq_files/figure-html/unnamed-chunk-6-1.png" width="700"></p>
-<p>Plot the top 16 most abundant clones. KDE. Need to install
-<code>ks</code> package for kern smoothing.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<p><img src="StereoSeq_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
+<p>Overall AML cells seemed to clustered in space. We then do KDE for
+the top 16 clones.</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sortedBC</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">bcRaw</span><span class="op">$</span><span class="va">barcode</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span>decreasing <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span>
 <span><span class="va">xx_eval</span> <span class="op">&lt;-</span> <span class="va">bcRaw</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">xCoordName</span>, <span class="va">yCoordName</span><span class="op">)</span><span class="op">]</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">`colnames&lt;-`</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x"</span>, <span class="st">"y"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">kdePath</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">dat_dir</span>, <span class="st">"output/cloneKDEres.qs"</span><span class="op">)</span></span>
@@ -259,38 +358,48 @@ plotting.</p>
 <span>  <span class="op">}</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rpkgs.datanovia.com/ggpubr/reference/ggarrange.html" class="external-link">ggarrange</a></span><span class="op">(</span>plotlist <span class="op">=</span> <span class="va">outPlots</span>, nrow <span class="op">=</span> <span class="fl">4</span>, ncol <span class="op">=</span> <span class="fl">4</span>, legend <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="StereoSeq_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
+<p><img src="StereoSeq_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
+<p>These individual KDE plots revealed some spatial patterns of
+individual clones. The most populous clone with Barcode_25, for example,
+tended to occupy the top left corner. Some clones, such as
+Barcode_19949, tended to spread out more evenly.</p>
 </div>
 <div class="section level3">
 <h3 id="define-meta-clones">Define meta-clones<a class="anchor" aria-label="anchor" href="#define-meta-clones"></a>
 </h3>
-<p>To evaluate the spatial distribution of all the clones, instead of
-viewing them one by one, we aggregate the high abundance clones to make
-a ‘barcode-seq’ assay.</p>
+<p>How do we summarise the spatial patterns of all these clones? Instead
+of viewing them one by one, we aggregate the high abundance clones into
+meta-clones.</p>
 <p>We first filter out low abundance barcodes. The idea is that, most
-barcodes have very low abundance (eg detected in only one bin) and it’s
-not very interesting analysing them. (However there is a possibility to
-utilise them for statitical inference. That is, we might be able to
-model the spatial distribution of those low abundance barcodes as a
-proxy to some sort of background noise.)</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+barcodes have very low abundance (e.g. detected in only one bin) and
+it’s not very interesting analysing them here since they do not tell us
+much about how AML clones tend to be distributed in space. However this
+doesn’t mean that the low-abundance clones are not biologically
+important. Some rare clones may not seem very successful when cancer is
+expanding but they might be able to develop resistance to, say,
+chemotherapy, so they might take over after chemo. All we are saying
+here is that the low-abundance clones can be left out in the currently
+analysis of spatial patterns, which really rely on higher-abundance
+clones to provide more statistical power.</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sortedBC_filt</span> <span class="op">&lt;-</span> <span class="va">sortedBC</span><span class="op">[</span><span class="va">sortedBC</span> <span class="op">&gt;=</span> <span class="fl">50</span><span class="op">]</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">sortedBC_filt</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## [1] 35</span></span></code></pre>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">bcFilt</span> <span class="op">&lt;-</span> <span class="va">bcRaw</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">barcode</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">sortedBC_filt</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>barcode <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">as.factor</a></span><span class="op">(</span><span class="va">barcode</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p>We only kept those ones as the features in our barcode-seq assay,
-which describes the abundance of the 35 selected barcodes in the close
-proximity of each bin. More specifically, for a given bin, we count the
-barcodes present in the surronding bins whose distances to that given
-bin is no larger than <code>xyRange</code>. We tentatively selected
-<code>xyRange &lt;- 50</code> but the influence of this parameter on
-downstream results should be benchmarked in the future. Now this
-barcode-seq assay has a similar interpretation as microbiome data, where
-counts of different taxa of bacteria are identified. Here the barcodes
-are our taxa.</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<p>We only kept 35 clones with more than 50 cells each. Next we cluster
+the Stereo-seq bins according to their composition of clones. That is,
+two bins will belong to the same cluster, which we call a meta-clone, if
+they have similar composition of individual clones. However, due to the
+relatively small bin size (~25μm), each bin contained only a few
+barcode. Hence we do some spatial smoothing as follows.</p>
+<p>For a given Stereo-seq bin, we count the barcodes present in the
+surrounding bins whose distances to that given bin is no larger than
+<code>xyRange</code>. We selected <code>xyRange &lt;- 50</code> and
+noted that the specific value of <code>xyRange</code> doesn’t tend to
+change the clustering results much.</p>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">xyRange</span> <span class="op">&lt;-</span> <span class="fl">500</span></span>
 <span><span class="va">binIDs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">bcFilt</span><span class="op">$</span><span class="va">cell_id</span><span class="op">)</span></span>
 <span><span class="va">barAssay</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span></span>
@@ -305,10 +414,23 @@ are our taxa.</p>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">bcFilt</span><span class="op">[</span><span class="va">idx</span>,<span class="st">"barcode"</span><span class="op">]</span><span class="op">)</span></span>
 <span>  <span class="op">}</span></span>
 <span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">`rownames&lt;-`</span><span class="op">(</span><span class="va">binIDs</span><span class="op">)</span></span></code></pre></div>
-<p>Next we cluster the bins using the barcode-seq assay. Bins belonging
-to the same cluster tend to have similar composition of barcodes. We try
-different choices of number of clusters.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<p>Next we cluster the bins with smoothed out clonal composition using
+k-means. We try different choices of number of clusters.</p>
+<p><strong>Note on k-means</strong>: the default setting of
+<code>kmeans</code> in R is actually inappropriate for many
+applications. First, <code>kmeans</code> uses random initialisation of
+cluster centroid, so each run of it may give you slightly different
+clustering results. It’s almost always a good idea to set
+<code>nstart</code> to be some large number such as 50, so that the
+function will run k-means for multiple times and selected the best one
+(with tighter clusters) as final output. Second thing is that the
+default maximal number of iterations controlled by <code>iter.max</code>
+is set to be too small (only 10) by default. The clustering often cannot
+converge with such as small number of iterations. So it needs to be set
+larger by hand. My personal guess is that R inherits its early
+implementation of k-means, when the number of iterations had to be set
+small due to limited computing resource.</p>
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">plot_dat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">bcFilt</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cell_id"</span>, <span class="va">xCoordName</span>, <span class="va">yCoordName</span><span class="op">)</span><span class="op">]</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">clustPath</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">dat_dir</span>,<span class="st">"output/barcode-seq_clustering.qs"</span><span class="op">)</span></span>
 <span><span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/files.html" class="external-link">file.exists</a></span><span class="op">(</span><span class="va">clustPath</span><span class="op">)</span><span class="op">)</span><span class="op">{</span></span>
@@ -324,11 +446,22 @@ different choices of number of clusters.</p>
 <span><span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
 <span>  <span class="va">outClusts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/qs/man/qread.html" class="external-link">qread</a></span><span class="op">(</span><span class="va">clustPath</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
-<p>Plot the clusters. To make the clusters comparable across different
-run of clustering, we align the clusters using the Hungarian algorithm
-implemented by <code><a href="https://rdrr.io/pkg/clue/man/solve_LSAP.html" class="external-link">clue::solve_LSAP</a></code>.</p>
-<p>Say more about <code><a href="../reference/align_clusters.html">PhiSpace::align_clusters</a></code>.</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<p>Next we visualise the clusters, or meta-clones. The idea is to select
+a number of meta-clones based on this visualisation. Now a trick we use
+in PhiSpace is to <strong>align</strong> the clusters across different
+clustering results, so that two clusters similar to each other will
+receive the same label. This cluster alignment is done by
+<code><a href="../reference/align_clusters.html">PhiSpace::align_clusters</a></code>. This is actually a very useful
+functionality as clusters in clustering algorithms are arbitrarily
+named. So even the same cluster in two cluster results might be labelled
+differently (e.g. labelled 1 in one run of k-means, labelled 2 in
+another). This will make their visualisation harder to compare since
+even the same cluster will receive two colours across two results.</p>
+<p><strong>Technical note</strong>: we align the clusters using the
+Hungarian algorithm implemented by <code><a href="https://rdrr.io/pkg/clue/man/solve_LSAP.html" class="external-link">clue::solve_LSAP</a></code>.
+Similar clusters across different cluster results will be labelled using
+the same number.</p>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">clust_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span></span>
 <span>  <span class="va">outClusts</span>,</span>
 <span>  <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">x</span><span class="op">$</span><span class="va">cluster</span>, levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">x</span><span class="op">$</span><span class="va">cluster</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
@@ -346,11 +479,12 @@ implemented by <code><a href="https://rdrr.io/pkg/clue/man/solve_LSAP.html" clas
 <span>  <span class="va">outPlots</span><span class="op">[[</span><span class="va">x</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu">tempClustPlot</span><span class="op">(</span><span class="va">plot_dat</span>, <span class="cn">T</span>, pSize <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/warning.html" class="external-link">suppressWarnings</a></span><span class="op">(</span><span class="fu"><a href="https://rpkgs.datanovia.com/ggpubr/reference/ggarrange.html" class="external-link">ggarrange</a></span><span class="op">(</span>plotlist <span class="op">=</span> <span class="va">outPlots</span>, nrow <span class="op">=</span> <span class="fl">3</span>, ncol <span class="op">=</span> <span class="fl">3</span>, legend <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="StereoSeq_files/figure-html/unnamed-chunk-11-1.png" width="700"></p>
-<p>To interpret the clusters, we look at clone composition of each
-cluster. We look at the non-aggregated counts (ie barcode counts in each
-individual bin).</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<p><img src="StereoSeq_files/figure-html/unnamed-chunk-12-1.png" width="700"></p>
+<p>Some meta-clones, such as the pink one, appeared very early, even
+when there were only two clusters. This means that these clones are more
+significant in some sense. To interpret the clusters, we look at clone
+composition of each cluster.</p>
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">binIDs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">bcFilt</span><span class="op">$</span><span class="va">cell_id</span><span class="op">)</span></span>
 <span><span class="va">barAssayRaw</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span></span>
 <span>  <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">binIDs</span><span class="op">)</span>,</span>
@@ -379,28 +513,41 @@ individual bin).</p>
 <span>    legend.position <span class="op">=</span> <span class="st">"none"</span>, axis.title <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>    strip.text.x <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">12</span>, face <span class="op">=</span> <span class="st">"bold"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
-<p><img src="StereoSeq_files/figure-html/unnamed-chunk-12-1.png" width="700"></p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">tempClustPlot</span><span class="op">(</span><span class="va">plot_dat</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>clusters <span class="op">=</span> <span class="va">clust_list</span><span class="op">[[</span><span class="va">clustIdx</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>, <span class="cn">T</span>, pSize <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">+</span> </span>
+<p><img src="StereoSeq_files/figure-html/unnamed-chunk-13-1.png" width="700"></p>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">tempClustPlot</span><span class="op">(</span><span class="va">plot_dat</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>clusters <span class="op">=</span> <span class="va">clust_list</span><span class="op">[[</span><span class="va">clustIdx</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>, <span class="cn">T</span>, pSize <span class="op">=</span> <span class="fl">1.5</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">12</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"top"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="StereoSeq_files/figure-html/unnamed-chunk-12-2.png" width="700">
-I also tried different choices of <code>xyRange</code>, but results were
-not too sensitive to the choice.</p>
+<p><img src="StereoSeq_files/figure-html/unnamed-chunk-13-2.png" width="700"></p>
+<p>We picked number of meta-clones equal to 8 since most meta-clones
+contained 1 dominant barcode, except for clone 5, which contained a bit
+of everything and did really show an interesting spatial pattern. Note
+that meta-clone 9 was excluded since most of its cells were located
+outside the spleen region, depicted by the black solid line. This is a
+technical artefact we discussed above.</p>
 </div>
 </div>
 <div class="section level2">
 <h2 id="phispace-analyses">PhiSpace analyses<a class="anchor" aria-label="anchor" href="#phispace-analyses"></a>
 </h2>
-<p>We use a bridging strategy to annotate the query Stereo-seq data.
-First using the four scRNA-seq references to annotate the AML spleen
-scRNA-seq data from Fennel et al. (2022) and then use this intermediate
-scRNA-seq data to annotate the query Stereo-seq data. Note that the
-intermediate scRNA-seq and the Stereo-seq data were from the same mouse
-spleen.</p>
-<p>See <code>runPhiSpace.R</code> for the annotation of the intermediate
-scRNA-seq dataset.</p>
-<p>PhiSpace annotation of the query Stereo-seq.</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<p>After knowing how clones tended to be located in the spleen sample,
+we now look at their cell states. As mentioned above, the experiment was
+designed so that all clones have the same DNA, so they are ideal for
+identifying non-genetic differences between AML clones.</p>
+<p>Since the same mouse spleen was subjected to both Stereo-seq and
+scRNA-seq, we use the matched scRNA-seq as a ‘bridge’ to enhance the
+annotation of spatial bins. The idea is that we first use the four
+scRNA-seq references to annotate the bridge scRNA-seq, and then use the
+annotated bridge scRNA-seq to annotate Stereo-seq. The reasoning for
+this bridging approach is that, technically, the references and the
+bridge datasets are more similar and, biologically, the bridge and the
+query Stereo-seq datasets are more similar. It turns out that the
+PhiSpace annotation makes more sense using the bridging approach
+compared to directly annotating the query using the references.</p>
+<p>Annotation of the bridge dataset is tedious and requires larger
+memory to run (see our source code on GitHub for details). So here we
+only show how to use the annotated bridge scRNA-seq to annotate the
+query Stereo-seq from the same mouse spleen.</p>
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">PhiResPath</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">dat_dir</span>, <span class="st">"output/PhiRes.qs"</span><span class="op">)</span></span>
 <span><span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/files.html" class="external-link">file.exists</a></span><span class="op">(</span><span class="va">PhiResPath</span><span class="op">)</span><span class="op">)</span><span class="op">{</span></span>
 <span>  <span class="va">querySC</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/qs/man/qread.html" class="external-link">qread</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">dat_dir</span>, <span class="st">"data/mouse4_scRNAseq_sce.qs"</span><span class="op">)</span><span class="op">)</span></span>
@@ -439,12 +586,45 @@ scRNA-seq dataset.</p>
 <span>  <span class="va">PhiRes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/qs/man/qread.html" class="external-link">qread</a></span><span class="op">(</span><span class="va">PhiResPath</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"PhiSpace"</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/normPhiScores.html">normPhiScores</a></span><span class="op">(</span><span class="va">PhiRes</span><span class="op">$</span><span class="va">PhiSpaceScore</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">query</span><span class="op">)</span>,<span class="op">]</span></span></code></pre></div>
-<p>Some cell types.</p>
-<p>Clustering based on PhiSpace scores.</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<p>Next we visualise some cell types. First we observed a strong
+neutrophil identity, represented by Neutro(Spleen), Granulo(BM) and
+T2(Neutro) cell types in different references (neutrophil in spleen,
+granulocytes (including neutrophil) in bone marrow and a
+cancer-associated neutrophil labelled T2). And the strong neutrophil
+identity coincides with the biggest clone (see above). What is also
+interesting is the distribution of erythrocytes. Several references
+confirmed that there is a strong erythrocyte identity towards the right
+boundary of spleen (e.g. erythroblast visualised below). Moreover, we
+observed that the macrophage identity delineates ring-like structures,
+which potentially correspond to the right-like marginal zones in spleen.
+Naive B cell, on the other hand, delineates what are potentially the
+white pulps.</p>
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/VizSpatial.html">VizSpatial</a></span><span class="op">(</span><span class="va">query</span>, ptSize <span class="op">=</span> <span class="fl">1</span>, reducedDim <span class="op">=</span> <span class="st">"Neutro(Spleen)"</span>, censor <span class="op">=</span> <span class="cn">T</span>, fsize <span class="op">=</span> <span class="fl">12</span><span class="op">)</span></span></code></pre></div>
+<p><img src="StereoSeq_files/figure-html/unnamed-chunk-15-1.png" width="700"></p>
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/VizSpatial.html">VizSpatial</a></span><span class="op">(</span><span class="va">query</span>, ptSize <span class="op">=</span> <span class="fl">1</span>, reducedDim <span class="op">=</span> <span class="st">"Granulo(BM)"</span>, censor <span class="op">=</span> <span class="cn">T</span>, fsize <span class="op">=</span> <span class="fl">12</span><span class="op">)</span></span></code></pre></div>
+<p><img src="StereoSeq_files/figure-html/unnamed-chunk-15-2.png" width="700"></p>
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/VizSpatial.html">VizSpatial</a></span><span class="op">(</span><span class="va">query</span>, ptSize <span class="op">=</span> <span class="fl">1</span>, reducedDim <span class="op">=</span> <span class="st">"T2(Neutro)"</span>, censor <span class="op">=</span> <span class="cn">T</span>, fsize <span class="op">=</span> <span class="fl">12</span><span class="op">)</span></span></code></pre></div>
+<p><img src="StereoSeq_files/figure-html/unnamed-chunk-15-3.png" width="700"></p>
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/VizSpatial.html">VizSpatial</a></span><span class="op">(</span><span class="va">query</span>, ptSize <span class="op">=</span> <span class="fl">1</span>, reducedDim <span class="op">=</span> <span class="st">"ErythBla(BM)"</span>, censor <span class="op">=</span> <span class="cn">T</span>, fsize <span class="op">=</span> <span class="fl">12</span><span class="op">)</span></span></code></pre></div>
+<p><img src="StereoSeq_files/figure-html/unnamed-chunk-15-4.png" width="700"></p>
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/VizSpatial.html">VizSpatial</a></span><span class="op">(</span><span class="va">query</span>, ptSize <span class="op">=</span> <span class="fl">1</span>, reducedDim <span class="op">=</span> <span class="st">"Macro(Spleen)"</span>, censor <span class="op">=</span> <span class="cn">T</span>, fsize <span class="op">=</span> <span class="fl">12</span><span class="op">)</span></span></code></pre></div>
+<p><img src="StereoSeq_files/figure-html/unnamed-chunk-15-5.png" width="700"></p>
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/VizSpatial.html">VizSpatial</a></span><span class="op">(</span><span class="va">query</span>, ptSize <span class="op">=</span> <span class="fl">1</span>, reducedDim <span class="op">=</span> <span class="st">"Naive B(BM)"</span>, censor <span class="op">=</span> <span class="cn">T</span>, fsize <span class="op">=</span> <span class="fl">12</span><span class="op">)</span></span></code></pre></div>
+<p><img src="StereoSeq_files/figure-html/unnamed-chunk-15-6.png" width="700"></p>
+<p>Next we cluster the PhiSpace cell type scores to identify spatial
+niches. Note how niche 4 (red) seems to represent the marginal zone and
+niche 7 (blue) seems to represent the white pulps. Niche 8 (green)
+represents the location of the largest AML clone (see above).</p>
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">tempClustCols</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
-<span>  <span class="st">"1"</span> <span class="op">=</span> <span class="st">"#E41A1C"</span>, <span class="st">"2"</span> <span class="op">=</span> <span class="st">"#FFFF33"</span>, <span class="st">"3"</span> <span class="op">=</span> <span class="st">"#F781BF"</span>, <span class="st">"4"</span> <span class="op">=</span> <span class="st">"#FF7F00"</span>, </span>
-<span>  <span class="st">"5"</span> <span class="op">=</span> <span class="st">"#377EB8"</span>, <span class="st">"6"</span> <span class="op">=</span> <span class="st">"#984EA3"</span>, <span class="st">"7"</span> <span class="op">=</span> <span class="st">"#A65628"</span>, <span class="st">"8"</span> <span class="op">=</span>  <span class="st">"#4DAF4A"</span></span>
+<span>  <span class="st">"1"</span> <span class="op">=</span> <span class="st">"#FF7F00"</span>, <span class="st">"2"</span> <span class="op">=</span> <span class="st">"#377EB8"</span>, <span class="st">"3"</span> <span class="op">=</span> <span class="st">"#F781BF"</span>, <span class="st">"4"</span> <span class="op">=</span> <span class="st">"#984EA3"</span>, </span>
+<span>  <span class="st">"5"</span> <span class="op">=</span> <span class="st">"#A65628"</span>, <span class="st">"6"</span> <span class="op">=</span> <span class="st">"#4DAF4A"</span>, <span class="st">"7"</span> <span class="op">=</span> <span class="st">"#FFFF33"</span>, <span class="st">"8"</span> <span class="op">=</span> <span class="st">"#E41A1C"</span>  </span>
 <span><span class="op">)</span></span>
 <span><span class="va">pathPhiClustRes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">dat_dir</span>, <span class="st">"output/PhiClustRes.qs"</span><span class="op">)</span></span>
 <span><span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/files.html" class="external-link">file.exists</a></span><span class="op">(</span><span class="va">pathPhiClustRes</span><span class="op">)</span><span class="op">)</span><span class="op">{</span></span>
@@ -463,9 +643,12 @@ scRNA-seq dataset.</p>
 <span><span class="fu"><a href="../reference/VizSpatial.html">VizSpatial</a></span><span class="op">(</span><span class="va">query</span>, groupBy <span class="op">=</span> <span class="st">"PhiClust"</span>, ptSize <span class="op">=</span> <span class="fl">1</span>, legend.symb.size <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_colour_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="va">tempClustCols</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.title <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>face <span class="op">=</span> <span class="st">"bold"</span><span class="op">)</span>, legend.key.spacing <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html" class="external-link">unit</a></span><span class="op">(</span><span class="fl">0</span>, <span class="st">"pt"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="StereoSeq_files/figure-html/unnamed-chunk-14-1.png" width="700"></p>
-<p>Clustering based on PCs of gene expression.</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<p><img src="StereoSeq_files/figure-html/unnamed-chunk-16-1.png" width="700"></p>
+<p>In contrast, we can cluster the Stereo-seq bins according to their
+gene expression to identify the same number of spatial niches as above.
+The features highlighted by PhiSpace niches, i.e. marginal zone, white
+pulp and largest clone, were lost.</p>
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pathGexClustRes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">dat_dir</span>, <span class="st">"output/GexClustRes.qs"</span><span class="op">)</span></span>
 <span><span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/files.html" class="external-link">file.exists</a></span><span class="op">(</span><span class="va">pathGexClustRes</span><span class="op">)</span><span class="op">)</span><span class="op">{</span></span>
 <span>  <span class="va">mat2clust</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/getPC.html">getPC</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">assay</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"log1p"</span><span class="op">)</span><span class="op">)</span>, ncomp <span class="op">=</span> <span class="fl">30</span><span class="op">)</span><span class="op">$</span><span class="va">scores</span></span>
@@ -483,9 +666,11 @@ scRNA-seq dataset.</p>
 <span>    legend.title <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>face <span class="op">=</span> <span class="st">"bold"</span><span class="op">)</span>,</span>
 <span>    legend.position <span class="op">=</span> <span class="st">"right"</span>, legend.key.spacing <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html" class="external-link">unit</a></span><span class="op">(</span><span class="fl">0</span>, <span class="st">"pt"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
-<p><img src="StereoSeq_files/figure-html/unnamed-chunk-15-1.png" width="700"></p>
-<p>DWD analysis: barcoded vs nonbarcoded.</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<p><img src="StereoSeq_files/figure-html/unnamed-chunk-17-1.png" width="700"></p>
+<p>We use DWD (see CosMx case study) to compare barcoded and
+non-barcoded bins. Here barcoded bins refer to Stereo-seq bins where at
+least one barcode was detected.</p>
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">kerndwd</span><span class="op">)</span></span>
 <span><span class="va">barcodeVec</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">query</span><span class="op">$</span><span class="va">barcode</span><span class="op">)</span></span>
 <span><span class="va">barcodeVec</span><span class="op">[</span><span class="va">barcodeVec</span> <span class="op">!=</span> <span class="st">"nan"</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">1</span></span>
@@ -500,23 +685,33 @@ scRNA-seq dataset.</p>
 <span><span class="va">dwdLoad</span> <span class="op">&lt;-</span> <span class="va">da_res</span><span class="op">$</span><span class="va">alpha</span><span class="op">[</span><span class="op">-</span><span class="fl">1</span>,,drop<span class="op">=</span><span class="cn">F</span><span class="op">]</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">`dimnames&lt;-`</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">X_cent</span><span class="op">)</span>,<span class="st">"comp1"</span><span class="op">)</span><span class="op">)</span> <span class="co"># worked out by looking at predict.dwd</span></span>
 <span><span class="va">dwdScore</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/kerndwd/man/predict.kerndwd.html" class="external-link">predict.kerndwd</a></span><span class="op">(</span><span class="va">da_res</span>, <span class="va">kern</span>, <span class="va">X_cent</span>, <span class="va">X_cent</span>, <span class="st">"link"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">`colnames&lt;-`</span><span class="op">(</span><span class="st">"comp1"</span><span class="op">)</span></span>
 <span><span class="va">dwd_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>scores <span class="op">=</span> <span class="va">dwdScore</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="op">)</span>, loadings <span class="op">=</span> <span class="va">dwdLoad</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p>Visualise DWD results.</p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<p>It seems that barcoded and non-barcoded bins were somewhat separable.
+And the cell type signals explaining their separation were also plotted.
+This low level of separation (compared to those seen in Visium and CosMx
+case studies) is expected, since we are analysing a liquid cancer at its
+late metastasis stage in the current case study. This means that the
+cancer cells permeated the poor mouse’s spleen so the barcoded and
+non-barcoded bins might not be easily distinguishable.</p>
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">barcodedOrNo</span> <span class="op">&lt;-</span> <span class="va">barcodeVec</span></span>
 <span><span class="va">barcodedOrNo</span><span class="op">[</span><span class="va">barcodeVec</span><span class="op">==</span><span class="fl">1</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="st">"Barcoded"</span></span>
 <span><span class="va">barcodedOrNo</span><span class="op">[</span><span class="va">barcodeVec</span><span class="op">==</span><span class="op">-</span><span class="fl">1</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="st">"Nonbarcoded"</span></span>
 <span><span class="va">dwd_res</span><span class="op">$</span><span class="va">scores</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>niche <span class="op">=</span> <span class="va">barcodedOrNo</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_density.html" class="external-link">geom_density</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">comp1</span>, fill <span class="op">=</span> <span class="va">niche</span><span class="op">)</span>, alpha <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://rpkgs.datanovia.com/ggpubr/reference/theme_pubr.html" class="external-link">theme_pubr</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">6</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.title <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">xlab</a></span><span class="op">(</span><span class="st">"DWD score"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="StereoSeq_files/figure-html/unnamed-chunk-17-1.png" width="700"></p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<span>  <span class="fu"><a href="https://rpkgs.datanovia.com/ggpubr/reference/theme_pubr.html" class="external-link">theme_pubr</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">12</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.title <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">xlab</a></span><span class="op">(</span><span class="st">"DWD score"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="StereoSeq_files/figure-html/unnamed-chunk-19-1.png" width="700"></p>
+<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/loadBarplot.html">loadBarplot</a></span><span class="op">(</span></span>
 <span>  <span class="va">dwd_res</span><span class="op">$</span><span class="va">loadings</span>, comp <span class="op">=</span> <span class="st">"comp1"</span>, showInt <span class="op">=</span> <span class="cn">F</span>, </span>
-<span>  nfeat <span class="op">=</span> <span class="fl">10</span>, fsize <span class="op">=</span> <span class="fl">7</span>, xlab <span class="op">=</span> <span class="st">"DWD loading"</span>, absVal <span class="op">=</span> <span class="cn">T</span></span>
+<span>  nfeat <span class="op">=</span> <span class="fl">10</span>, fsize <span class="op">=</span> <span class="fl">12</span>, xlab <span class="op">=</span> <span class="st">"DWD loading"</span>, absVal <span class="op">=</span> <span class="cn">T</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="StereoSeq_files/figure-html/unnamed-chunk-17-2.png" width="700"></p>
-<p>Boxplots: which cell types enriched in which clone cluster</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<p><img src="StereoSeq_files/figure-html/unnamed-chunk-19-2.png" width="700"></p>
+<p>Recall that we defined meta-clones summarising spatial territories of
+individual clones. We can now look at how these meta-clones differ in
+terms of their cell states. Note that the neutrophil identity was
+enriched in meta-clone 2, which is consistent with what we’ve been
+observing.</p>
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">clustBar</span> <span class="op">&lt;-</span> <span class="va">clust_list</span><span class="op">[[</span><span class="va">clustIdx</span><span class="op">]</span><span class="op">]</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">`names&lt;-`</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">barAssay</span><span class="op">)</span><span class="op">)</span> <span class="co"># containing all barcoded bins in and out spleen</span></span>
 <span><span class="va">plot_dat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"PhiSpace"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="op">)</span> </span>
 <span><span class="va">clustBar</span> <span class="op">&lt;-</span> <span class="va">clustBar</span><span class="op">[</span><span class="fu"><a href="https://generics.r-lib.org/reference/setops.html" class="external-link">intersect</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">plot_dat</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">clustBar</span><span class="op">)</span><span class="op">)</span><span class="op">]</span></span>
@@ -536,10 +731,20 @@ scRNA-seq dataset.</p>
 <span><span class="va">p_boxs</span><span class="op">$</span><span class="va">`Neutro(Spleen)`</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">12</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"top"</span>,axis.text.y <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span><span class="op">)</span>, legend.title <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>face <span class="op">=</span> <span class="st">"bold"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guides.html" class="external-link">guides</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guide_legend.html" class="external-link">guide_legend</a></span><span class="op">(</span>nrow <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="StereoSeq_files/figure-html/unnamed-chunk-18-1.png" width="700"></p>
-<p>Statistical tests: which clusters have significantly different cell
-time enrichment compared to background</p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<p><img src="StereoSeq_files/figure-html/unnamed-chunk-20-1.png" width="700"></p>
+<p>We conduct statistical tests to see which clusters have
+differentially enriched cell types compared to background (non-barcoded
+bins). Interestingly, these meta-clones, defined according to their
+spatial locations, tended to have cell states corresponding to different
+lineage. However, meta-clones close to each other tended to have similar
+cell states (in terms on lineage). Overall, we observed three types of
+cell states:</p>
+<ul>
+<li><p>Neutrophil-like: meta-clones 2 and 7;</p></li>
+<li><p>Myeloid-like: meta-clones 3 and 8;</p></li>
+<li><p>Erythrocyte-like: meta-clones 6.</p></li>
+</ul>
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pathSigScores</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">dat_dir</span>, <span class="st">"output/sigScores.qs"</span><span class="op">)</span></span>
 <span><span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/files.html" class="external-link">file.exists</a></span><span class="op">(</span><span class="va">pathSigScores</span><span class="op">)</span><span class="op">)</span><span class="op">{</span></span>
 <span>  <span class="va">cTypes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"PhiSpace"</span><span class="op">)</span><span class="op">)</span></span>
@@ -569,22 +774,20 @@ time enrichment compared to background</p>
 <span>  <span class="va">sigScores</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/qs/man/qread.html" class="external-link">qread</a></span><span class="op">(</span><span class="va">pathSigScores</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span><span class="co"># most enriched</span></span>
-<span><span class="va">tab</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/selectFeat.html">selectFeat</a></span><span class="op">(</span><span class="va">sigScores</span>, absVal <span class="op">=</span> <span class="cn">F</span><span class="op">)</span><span class="op">$</span><span class="va">orderedFeatMat</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">sigScores</span><span class="op">)</span> <span class="op">!=</span> <span class="st">"9"</span><span class="op">]</span></span>
+<span><span class="va">tab</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/selectFeat.html">selectFeat</a></span><span class="op">(</span><span class="va">sigScores</span>, absVal <span class="op">=</span> <span class="cn">F</span><span class="op">)</span><span class="op">$</span><span class="va">orderedFeatMat</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, <span class="op">!</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">sigScores</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"5"</span>,<span class="st">"9"</span><span class="op">)</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">tab</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <colgroup>
-<col width="13%">
-<col width="16%">
-<col width="13%">
-<col width="12%">
+<col width="15%">
+<col width="19%">
 <col width="14%">
 <col width="16%">
-<col width="12%">
+<col width="19%">
+<col width="14%">
 </colgroup>
 <thead><tr class="header">
 <th align="left">2</th>
 <th align="left">3</th>
-<th align="left">5</th>
 <th align="left">6</th>
 <th align="left">7</th>
 <th align="left">8</th>
@@ -594,7 +797,6 @@ time enrichment compared to background</p>
 <tr class="odd">
 <td align="left">Neutro(Spleen)</td>
 <td align="left">CD8 T(Spleen)</td>
-<td align="left">MAT 5(Neutro)</td>
 <td align="left">T1(Neutro)</td>
 <td align="left">HPC(BM)</td>
 <td align="left">HPC(BM)</td>
@@ -603,7 +805,6 @@ time enrichment compared to background</p>
 <tr class="even">
 <td align="left">Granulo(BM)</td>
 <td align="left">Imm NK(BM)</td>
-<td align="left">RBC(CITE)</td>
 <td align="left">cDC1(CITE)</td>
 <td align="left">Neutro(Spleen)</td>
 <td align="left">CD8 T(Spleen)</td>
@@ -612,25 +813,22 @@ time enrichment compared to background</p>
 <tr class="odd">
 <td align="left">Neutro(CITE)</td>
 <td align="left">T(BM)</td>
-<td align="left">RBC(Spleen)</td>
 <td align="left">MAT 5(Neutro)</td>
 <td align="left">Ly6+ mono(CITE)</td>
-<td align="left">Pre-B cycl(Spleen)</td>
+<td align="left">Ly6+ mono(CITE)</td>
 <td align="left">CD8 T(Spleen)</td>
 </tr>
 <tr class="even">
 <td align="left">HPC(BM)</td>
 <td align="left">HPC(BM)</td>
-<td align="left">T1(Neutro)</td>
 <td align="left">cDC(Spleen)</td>
 <td align="left">IMM 1(Neutro)</td>
-<td align="left">Ly6+ mono(CITE)</td>
+<td align="left">Pre-B cycl(Spleen)</td>
 <td align="left">pDC(Spleen)</td>
 </tr>
 <tr class="odd">
 <td align="left">IMM 1(Neutro)</td>
 <td align="left">Pre-B cycl(Spleen)</td>
-<td align="left">Cycl B/T(CITE)</td>
 <td align="left">Mono(BM)</td>
 <td align="left">Granulo(BM)</td>
 <td align="left">Imm NK(BM)</td>
