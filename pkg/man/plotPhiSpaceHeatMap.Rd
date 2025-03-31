@@ -15,6 +15,7 @@ plotPhiSpaceHeatMap(
   cluster_rows = FALSE,
   show_row_names = FALSE,
   show_column_names = TRUE,
+  row_title_rot = 0,
   ...
 )
 }
@@ -38,6 +39,8 @@ plotPhiSpaceHeatMap(
 \item{show_row_names}{Logic.}
 
 \item{show_column_names}{Logic.}
+
+\item{row_title_rot}{Rotation (angle) of row titles, inherited from \code{ComplexHeatmap::Heatmap}}
 
 \item{...}{Additional parameters adjusting the \code{ComplexHeatmap} object}
 }
