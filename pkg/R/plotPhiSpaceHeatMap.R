@@ -10,6 +10,7 @@
 #' @param cluster_rows Logic.
 #' @param show_row_names Logic.
 #' @param show_column_names Logic.
+#' @param row_title_rot Rotation (angle) of row titles, inherited from `ComplexHeatmap::Heatmap`
 #' @param ... Additional parameters adjusting the `ComplexHeatmap` object
 #'
 #' @return A heatmap of PhiSpace scores.
@@ -25,6 +26,7 @@ plotPhiSpaceHeatMap <- function(PhiSpaceScore,
                                 cluster_rows = FALSE,
                                 show_row_names = FALSE,
                                 show_column_names = TRUE,
+                                row_title_rot = 0,
                                 ...){
 
   phenoDict <-
@@ -70,7 +72,7 @@ plotPhiSpaceHeatMap <- function(PhiSpaceScore,
                           show_row_names = show_row_names,
                           show_column_names = show_column_names,
                           column_split = phenoDict$phenotypeCategory,
-                          row_split = rowSplit,
+                          row_split = rowSplit, row_title_rot = row_title_rot,
                           ...)
 
 
