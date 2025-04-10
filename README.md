@@ -16,7 +16,7 @@
 
 ## Resources
 
-Vignettes: [PhiSpace pkgdown site](jiadongm.github.io/PhiSpace/) 
+Vignettes: [PhiSpace pkgdown site](https://jiadongm.github.io/PhiSpace/) 
 
 Mao, Jiadong, Choi, Jarny and Lê Cao, Kim-Anh. (2025). Φ-Space ST: a platform-agnostic method to identify cell states in spatial transcriptomics studies. [*bioRxiv*](https://www.biorxiv.org/content/10.1101/2025.02.05.636735v1).
 
