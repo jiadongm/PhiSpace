@@ -1,0 +1,32 @@
+---
+title: "Annotation of scATAC-seq using scRNA-seq reference"
+author: "Jiadong Mao"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Annotation of scATAC-seq using scRNA-seq reference}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+# knitr::opts_chunk$set(eval = FALSE)
+```
+
+## Highlights
+
+- Bridge
+
+
+# Introduction
+
+
+
+
+
+
+
+
+
+
+

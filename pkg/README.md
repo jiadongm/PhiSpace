@@ -48,8 +48,8 @@ We have applied Φ-Space to many different use cases, including
 | :------ |    :------   | :------  | :------ |
 | bulk RNA-seq  |   scRNA-seq   |   | [Stemformatics DC atlas](articles/getting_started.html) |
 | scRNA-seq     |   scRNA-seq   |  | |
-| scRNA-seq     |   scATAC-seq  | requires a bimodal bridge dataset | |
-| CITE-seq (scRNA+Protein-seq)  |  CITE-seq   | using both modalities | |
+| scRNA-seq     |   scATAC-seq  | requires a bimodal bridge dataset | [Bridge annotation](articles/BridgeAnnotation.html) |
+| CITE-seq (scRNA+Protein-seq)  |  CITE-seq   | using both modalities | [Covid CITE-seq](articles/CITE-seq.html) |
 | scRNA-seq    |   supercellular spatial RNA-seq | e.g. 10x Visium, Slide-seqV2 | [Cell type deconvolution for Visium](articles/Visium.html) |
 | scRNA-seq    |   subcellular spatial RNA-seq (imaging-based) | e.g. CosMx, 10x Xenium | [CosMx lung cancer microenvironment](articles/CosMx.html) |
 | scRNA-seq    |   subcellular spatial RNA-seq (sequencing-based) | e.g. Stereo-seq, 10x Visium HD | [Stereo-seq AML mouse spleen with cancer lieage tracing](articles/StereoSeq.html) |

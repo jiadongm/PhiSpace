@@ -1,0 +1,32 @@
+---
+title: "Bimodal annotation using CITE-seq"
+author: "Jiadong Mao"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Bimodal annotation using CITE-seq}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+# knitr::opts_chunk$set(eval = FALSE)
+```
+
+## Highlights
+
+- CITE-seq
+
+
+# Introduction
+
+
+
+
+
+
+
+
+
+
+
