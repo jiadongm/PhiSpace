@@ -9,7 +9,7 @@
 #'
 #' @return UMAP coordinates.
 #' @export
-computUMAP <- function(
+computeUMAP <- function(
     dat,
     computPC = TRUE,
     ncomp = 30,
@@ -17,6 +17,8 @@ computUMAP <- function(
     scale = FALSE,
     config = NULL
 ){
+
+  if(is.null(rownames(dat))) warning("Rownames (sample names) of input data is null.")
 
   if(computPC){
 
@@ -30,8 +32,8 @@ computUMAP <- function(
 
   if(is.null(config)) config <- umap::umap.defaults
 
-  umap::umap(
-    dat, config = config
-  )$layout %>%
-    reNameCols()
+  out <- umap::umap(dat, config = config)$layout %>% reNameCols()
+  rownames(out) <- rownames(dat)
+
+  return(out)
 }
