@@ -6,8 +6,8 @@
 \usage{
 plotPhiSpaceHeatMap(
   PhiSpaceScore,
-  reference,
-  phenotypes,
+  phenoDict = NULL,
+  phenotypes = NULL,
   queryLabs = NULL,
   refLvls = NULL,
   queryLvls = NULL,
@@ -22,9 +22,9 @@ plotPhiSpaceHeatMap(
 \arguments{
 \item{PhiSpaceScore}{Matrix.}
 
-\item{reference}{\code{SingleCellExperiment} object.}
+\item{phenoDict}{}
 
-\item{phenotypes}{Character vector.}
+\item{phenotypes}{Optional. Types of phenotypes. If provided, has to be of the same length as phenoDict.}
 
 \item{queryLabs}{Character vector.}
 

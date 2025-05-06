@@ -1,8 +1,8 @@
 #' Plot PhiSpace scores as a heatmap
 #'
 #' @param PhiSpaceScore Matrix.
-#' @param reference `SingleCellExperiment` object.
-#' @param phenotypes Character vector.
+#' @param phenoDict A named list, categorising columns (phenotypes) in `PhiSpaceScore`. Total number of elements have to be identical to number of columns of `PhiSpaceScore`.
+#' @param phenotypes Optional. Types of phenotypes. If provided, has to be of the same length as phenoDict.
 #' @param queryLabs Character vector.
 #' @param refLvls Character vector.
 #' @param queryLvls Character vector.
@@ -12,12 +12,13 @@
 #' @param show_column_names Logic.
 #' @param row_title_rot Rotation (angle) of row titles, inherited from `ComplexHeatmap::Heatmap`
 #' @param ... Additional parameters adjusting the `ComplexHeatmap` object
+#' @param phenoDict
 #'
 #' @return A heatmap of PhiSpace scores.
 #' @export
 plotPhiSpaceHeatMap <- function(PhiSpaceScore,
-                                reference,
-                                phenotypes,
+                                phenoDict = NULL,
+                                phenotypes = NULL,
                                 queryLabs = NULL,
                                 refLvls = NULL,
                                 queryLvls = NULL,
@@ -29,14 +30,28 @@ plotPhiSpaceHeatMap <- function(PhiSpaceScore,
                                 row_title_rot = 0,
                                 ...){
 
-  phenoDict <-
-    data.frame(
-      labs = colnames(codeY(reference, phenotypes)),
-      phenotypeCategory =
-        rep(phenotypes,
-            apply(colData(reference)[,phenotypes,drop=F], 2, function(x) length(unique(x)))
-        )
+  if(!is.null(phenoDict)){
+
+    if(!is.null(phenotypes)){
+
+      if(length(phenoDict) != length(phenoDict)) stop("Length of phenotypes has to be the same as phenoDict.")
+      names(phenoDict) <- phenotypes
+    }
+
+    phenoDict <- data.frame(
+      labs = unlist(phenoDict),
+      phenotypeCategory = rep(names(phenoDict), sapply(phenoDict, length) )
     )
+
+  } else {
+
+    if(is.null(phenotypes)) phenotypes <- "phenotypes"
+    phenoDict <- data.frame(
+      labs = colnames(PhiSpaceScore),
+      phenotypeCategory = rep(phenotypes[1], ncol(PhiSpaceScore))
+    )
+
+  }
 
   if(is.null(refLvls)) refLvls <- phenoDict$labs
 
