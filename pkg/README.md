@@ -46,8 +46,9 @@ We have applied Φ-Space to many different use cases, including
 
 | Reference     |      Query    | Note   | Vignettes |
 | :------ |    :------   | :------  | :------ |
-| bulk RNA-seq  |   scRNA-seq   |   | [Stemformatics DC atlas](articles/getting_started.html) |
-| scRNA-seq     |   scRNA-seq   |  | |
+| bulk RNA-seq  |   scRNA-seq   | Dendritic cell development   | [Stemformatics DC atlas](articles/getting_started.html) |
+| bulk RNA-seq  |   scRNA-seq (Perturb-seq)   | T cell states development  | [Perturb-seq](articles/PerturbSeq.html) |
+| scRNA-seq     |   scRNA-seq   |  | TBC |
 | scRNA-seq     |   scATAC-seq  | requires a bimodal bridge dataset | [Bridge annotation](articles/BridgeAnnotation.html) |
 | CITE-seq (scRNA+Protein-seq)  |  CITE-seq   | using both modalities | [Covid CITE-seq](articles/CITE-seq.html) |
 | scRNA-seq    |   supercellular spatial RNA-seq | e.g. 10x Visium, Slide-seqV2 | [Cell type deconvolution for Visium](articles/Visium.html) |

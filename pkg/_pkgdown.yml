@@ -17,6 +17,7 @@ articles:
     desc: "Using bulk or single-cell RNA-seq references to annotate single-cell multiomics queries."
     contents:
       - getting_started
+      - PerturbSeq
       - CITE-seq
       - BridgeAnnotation
   - title: "PhiSpace ST: using PhiSpace for spatial transcriptomics"

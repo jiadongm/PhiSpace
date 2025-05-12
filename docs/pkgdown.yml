@@ -1,14 +1,15 @@
 pandoc: '3.2'
-pkgdown: 2.1.1
+pkgdown: 2.1.2
 pkgdown_sha: ~
 articles:
   BridgeAnnotation: BridgeAnnotation.html
   CITE-seq: CITE-seq.html
   CosMx: CosMx.html
   getting_started: getting_started.html
+  PerturbSeq: PerturbSeq.html
   StereoSeq: StereoSeq.html
   Visium: Visium.html
-last_built: 2025-04-28T23:52Z
+last_built: 2025-05-12T08:01Z
 urls:
   reference: https://jiadongm.github.io/PhiSpace/reference
   article: https://jiadongm.github.io/PhiSpace/articles
