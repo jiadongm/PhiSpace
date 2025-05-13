@@ -111,12 +111,7 @@ pseudoBulk <- function(
   colnames(XXagg) <- rownames(YYagg) <- paste0("PB", 1:ncol(XXagg))
 
   # Output
-  SingleCellExperiment(
-    list(counts = XXagg),
-    reducedDims = list(
-      response = YYagg
-    )
-  )
-
-
+  sce <- SingleCellExperiment(list(counts = XXagg), reducedDims = list(response = YYagg))
+  if(length(phenotypes)==1) colData(sce)[,phenotypes] <- getClass(YYagg)
+  return(sce)
 }
