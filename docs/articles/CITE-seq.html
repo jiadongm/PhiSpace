@@ -6,11 +6,12 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bimodal annotation using CITE-seq • PhiSpace</title>
-<!-- favicons --><link rel="icon" type="image/png" sizes="48x48" href="../favicon-48x48.png">
-<link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
-<link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
-<link rel="icon" sizes="any" href="../favicon.ico">
-<link rel="manifest" href="../site.webmanifest">
+<!-- favicons --><link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
+<link rel="apple-touch-icon" type="image/png" sizes="180x180" href="../apple-touch-icon.png">
+<link rel="apple-touch-icon" type="image/png" sizes="120x120" href="../apple-touch-icon-120x120.png">
+<link rel="apple-touch-icon" type="image/png" sizes="76x76" href="../apple-touch-icon-76x76.png">
+<link rel="apple-touch-icon" type="image/png" sizes="60x60" href="../apple-touch-icon-60x60.png">
 <!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- Bootstrap --><link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.4.0/cosmo/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="../bootstrap-toc.css">
 <script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
@@ -73,7 +74,7 @@
                         <h4 data-toc-skip class="author">Jiadong
 Mao</h4>
             
-            <h4 data-toc-skip class="date">2025-05-12</h4>
+            <h4 data-toc-skip class="date">2025-05-20</h4>
       
 
       <div class="hidden name"><code>CITE-seq.Rmd</code></div>
@@ -86,12 +87,369 @@ Mao</h4>
 <h3 id="highlights">Highlights<a class="anchor" aria-label="anchor" href="#highlights"></a>
 </h3>
 <ul>
-<li>CITE-seq</li>
+<li><p>CITE-seq (single-cell RNA + surface protein) reference and
+CITE-seq query</p></li>
+<li><p>Leveraging RNA and protein to define cell states in COVID-19
+patients</p></li>
+<li><p>Differential enrichment of cell populations in disease
+conditions</p></li>
 </ul>
 </div>
 <div class="section level2">
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
+<p>Cellular indexing of transcriptomes and epitopes by sequencing
+(CITE-seq) sequences gene expression and surface proteins. Surface
+protein expression provides important information about immune
+activities, eg serving as markers for immune cell types. The RNA
+modality of CITE-seq provides similar whole-transcriptome throughput as
+scRNA-seq; the protein modality provides measurement of 10–300 proteins
+(more recent datasets typically contain &gt;100 proteins).</p>
+<p>Surface proteins are uniquely identified by antibody-derived tags
+(ADTs) in CITE-seq. Hence it’s common to refer to the protein modality
+as ADT.</p>
+<p>In this case study we will apply PhiSpace to integrate two CITE-seq
+datasets from two cohorts of COVID-19 patients.</p>
+<ul>
+<li>Reference CITE-seq from <a href="https://www.nature.com/articles/s41591-021-01329-2" class="external-link">Stephenson et
+al. (2021)</a>;</li>
+<li>Query CITE-seq from <a href="https://onlinelibrary.wiley.com/doi/10.1002/eji.202350633" class="external-link">Barmada
+et al. (2024)</a>.</li>
+</ul>
+<p>The reference dataset contained samples from COVID patients with
+different disease severity, ranging from asymptotic to critical; the
+query dataset contained samples from samples from severe COVID patients
+with different pre-existing autoimmune conditions, including multiple
+sclerosis (MS), psoriasis (Ps) and rheumatoid arthritis (RA). The
+question we ask is how different cell types are enriched in different
+disease condtions (COVID severity and COVID+autoimmune condition).</p>
+<p>Processed data and additional R code needed to run this vignette can
+be downloaded <a href="https://www.dropbox.com/scl/fo/it8uwxd2v4k2lyoo936at/AKws5m_xeNjOOs8Vkho-wP8?rlkey=s4d5a7cfkl5sj9qiogc7mng5t&amp;st=w2x40u3p&amp;dl=0" class="external-link">here</a>.</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://jiadongm.github.io/PhiSpace/">PhiSpace</a></span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://magrittr.tidyverse.org" class="external-link">magrittr</a></span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://rpkgs.datanovia.com/ggpubr/" class="external-link">ggpubr</a></span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyr.tidyverse.org" class="external-link">tidyr</a></span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">RColorBrewer</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">dat_dir</span> <span class="op">&lt;-</span> <span class="st">"~/Dropbox/Research_projects/PhiSpace/VignetteData/CITE/"</span> <span class="co"># Replace this by your own directory </span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/source.html" class="external-link">source</a></span><span class="op">(</span><span class="st">"~/Dropbox/Research_projects/PhiSpace/VignetteData/CITE/utils.R"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="data-prepration-and-annotation">Data prepration and annotation<a class="anchor" aria-label="anchor" href="#data-prepration-and-annotation"></a>
+</h2>
+<p>The main idea of PhiSpace bimodal annotation is to use each reference
+modality to annotate each query modality. We are interested in cell type
+and disease severity and hence use these two as phenotypes. Since the
+ADT modality has only around 140 proteins, not enough to identify a
+large number of fine cell types, when annotating the query ADT modality
+we use the main cell types defined in reference.</p>
+<div class="section level3">
+<h3 id="adt-modality">ADT modality<a class="anchor" aria-label="anchor" href="#adt-modality"></a>
+</h3>
+<p>The ADT modality of both reference and query have been normalised
+using central log-ratio (CLR) transform via
+<code><a href="../reference/CLRnorm.html">PhiSpace::CLRnorm</a></code>.</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">PhiResPath</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">dat_dir</span>, <span class="st">"output/doublePhenoADTPhiRes.rds"</span><span class="op">)</span></span>
+<span><span class="va">reference</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">dat_dir</span>, <span class="st">"data/HaniffaADT.rds"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">query</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">dat_dir</span>,<span class="st">"data/Vento-Tormo/ADT.rds"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/files.html" class="external-link">file.exists</a></span><span class="op">(</span><span class="va">PhiResPath</span><span class="op">)</span><span class="op">)</span><span class="op">{</span></span>
+<span>  <span class="va">PhiSpaceAssay</span> <span class="op">&lt;-</span> <span class="st">"data"</span> <span class="co"># CLR normalised protein counts</span></span>
+<span>  <span class="va">YtrainName</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"initial_clustering"</span>, <span class="st">"Status_on_day_collection_summary"</span><span class="op">)</span></span>
+<span>  <span class="va">PhiResADT</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/PhiSpaceR_1ref.html">PhiSpaceR_1ref</a></span><span class="op">(</span></span>
+<span>    <span class="va">reference</span>, </span>
+<span>    query <span class="op">=</span> <span class="va">query</span>, </span>
+<span>    phenotypes <span class="op">=</span> <span class="va">YtrainName</span>, </span>
+<span>    PhiSpaceAssay <span class="op">=</span> <span class="va">PhiSpaceAssay</span>,</span>
+<span>    regMethod <span class="op">=</span> <span class="st">"PLS"</span>, </span>
+<span>    scale <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  <span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">saveRDS</a></span><span class="op">(</span><span class="va">PhiResADT</span>, <span class="va">PhiResPath</span><span class="op">)</span></span>
+<span>  </span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/gc.html" class="external-link">gc</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># free up unused RAM</span></span>
+<span><span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
+<span>  </span>
+<span>  <span class="va">PhiResADT</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="va">PhiResPath</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span></span>
+<span><span class="co"># Severity and autoimmune conditions</span></span>
+<span><span class="op">(</span><span class="va">severityNames</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">reference</span><span class="op">$</span><span class="va">Status_on_day_collection_summary</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] "Severe"       "Mild"         "Critical"     "Moderate"     "Healthy"     </span></span>
+<span><span class="co">## [6] "Asymptomatic" "LPS_90mins"   "LPS_10hours"  "Non_covid"</span></span></code></pre>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="op">(</span><span class="va">autoimmuneNames</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">query</span><span class="op">$</span><span class="va">Group</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] "Multiple Sclerosis"   "Rheumatoid Arthritis" "Control"             </span></span>
+<span><span class="co">## [4] "Psoriasis"</span></span></code></pre>
+<p>Note that ‘control’ here refers to COVID patients without
+pre-existing autoimmune conditions, not healthy donors.</p>
+</div>
+<div class="section level3">
+<h3 id="rna-modality">RNA modality<a class="anchor" aria-label="anchor" href="#rna-modality"></a>
+</h3>
+<p>The RNA modality of both reference and query has been scran
+normalised. The normalisation step took longer to run and required
+larger RAM, hence ommitted here. Running PhiSpace for the RNA modality
+requires larger RAM. If RAM limit reached, simply download the <a href="https://www.dropbox.com/scl/fo/te06yo9t538x6tjmq4vi1/ACcwJ0iFa2UPnrwAGgIqHFk?rlkey=o6iawpn710c5jyu3qbt449o5i&amp;st=x17nunkl&amp;dl=0" class="external-link">RDS
+file</a>.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">PhiResPath</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">dat_dir</span>, <span class="st">"output/doublePhenoRNAPhiRes.rds"</span><span class="op">)</span></span>
+<span><span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/files.html" class="external-link">file.exists</a></span><span class="op">(</span><span class="va">PhiResPath</span><span class="op">)</span><span class="op">)</span><span class="op">{</span></span>
+<span>  </span>
+<span>  <span class="va">reference</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">dat_dir</span>, <span class="st">"data/HaniffaRNA.rds"</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="va">query</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">dat_dir</span>, <span class="st">"data/Vento-Tormo/RNA.rds"</span><span class="op">)</span><span class="op">)</span></span>
+<span>  </span>
+<span>  <span class="va">PhiSpaceAssay</span> <span class="op">&lt;-</span> <span class="st">"logcounts"</span></span>
+<span>  <span class="va">YtrainName</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"full_clustering"</span>, <span class="st">"Status_on_day_collection_summary"</span><span class="op">)</span></span>
+<span>  <span class="va">PhiRes</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/PhiSpaceR_1ref.html">PhiSpaceR_1ref</a></span><span class="op">(</span></span>
+<span>    <span class="va">reference</span>, </span>
+<span>    query <span class="op">=</span> <span class="va">query</span>, </span>
+<span>    phenotypes <span class="op">=</span> <span class="va">YtrainName</span>, </span>
+<span>    PhiSpaceAssay <span class="op">=</span> <span class="va">PhiSpaceAssay</span>,</span>
+<span>    regMethod <span class="op">=</span> <span class="st">"PLS"</span></span>
+<span>  <span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">saveRDS</a></span><span class="op">(</span><span class="va">PhiRes</span>, <span class="va">PhiResPath</span><span class="op">)</span></span>
+<span>  </span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/gc.html" class="external-link">gc</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
+<span>  </span>
+<span>  <span class="va">PhiResRNA</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="va">PhiResPath</span><span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+</div>
+</div>
+<div class="section level2">
+<h2 id="phenotype-space-visualisations">Phenotype space visualisations<a class="anchor" aria-label="anchor" href="#phenotype-space-visualisations"></a>
+</h2>
+<p>The query CITE-seq data had strong batch effects, which had to be
+removed. <a href="https://onlinelibrary.wiley.com/doi/10.1002/eji.202350633" class="external-link">Barmada
+et al. (2024)</a> used totalVI for normalisation and batch correction.
+We loaded their UMAP:</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">ventoRNAumap</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">dat_dir</span>, <span class="st">"data/Vento-Tormo/ventoRNAumap.rds"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>Next we compute UMAP using PhiSpace embeddings. We compare UMAPs
+computed using RNA-derived, ADT-derived and bimodal PhiSpace
+embeddings.</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Subsetting for less computation</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">9183247</span><span class="op">)</span></span>
+<span><span class="va">idx</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">query</span><span class="op">)</span>, <span class="fl">10000</span><span class="op">)</span></span>
+<span><span class="va">quSubsetIdx</span> <span class="op">&lt;-</span> <span class="va">idx</span> <span class="co"># Store this object for future reference</span></span>
+<span></span>
+<span><span class="va">pathADT</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">dat_dir</span>, <span class="st">"output/doublePhenoADTPhiUMAPquery.rds"</span><span class="op">)</span></span>
+<span><span class="va">pathRNA</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">dat_dir</span>, <span class="st">"output/doublePhenoRNAPhiUMAPquery.rds"</span><span class="op">)</span></span>
+<span><span class="va">pathCombo</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">dat_dir</span>, <span class="st">"output/doublePhenoComboPhiUMAPquery.rds"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">YrefHatRNA_norm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/normPhiScores.html">normPhiScores</a></span><span class="op">(</span><span class="va">PhiResRNA</span><span class="op">$</span><span class="va">YrefHat</span><span class="op">)</span></span>
+<span><span class="va">YrefhatADT_norm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/normPhiScores.html">normPhiScores</a></span><span class="op">(</span><span class="va">PhiResADT</span><span class="op">$</span><span class="va">YrefHat</span><span class="op">)</span></span>
+<span><span class="va">PhiScRNA_norm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/normPhiScores.html">normPhiScores</a></span><span class="op">(</span><span class="va">PhiResRNA</span><span class="op">$</span><span class="va">PhiSpaceScore</span><span class="op">)</span></span>
+<span><span class="va">PhiScADT_norm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/normPhiScores.html">normPhiScores</a></span><span class="op">(</span><span class="va">PhiResADT</span><span class="op">$</span><span class="va">PhiSpaceScore</span><span class="op">)</span></span>
+<span></span>
+<span><span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/files.html" class="external-link">file.exists</a></span><span class="op">(</span><span class="va">pathADT</span><span class="op">)</span> <span class="op">&amp;</span> <span class="fu"><a href="https://rdrr.io/r/base/files.html" class="external-link">file.exists</a></span><span class="op">(</span><span class="va">pathRNA</span><span class="op">)</span> <span class="op">)</span><span class="op">)</span><span class="op">{</span></span>
+<span>  </span>
+<span>  <span class="va">umapPhiRNA_res</span> <span class="op">&lt;-</span> <span class="fu">umap</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/umap/man/umap.html" class="external-link">umap</a></span><span class="op">(</span><span class="va">PhiScRNA_norm</span><span class="op">[</span><span class="va">idx</span>,<span class="op">]</span><span class="op">)</span></span>
+<span>  <span class="va">umapPhiADT_res</span> <span class="op">&lt;-</span> <span class="fu">umap</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/umap/man/umap.html" class="external-link">umap</a></span><span class="op">(</span><span class="va">PhiScADT_norm</span><span class="op">[</span><span class="va">idx</span>,<span class="op">]</span><span class="op">)</span></span>
+<span>  </span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">saveRDS</a></span><span class="op">(</span><span class="va">umapPhiADT_res</span>, <span class="va">pathADT</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">saveRDS</a></span><span class="op">(</span><span class="va">umapPhiRNA_res</span>, <span class="va">pathRNA</span><span class="op">)</span></span>
+<span><span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
+<span>  </span>
+<span>  <span class="va">umapPhiADT_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="va">pathADT</span><span class="op">)</span></span>
+<span>  <span class="va">umapPhiRNA_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="va">pathRNA</span><span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+<p>To make the comparison with totalVI (Barmada et al., 2024) fairer, we
+computed the bimodal UMAP using 64 PCs of the PhiSpace embeddings, since
+64 was the number of latent variables in the totalVI model.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/files.html" class="external-link">file.exists</a></span><span class="op">(</span><span class="va">pathCombo</span><span class="op">)</span><span class="op">)</span><span class="op">{</span></span>
+<span>  </span>
+<span>  <span class="va">comboPCA_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/getPC.html">getPC</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">PhiScADT_norm</span>, <span class="va">PhiScRNA_norm</span><span class="op">)</span><span class="op">[</span><span class="va">idx</span>,<span class="op">]</span>, ncomp <span class="op">=</span> <span class="fl">64</span><span class="op">)</span> <span class="co"># number of latent variables used in totalVI</span></span>
+<span>  <span class="va">umapPhiCombo_res</span> <span class="op">&lt;-</span> <span class="fu">umap</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/umap/man/umap.html" class="external-link">umap</a></span><span class="op">(</span><span class="va">comboPCA_res</span><span class="op">$</span><span class="va">scores</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">saveRDS</a></span><span class="op">(</span><span class="va">umapPhiCombo_res</span>, <span class="va">pathCombo</span><span class="op">)</span></span>
+<span><span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
+<span>  </span>
+<span>  <span class="va">umapPhiCombo_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="va">pathCombo</span><span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+<p>For better visualisation, we define major cell types and
+corresponding colour code.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/source.html" class="external-link">source</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">dat_dir</span>, <span class="st">"majorCellTypes.R"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>Plot the UMAPS.</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">tempUMAPobj</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>layout <span class="op">=</span> <span class="va">ventoRNAumap</span><span class="op">[</span><span class="va">quSubsetIdx</span>, <span class="op">]</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Coloured by disease</span></span>
+<span><span class="va">colVar</span> <span class="op">&lt;-</span> <span class="st">"disease"</span></span>
+<span><span class="va">p11</span> <span class="op">&lt;-</span> <span class="fu">tempPlotUMAP</span><span class="op">(</span><span class="va">tempUMAPobj</span>, <span class="va">idx</span>, <span class="va">colVar</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">adjPlots</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">p21</span> <span class="op">&lt;-</span> <span class="fu">tempPlotUMAP</span><span class="op">(</span><span class="va">umapPhiRNA_res</span>, <span class="va">idx</span>, <span class="va">colVar</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">adjPlots</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html" class="external-link">ylim</a></span><span class="op">(</span><span class="op">-</span><span class="fl">8</span>,<span class="fl">8</span><span class="op">)</span></span>
+<span><span class="va">p31</span> <span class="op">&lt;-</span> <span class="fu">tempPlotUMAP</span><span class="op">(</span><span class="va">umapPhiADT_res</span>, <span class="va">idx</span>, <span class="va">colVar</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">adjPlots</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">p41</span> <span class="op">&lt;-</span> <span class="fu">tempPlotUMAP</span><span class="op">(</span><span class="va">umapPhiCombo_res</span>, <span class="va">idx</span>, <span class="va">colVar</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">adjPlots</span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Coloured by celltype</span></span>
+<span><span class="va">colVar</span> <span class="op">&lt;-</span> <span class="st">"celltype"</span></span>
+<span><span class="va">p12</span> <span class="op">&lt;-</span> <span class="fu">tempPlotUMAP</span><span class="op">(</span><span class="va">tempUMAPobj</span>, <span class="va">idx</span>, <span class="va">colVar</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">adjPlots</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">p22</span> <span class="op">&lt;-</span> <span class="fu">tempPlotUMAP</span><span class="op">(</span><span class="va">umapPhiRNA_res</span>, <span class="va">idx</span>, <span class="va">colVar</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">adjPlots</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html" class="external-link">ylim</a></span><span class="op">(</span><span class="op">-</span><span class="fl">8</span>,<span class="fl">8</span><span class="op">)</span></span>
+<span><span class="va">p32</span> <span class="op">&lt;-</span> <span class="fu">tempPlotUMAP</span><span class="op">(</span><span class="va">umapPhiADT_res</span>, <span class="va">idx</span>, <span class="va">colVar</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">adjPlots</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">p42</span> <span class="op">&lt;-</span> <span class="fu">tempPlotUMAP</span><span class="op">(</span><span class="va">umapPhiCombo_res</span>, <span class="va">idx</span>, <span class="va">colVar</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">adjPlots</span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Coloured by batch</span></span>
+<span><span class="va">colVar</span> <span class="op">&lt;-</span> <span class="st">"batch"</span></span>
+<span><span class="va">p13</span> <span class="op">&lt;-</span> <span class="fu">tempPlotUMAP</span><span class="op">(</span><span class="va">tempUMAPobj</span>, <span class="va">idx</span>, <span class="va">colVar</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">adjPlots</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">p23</span> <span class="op">&lt;-</span> <span class="fu">tempPlotUMAP</span><span class="op">(</span><span class="va">umapPhiRNA_res</span>, <span class="va">idx</span>, <span class="va">colVar</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">adjPlots</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html" class="external-link">ylim</a></span><span class="op">(</span><span class="op">-</span><span class="fl">8</span>,<span class="fl">8</span><span class="op">)</span></span>
+<span><span class="va">p33</span> <span class="op">&lt;-</span> <span class="fu">tempPlotUMAP</span><span class="op">(</span><span class="va">umapPhiADT_res</span>, <span class="va">idx</span>, <span class="va">colVar</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">adjPlots</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">p43</span> <span class="op">&lt;-</span> <span class="fu">tempPlotUMAP</span><span class="op">(</span><span class="va">umapPhiCombo_res</span>, <span class="va">idx</span>, <span class="va">colVar</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">adjPlots</span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rpkgs.datanovia.com/ggpubr/reference/ggarrange.html" class="external-link">ggarrange</a></span><span class="op">(</span><span class="va">p11</span>, <span class="va">p12</span>, <span class="va">p13</span>, nrow <span class="op">=</span> <span class="fl">1</span>, common.legend <span class="op">=</span> <span class="cn">F</span><span class="op">)</span></span>
+<span><span class="va">p2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rpkgs.datanovia.com/ggpubr/reference/ggarrange.html" class="external-link">ggarrange</a></span><span class="op">(</span><span class="va">p21</span>, <span class="va">p22</span>, <span class="va">p23</span>, nrow <span class="op">=</span> <span class="fl">1</span>, legend <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span> </span></code></pre></div>
+<pre><code><span><span class="co">## Warning: Removed 12 rows containing missing values or values outside the scale range</span></span>
+<span><span class="co">## (`geom_point()`).</span></span>
+<span><span class="co">## Removed 12 rows containing missing values or values outside the scale range</span></span>
+<span><span class="co">## (`geom_point()`).</span></span>
+<span><span class="co">## Removed 12 rows containing missing values or values outside the scale range</span></span>
+<span><span class="co">## (`geom_point()`).</span></span></code></pre>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">p3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rpkgs.datanovia.com/ggpubr/reference/ggarrange.html" class="external-link">ggarrange</a></span><span class="op">(</span><span class="va">p31</span>, <span class="va">p32</span>, <span class="va">p33</span>, nrow <span class="op">=</span> <span class="fl">1</span>,  legend <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span></span>
+<span><span class="va">p4</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rpkgs.datanovia.com/ggpubr/reference/ggarrange.html" class="external-link">ggarrange</a></span><span class="op">(</span><span class="va">p41</span>, <span class="va">p42</span>, <span class="va">p43</span>, nrow <span class="op">=</span> <span class="fl">1</span>,  legend <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rpkgs.datanovia.com/ggpubr/reference/ggarrange.html" class="external-link">ggarrange</a></span><span class="op">(</span><span class="va">p1</span>, <span class="va">p2</span>, <span class="va">p3</span>, <span class="va">p4</span>, nrow <span class="op">=</span> <span class="fl">4</span>, common.legend <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span></code></pre></div>
+<p><img src="CITE-seq_files/figure-html/unnamed-chunk-8-1.png" width="672"></p>
+<p>By comparing these UMAPs, we can see that the totalVI model in
+Barmada et al. (2024) (top row) indeed removed a lot of batch effects,
+but the cell types were not well-separated and the disease conditions
+were all mixed up. Again, we have seen a real-world case similar to that
+in the DC case study, where the batch effects and biology are entangled.
+Ideally there should be different disease conditions present in
+different experimental batches, so that we can be sure that the
+systematic differences between batches are due to technical noises.
+However, such experimental design principles cannot always be followed,
+especially in obtaining rare samples.</p>
+<p>In contrast, the reference based approaches (row 2, 3 and 4) attained
+better balance between removing batch effects and preserving biology. In
+particular, the ADT-derived phenotype space embeddings (3rd row) had
+less power distinguishing cell types, due to the lower throughput of the
+ADT modality. Combining RNA-derived and ADT-derived results achieved the
+best visual effects (4th row), since the the cell types were best
+separated while the disease conditions were still separable.</p>
+<p>These results demonstrated that our PhiSpace bimodal annotation is
+effective, despite its simplicity. In fact, this simple approach can
+also be applied using other cell type annotation methods such as Seurat
+(both V3 and V4) and scANVI. See our <a href="https://www.biorxiv.org/content/10.1101/2024.06.19.599787v1.full" class="external-link">paper</a>
+for more details.</p>
+</div>
+<div class="section level2">
+<h2 id="cell-type-enrichment-in-disease-conditions">Cell type enrichment in disease conditions<a class="anchor" aria-label="anchor" href="#cell-type-enrichment-in-disease-conditions"></a>
+</h2>
+<p>The annotation results above enable us to analyse how different
+immune cell types are enriched in different disease conditions.
+Conventional approaches are composition-based, namely they first figure
+out the proportions of different cell types in each sample, and then
+compare the cell type compositions under different conditions, ie
+conducting a differential composition analysis. This type of approach
+has an intrinsic drawback: they are sensitive to how the discrete
+<em>cell typing</em> is done. The differential composition analysis is
+essentially hypothesis testing of cell type proportions, which doesn’t
+take the uncertainty introduced by cell typing into account.</p>
+<p>Instead of counting cells in each predicted cell type category, we
+make our inference based on the continuous cell type scores. Again, our
+approach is general and can be used based on other annotation
+methods.</p>
+<p>The idea is very simple: we simply compute the median score of each
+cell type under each disease condition. Note that PhiSpace normalises
+the cell type scores to make sure that a cell type score has zero median
+across all cells. Hence if a cell type is significantly enriched under
+one condition, we should see median different from zero.</p>
+<p>First we redefine cell type and contion names to make them
+shorter.</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/jokergoo/ComplexHeatmap" class="external-link">ComplexHeatmap</a></span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/mhahsler/seriation" class="external-link">seriation</a></span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">typeNames</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">YrefHatRNA_norm</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">51</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="va">ADTtypeNames</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">YrefhatADT_norm</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">18</span><span class="op">]</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">refLabs</span> <span class="op">&lt;-</span> <span class="va">reference</span><span class="op">$</span><span class="va">Status_on_day_collection_summary</span></span>
+<span><span class="va">sev_lvls</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/levels.html" class="external-link">levels</a></span><span class="op">(</span><span class="va">refLabs</span><span class="op">)</span></span>
+<span><span class="va">sev_lvls_simp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Asymp"</span>, <span class="st">"Critical"</span>, <span class="st">"Healthy"</span>, <span class="st">"LPS10h"</span>, <span class="st">"LPS90m"</span>,<span class="st">"Mild"</span>, <span class="st">"Moderate"</span>, <span class="st">"NonCovid"</span>, <span class="st">"Severe"</span>  <span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/levels.html" class="external-link">levels</a></span><span class="op">(</span><span class="va">refLabs</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="va">sev_lvls_simp</span></span>
+<span><span class="va">condNames</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>  <span class="st">"Healthy"</span>, <span class="st">"LPS90m"</span>, <span class="st">"LPS10h"</span>, <span class="st">"NonCovid"</span>, <span class="st">"Asymp"</span>,</span>
+<span>  <span class="st">"Mild"</span>, <span class="st">"Moderate"</span>, <span class="st">"Severe"</span>, <span class="st">"Critical"</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">refLabs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">refLabs</span>,levels <span class="op">=</span> <span class="va">condNames</span><span class="op">)</span></span>
+<span><span class="va">quLabs</span> <span class="op">&lt;-</span> <span class="va">query</span><span class="op">$</span><span class="va">Group</span></span>
+<span><span class="va">dis_lvls</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/levels.html" class="external-link">levels</a></span><span class="op">(</span><span class="va">quLabs</span><span class="op">)</span></span>
+<span><span class="va">dis_lvls_simp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Control"</span>, <span class="st">"MS"</span>, <span class="st">"Ps"</span>, <span class="st">"RA"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/levels.html" class="external-link">levels</a></span><span class="op">(</span><span class="va">quLabs</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="va">dis_lvls_simp</span></span>
+<span></span>
+<span><span class="va">disNames</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Healthy"</span>, <span class="st">"Asymp"</span>, <span class="st">"Mild"</span>, <span class="st">"Moderate"</span>, <span class="st">"Severe"</span>, <span class="st">"Critical"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">sc_RNA_ref</span> <span class="op">&lt;-</span> <span class="fu">mk_sc</span><span class="op">(</span><span class="va">YrefHatRNA_norm</span>, <span class="va">typeNames</span>, <span class="va">refLabs</span><span class="op">)</span><span class="op">[</span>,<span class="va">disNames</span><span class="op">]</span></span>
+<span><span class="va">sc_ADT_ref</span> <span class="op">&lt;-</span> <span class="fu">mk_sc</span><span class="op">(</span><span class="va">YrefhatADT_norm</span>, <span class="va">ADTtypeNames</span>, <span class="va">refLabs</span><span class="op">)</span><span class="op">[</span>,<span class="va">disNames</span><span class="op">]</span></span>
+<span><span class="va">sc_RNA</span> <span class="op">&lt;-</span> <span class="fu">mk_sc</span><span class="op">(</span><span class="va">PhiScRNA_norm</span>, <span class="va">typeNames</span>, <span class="va">quLabs</span><span class="op">)</span></span>
+<span><span class="va">sc_ADT</span> <span class="op">&lt;-</span> <span class="fu">mk_sc</span><span class="op">(</span><span class="va">PhiScADT_norm</span>, <span class="va">ADTtypeNames</span>, <span class="va">quLabs</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/all.html" class="external-link">all</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">sc_RNA_ref</span><span class="op">)</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">sc_RNA</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] TRUE</span></span></code></pre>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">sc_RNA_ref</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">sc_RNA</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>  <span class="st">"ASDC"</span>, <span class="st">"B exhausted"</span>, <span class="st">"B immature"</span>, <span class="st">"B malignant"</span>,</span>
+<span>  <span class="st">"B naive"</span>, <span class="st">"B unswitched"</span>, <span class="st">"B swithced"</span>, <span class="st">"C1 CD16 mono"</span>,</span>
+<span>  <span class="st">"CD14 mono"</span>,       <span class="st">"CD16 mono"</span>,             <span class="st">"CD4 CM"</span>,                <span class="st">"CD4 EM"</span>,               </span>
+<span>  <span class="st">"CD4 IL22"</span>,              <span class="st">"CD4 naive"</span>,             <span class="st">"CD4 prolif"</span>,            <span class="st">"CD4 Tfh"</span>,              </span>
+<span>  <span class="st">"CD4 Th1"</span>,               <span class="st">"CD4 Th17"</span>,              <span class="st">"CD4 Th2"</span>,               <span class="st">"CD8 EM"</span>,               </span>
+<span>  <span class="st">"CD8 naive"</span>,             <span class="st">"CD8 prolif"</span>,            <span class="st">"CD8 TE"</span>,                <span class="st">"CD83CD14 mono"</span>,       </span>
+<span>  <span class="st">"DC prolif"</span>,             <span class="st">"DC1"</span>,                   <span class="st">"DC2"</span>,                   <span class="st">"DC3"</span>,                  </span>
+<span>  <span class="st">"gdT"</span>,                   <span class="st">"HSC CD38-"</span>,           <span class="st">"HSC CD38+"</span>,           <span class="st">"HSC erythroid"</span>,        </span>
+<span>  <span class="st">"HSC MK"</span>,                <span class="st">"HSC myeloid"</span>,           <span class="st">"HSC prolif"</span>,            <span class="st">"ILC1 3"</span>,               </span>
+<span>  <span class="st">"ILC2"</span>,                  <span class="st">"MAIT"</span>,                  <span class="st">"mono prolif"</span>,           <span class="st">"NK CD16+"</span>,              </span>
+<span>  <span class="st">"NK CD56+"</span>,               <span class="st">"NK prolif"</span>,             <span class="st">"NKT"</span>,                   <span class="st">"pDC"</span>,                  </span>
+<span>  <span class="st">"plasma IgA"</span>,       <span class="st">"plasma IgG"</span>,       <span class="st">"plasma IgM"</span>,       <span class="st">"plasmablast"</span>,          </span>
+<span>  <span class="st">"platelets"</span>,             <span class="st">"RBC"</span>,                   <span class="st">"Treg"</span>                 </span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/all.html" class="external-link">all</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">sc_ADT_ref</span><span class="op">)</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">sc_ADT</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] TRUE</span></span></code></pre>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">sc_ADT_ref</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">sc_ADT</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>  <span class="st">"B cell"</span>, <span class="st">"CD14 mono"</span>, <span class="st">"CD16 mono"</span>, <span class="st">"CD4 T"</span>, <span class="st">"CD8 T"</span>, <span class="st">"DC"</span>, <span class="st">"gdT"</span>,</span>
+<span>  <span class="st">"HSC"</span>,          <span class="st">"lymph prolif"</span>,  <span class="st">"MAIT"</span>,         <span class="st">"mono prolif"</span>,  <span class="st">"NK CD16+"</span>,      <span class="st">"NK CD56+"</span>,      <span class="st">"pDC"</span>, </span>
+<span>  <span class="st">"plasmablast"</span>,  <span class="st">"platelets"</span>,    <span class="st">"RBC"</span>,          <span class="st">"Treg"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>Then we plot heatmaps. A few patterns could be seen.</p>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu">tempCorHeat</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">sc_RNA_ref</span>, <span class="va">sc_RNA</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## Registered S3 method overwritten by 'gclus':</span></span>
+<span><span class="co">##   method         from     </span></span>
+<span><span class="co">##   reorder.hclust seriation</span></span></code></pre>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">p2</span> <span class="op">&lt;-</span> <span class="fu">tempCorHeat</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">sc_ADT_ref</span>, <span class="va">sc_ADT</span><span class="op">)</span>,<span class="st">"ADT derived"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">p11</span> <span class="op">&lt;-</span> <span class="fu">tempCorHeat</span><span class="op">(</span><span class="va">sc_RNA_ref</span>, clust_rows <span class="op">=</span> <span class="va">p1</span><span class="op">$</span><span class="va">clust_rows</span><span class="op">)</span><span class="op">$</span><span class="va">p</span></span>
+<span><span class="va">p21</span> <span class="op">&lt;-</span> <span class="fu">tempCorHeat</span><span class="op">(</span><span class="va">sc_ADT_ref</span>, <span class="st">"ADT derived"</span>, clust_rows <span class="op">=</span> <span class="va">p2</span><span class="op">$</span><span class="va">clust_rows</span><span class="op">)</span><span class="op">$</span><span class="va">plot</span></span>
+<span><span class="va">p12</span> <span class="op">&lt;-</span> <span class="fu">tempCorHeat</span><span class="op">(</span><span class="va">sc_RNA</span>, clust_rows <span class="op">=</span> <span class="va">p1</span><span class="op">$</span><span class="va">clust_rows</span><span class="op">)</span><span class="op">$</span><span class="va">p</span></span>
+<span><span class="va">p22</span> <span class="op">&lt;-</span> <span class="fu">tempCorHeat</span><span class="op">(</span><span class="va">sc_ADT</span>, <span class="st">"ADT derived"</span>, clust_rows <span class="op">=</span> <span class="va">p2</span><span class="op">$</span><span class="va">clust_rows</span><span class="op">)</span><span class="op">$</span><span class="va">plot</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/ComplexHeatmap/man/draw-dispatch.html" class="external-link">draw</a></span><span class="op">(</span><span class="va">p11</span> <span class="op"><a href="https://rdrr.io/pkg/ComplexHeatmap/man/pct_v_pct.html" class="external-link">%v%</a></span> <span class="va">p21</span>,heatmap_legend_side <span class="op">=</span> <span class="st">"top"</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## Warning: Heatmap/annotation names are duplicated: Median score</span></span></code></pre>
+<p><img src="CITE-seq_files/figure-html/unnamed-chunk-10-1.png" width="384"></p>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/ComplexHeatmap/man/draw-dispatch.html" class="external-link">draw</a></span><span class="op">(</span><span class="va">p12</span> <span class="op"><a href="https://rdrr.io/pkg/ComplexHeatmap/man/pct_v_pct.html" class="external-link">%v%</a></span> <span class="va">p22</span>, heatmap_legend_side <span class="op">=</span> <span class="st">"top"</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## Warning: Heatmap/annotation names are duplicated: Median score</span></span></code></pre>
+<p><img src="CITE-seq_files/figure-html/unnamed-chunk-10-2.png" width="384"></p>
+<p>We can further cluster different disease conditions, including COVID
+severity levels and types of autoimmune conditions, according to their
+cell type profiles. Intuitively, we cluster the columns of the heatmaps
+above.</p>
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sc_combo</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="va">sc_RNA_ref</span>, <span class="va">sc_ADT_ref</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="va">sc_RNA</span>, <span class="va">sc_ADT</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">clust_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/hclust.html" class="external-link">hclust</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/dist.html" class="external-link">dist</a></span><span class="op">(</span><span class="va">sc_combo</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu">ggdendro</span><span class="fu">::</span><span class="fu"><a href="https://andrie.github.io/ggdendro/reference/ggdendrogram.html" class="external-link">ggdendrogram</a></span><span class="op">(</span><span class="va">clust_res</span><span class="op">)</span></span></code></pre></div>
+<p><img src="CITE-seq_files/figure-html/unnamed-chunk-11-1.png" width="384"></p>
+<p>Clustering according to cell type profiles, we can see that mild to
+critical COVID severity were separated from healthy and asymptotic.
+Among autoimmune conditions, psoriasis (Ps) was closer to more severe
+COVID conditions, whereas multiple sclerosis (MS) and rhematoid
+arthritis (RA) closer to milder COVID conditions, both in terms of their
+cell type profiles.</p>
 </div>
   </div>
 
@@ -110,7 +468,7 @@ Mao</h4>
 
 <div class="pkgdown">
   <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
 </div>
 
       </footer>
