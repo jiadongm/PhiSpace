@@ -6,12 +6,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Annotation of scATAC-seq using scRNA-seq reference • PhiSpace</title>
-<!-- favicons --><link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
-<link rel="apple-touch-icon" type="image/png" sizes="180x180" href="../apple-touch-icon.png">
-<link rel="apple-touch-icon" type="image/png" sizes="120x120" href="../apple-touch-icon-120x120.png">
-<link rel="apple-touch-icon" type="image/png" sizes="76x76" href="../apple-touch-icon-76x76.png">
-<link rel="apple-touch-icon" type="image/png" sizes="60x60" href="../apple-touch-icon-60x60.png">
+<!-- favicons --><link rel="icon" type="image/png" sizes="48x48" href="../favicon-48x48.png">
+<link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+<link rel="icon" sizes="any" href="../favicon.ico">
+<link rel="manifest" href="../site.webmanifest">
 <!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- Bootstrap --><link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.4.0/cosmo/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="../bootstrap-toc.css">
 <script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
@@ -75,7 +74,7 @@ reference</h1>
                         <h4 data-toc-skip class="author">Jiadong
 Mao</h4>
             
-            <h4 data-toc-skip class="date">2025-05-20</h4>
+            <h4 data-toc-skip class="date">2025-05-22</h4>
       
 
       <div class="hidden name"><code>BridgeAnnotation.Rmd</code></div>
@@ -88,12 +87,262 @@ Mao</h4>
 <h3 id="highlights">Highlights<a class="anchor" aria-label="anchor" href="#highlights"></a>
 </h3>
 <ul>
-<li>Bridge</li>
+<li><p>ScRNA-seq reference + scATAC-seq query</p></li>
+<li><p>Utilising a bimodal bridge dataset</p></li>
+<li><p>Comprehensive benchmark study</p></li>
 </ul>
 </div>
 <div class="section level2">
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
+<p>Single-cell ATAC-seq (Assay for Transposase-Accessible Chromatin
+sequencing) measures chromatin accessibility across the genome. In the
+nucleus of each cell, each DNA chain is like a long thread wrapping
+around protein spools called histones. Each DNA-wrapped histone is known
+as a nucleosome – the basic unit of chromatin. Measuring the openness of
+chromatin regions tells us two things:</p>
+<ul>
+<li><p>Whether a gene can be transcribed. For a gene to be transcribed,
+the gene’s corresponding chromatin region has to be open, i.e. part of
+the DNA chain being unwound.</p></li>
+<li><p>Transcription factor (TF) footprints. TFs bind to gene regions to
+promote or suppress gene expression. ATAC-seq can infer which regions
+TFs are binding to.</p></li>
+</ul>
+<p>ScATAC-seq allows us to infer cell-type-specific gene regulations.
+Hence identifying cell types based on scATAC-seq is an important step.
+One common appraoch is to view ATAC-seq as surrogate for RNA-seq. That
+is, if a gene has more open regions, then we assume that it has more
+transcripts.</p>
+<p>In this case study, we use a reference-based approach to annotate
+cell types in scATAC-seq. This approach is inspired by bridge
+integration implemented in Seurat V5 (<a href="https://www.nature.com/articles/s41587-023-01767-y" class="external-link">Hao et al.,
+2024</a>). The idea is to transfer cell type annotations in scRNA-seq
+reference to scATAC-seq query, via a bimodal bridge dataset with matchcd
+RNA and ATAC features (e.g. generated from 10x multiome).</p>
+<p>We use</p>
+<ul>
+<li><p>Reference: BMMC (bone marrow mononuclear cell) scRNA-seq data set
+(<a href="https://www.cell.com/cell/fulltext/S0092-8674(19)30559-8?_returnURL=https%3A%2F%2Flinkinghub.elsevier.com%2Fretrieve%2Fpii%2FS0092867419305598%3Fshowall%3Dtrue" class="external-link">Stuart
+et al. (2019)</a>);</p></li>
+<li><p>Bridge and query: 10x multiome (scRNA+ATAC-seq) dataset with 13
+batches from <a href="https://datasets-benchmarks-proceedings.neurips.cc/paper/2021/hash/158f3069a435b314a80bdcb024f8e422-Abstract-round2.html" class="external-link">Leucken
+et al. (2021)</a>.</p></li>
+</ul>
+<p>In our <a href="https://www.biorxiv.org/content/10.1101/2024.06.19.599787v1.full" class="external-link">paper</a>
+we used a cross-validation (CV) scheme as follows. Each time we use one
+of the 13 batches of multiome data as the bridge dataset to facilitate
+the transfer of cell type annotations from the scRNA-seq reference to
+the remaining 12 batches of query scATAC-seq data (with their RNA part
+and ground truth cell type labels hidden). This allowed us to benchmark
+PhiSpace cross-modality annotation with Seurat V5. Here we simply show
+how PhiSpace bridge annotation can be done using one bridge and one
+query datasets.</p>
+<p>All data related to this case study can be downloaded <a href="https://www.dropbox.com/scl/fo/jeuqzjfyyr2j7doa922ve/AI-2U_wtZBpPGOswxMzReGQ?rlkey=n328yyr2llf81gz3chynjg0r6&amp;st=nb1svufg&amp;dl=0" class="external-link">here</a>.</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://jiadongm.github.io/PhiSpace/">PhiSpace</a></span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://magrittr.tidyverse.org" class="external-link">magrittr</a></span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://rpkgs.datanovia.com/ggpubr/" class="external-link">ggpubr</a></span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyr.tidyverse.org" class="external-link">tidyr</a></span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">RColorBrewer</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">dat_dir</span> <span class="op">&lt;-</span> <span class="st">"~/Dropbox/Research_projects/PhiSpace/VignetteData/ATAC/"</span> <span class="co"># Replace this by your own directory </span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/source.html" class="external-link">source</a></span><span class="op">(</span><span class="st">"~/Dropbox/Research_projects/PhiSpace/VignetteData/ATAC/utils.R"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="peaks-or-aggregated-peaks">Peaks or aggregated peaks?<a class="anchor" aria-label="anchor" href="#peaks-or-aggregated-peaks"></a>
+</h2>
+<p>ScATAC-seq data are often available in the peak by cell format, where
+a peak refers to a small region on the genome that are open in a
+significant number of cells (i.e. region of interest). Peaking calling,
+i.e. defining the peaks based on the raw sequencing data, is a
+sophisticated computational step and there are a few different
+approaches, which we cannot cover here. Peaks are often further
+aggregated to the gene level as a proxy of gene expression. That is,
+open peaks falling in the region of a certain gene are summed up as
+‘gene activity score’, approximating the expression level of that
+gene.</p>
+<p>In our paper, we demonstrated that gene activite scores (aggregted
+peaks) are more suitable for cell typing due to its enhanced data
+quality. Here we show PhiSpace cross-modality cell typing using both
+peaks and gene activity scores.</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">reference</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">dat_dir</span>, <span class="st">"data/obj.rna_for_refMap_sce.rds"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">bridgeRNA</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">dat_dir</span>, <span class="st">"data/bridgeRNA_s4d8.rds"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">bridgeATACpeaks</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">dat_dir</span>, <span class="st">"data/bridgeATACpeaks_s4d8.rds"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">bridgeGA</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">dat_dir</span>, <span class="st">"data/bridgeGA_s4d8.rds"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">queryPeaks</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">dat_dir</span>, <span class="st">"data/queryATACpeaks_s1d1.rds"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">queryGA</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">dat_dir</span>, <span class="st">"data/queryATAC_GA_s1d1.rds"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>Run PhiSpace to transfer annotations from reference scRNA-seq to
+bridge scRNA-seq (RNA part of the bimodal bridge dataset).</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">PhiResPath</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">dat_dir</span>, <span class="st">"output/PhiResRNA.rds"</span><span class="op">)</span></span>
+<span><span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/files.html" class="external-link">file.exists</a></span><span class="op">(</span><span class="va">PhiResPath</span><span class="op">)</span><span class="op">)</span><span class="op">{</span></span>
+<span>  <span class="va">PhiSpaceAssay</span> <span class="op">&lt;-</span> <span class="st">"logcounts"</span></span>
+<span>  <span class="va">YtrainName</span> <span class="op">&lt;-</span> <span class="st">"celltype.l2"</span></span>
+<span>  <span class="va">PhiRes</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/PhiSpaceR_1ref.html">PhiSpaceR_1ref</a></span><span class="op">(</span></span>
+<span>    <span class="va">reference</span>, </span>
+<span>    query <span class="op">=</span> <span class="va">bridgeRNA</span>, </span>
+<span>    phenotypes <span class="op">=</span> <span class="va">YtrainName</span>, </span>
+<span>    PhiSpaceAssay <span class="op">=</span> <span class="va">PhiSpaceAssay</span>,</span>
+<span>    regMethod <span class="op">=</span> <span class="st">"PLS"</span>,</span>
+<span>    scale <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  <span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">saveRDS</a></span><span class="op">(</span><span class="va">PhiRes</span>, <span class="va">PhiResPath</span><span class="op">)</span></span>
+<span><span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
+<span>  <span class="va">PhiRes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="va">PhiResPath</span><span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+<p>Note that the bridge dataset has now been annotated.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">bridgeAnn</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/normPhiScores.html">normPhiScores</a></span><span class="op">(</span><span class="va">PhiRes</span><span class="op">$</span><span class="va">PhiSpaceScore</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">bridgeAnn</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">##                               Prog_RBC        gdT    CD4 Naive  CD4 Memory</span></span>
+<span><span class="co">## TTCGCAACAATAATGG-14-s4d8 -0.1707345986  0.3142937  0.024318290 -0.13258113</span></span>
+<span><span class="co">## TATCCAGCAATTGAGA-14-s4d8 -0.0539900171  0.1223587 -0.079132130  0.25909237</span></span>
+<span><span class="co">## ACTCGCGCAAACTGTT-14-s4d8  0.0136845293 -0.1913396  0.074089946  0.01314921</span></span>
+<span><span class="co">## GACTATTCATGTCGCG-14-s4d8  0.1381644903 -0.1472680 -0.139126446 -0.11354641</span></span>
+<span><span class="co">## CTAATGTCATTGTTGG-14-s4d8  0.0006747695 -0.1353683 -0.003968247  0.34867338</span></span>
+<span><span class="co">## TGACCAAGTAGACAAA-14-s4d8 -0.1286231148  0.1834022 -0.300778458 -0.01186283</span></span>
+<span><span class="co">##                            CD14 Mono      Naive B    CD8 Naive        Treg</span></span>
+<span><span class="co">## TTCGCAACAATAATGG-14-s4d8 -0.03508110  0.177299624 -0.005793706 -0.18729220</span></span>
+<span><span class="co">## TATCCAGCAATTGAGA-14-s4d8  0.03920407  0.070065045  0.069233769  0.02057322</span></span>
+<span><span class="co">## ACTCGCGCAAACTGTT-14-s4d8  0.55715881 -0.004419651 -0.146966721  0.12118794</span></span>
+<span><span class="co">## GACTATTCATGTCGCG-14-s4d8  0.01349943  0.657490769  0.010944475 -0.01029004</span></span>
+<span><span class="co">## CTAATGTCATTGTTGG-14-s4d8 -0.02409488  0.015744293 -0.075164530  0.22040510</span></span>
+<span><span class="co">## TGACCAAGTAGACAAA-14-s4d8  0.21756821  0.081154893  0.405585859  0.05267516</span></span>
+<span><span class="co">##                          CD8 Effector_2          NK         GMP CD8 Effector_1</span></span>
+<span><span class="co">## TTCGCAACAATAATGG-14-s4d8    -0.19359786 -0.23114732  0.10532532    0.030164486</span></span>
+<span><span class="co">## TATCCAGCAATTGAGA-14-s4d8     0.10336668 -0.04702014 -0.01607817   -0.009467531</span></span>
+<span><span class="co">## ACTCGCGCAAACTGTT-14-s4d8     0.02719140 -0.06959604 -0.08155136    0.009924969</span></span>
+<span><span class="co">## GACTATTCATGTCGCG-14-s4d8     0.18685296 -0.10031176  0.03269648   -0.083924599</span></span>
+<span><span class="co">## CTAATGTCATTGTTGG-14-s4d8    -0.06730475  0.04239765 -0.02165142    0.161820780</span></span>
+<span><span class="co">## TGACCAAGTAGACAAA-14-s4d8    -0.25069804  0.32892606 -0.22216454    0.247644301</span></span>
+<span><span class="co">##                              CD16 Mono         pDC CD8 Memory_1        MAIT</span></span>
+<span><span class="co">## TTCGCAACAATAATGG-14-s4d8  0.0267491818  0.07519187   0.10838891  0.15693329</span></span>
+<span><span class="co">## TATCCAGCAATTGAGA-14-s4d8  0.0004520518  0.04187673   0.16961830  0.28565867</span></span>
+<span><span class="co">## ACTCGCGCAAACTGTT-14-s4d8  0.0401469480  0.07347996   0.03591260 -0.11384447</span></span>
+<span><span class="co">## GACTATTCATGTCGCG-14-s4d8  0.0956767357  0.08542073  -0.11933952  0.15696125</span></span>
+<span><span class="co">## CTAATGTCATTGTTGG-14-s4d8  0.0896238445 -0.03629314   0.09045062 -0.32292449</span></span>
+<span><span class="co">## TGACCAAGTAGACAAA-14-s4d8 -0.2205784394  0.06602202   0.03483928 -0.09627815</span></span>
+<span><span class="co">##                              Memory B        cDC2 CD56 bright NK    Prog_B 2</span></span>
+<span><span class="co">## TTCGCAACAATAATGG-14-s4d8 -0.018326246 -0.14549994     0.10604594  0.67305697</span></span>
+<span><span class="co">## TATCCAGCAATTGAGA-14-s4d8 -0.157773873 -0.03388604     0.11796970  0.08840598</span></span>
+<span><span class="co">## ACTCGCGCAAACTGTT-14-s4d8 -0.011452452 -0.02233130     0.05531265 -0.01953300</span></span>
+<span><span class="co">## GACTATTCATGTCGCG-14-s4d8 -0.009060715 -0.15772452    -0.19432405 -0.03411201</span></span>
+<span><span class="co">## CTAATGTCATTGTTGG-14-s4d8 -0.087183069  0.02049838    -0.07045638 -0.03339777</span></span>
+<span><span class="co">## TGACCAAGTAGACAAA-14-s4d8 -0.034366419  0.04425579     0.04903824 -0.01442982</span></span>
+<span><span class="co">##                              Prog_Mk CD8 Memory_2   Plasmablast          HSC</span></span>
+<span><span class="co">## TTCGCAACAATAATGG-14-s4d8 -0.05306825   0.11360104 -0.0368015817 -0.012091183</span></span>
+<span><span class="co">## TATCCAGCAATTGAGA-14-s4d8 -0.23100435  -0.01249257 -0.0136314348 -0.128567181</span></span>
+<span><span class="co">## ACTCGCGCAAACTGTT-14-s4d8  0.20827609   0.04596609  0.0014879483  0.153315573</span></span>
+<span><span class="co">## GACTATTCATGTCGCG-14-s4d8  0.02229154  -0.04417593 -0.0519034938 -0.008114113</span></span>
+<span><span class="co">## CTAATGTCATTGTTGG-14-s4d8  0.24471407   0.12718647  0.0486055125  0.077611859</span></span>
+<span><span class="co">## TGACCAAGTAGACAAA-14-s4d8 -0.37960088   0.28419243 -0.0006143916 -0.182652596</span></span>
+<span><span class="co">##                                  LMPP     Prog_DC    Prog_B 1</span></span>
+<span><span class="co">## TTCGCAACAATAATGG-14-s4d8  0.382422573  0.54725478  0.52730214</span></span>
+<span><span class="co">## TATCCAGCAATTGAGA-14-s4d8 -0.072865706  0.06203403  0.04468466</span></span>
+<span><span class="co">## ACTCGCGCAAACTGTT-14-s4d8  0.036138028 -0.06053255  0.12502706</span></span>
+<span><span class="co">## GACTATTCATGTCGCG-14-s4d8 -0.113021357 -0.16087069  0.01583117</span></span>
+<span><span class="co">## CTAATGTCATTGTTGG-14-s4d8 -0.005820409 -0.07928313  0.06925808</span></span>
+<span><span class="co">## TGACCAAGTAGACAAA-14-s4d8  0.001141363  0.03850285 -0.13583515</span></span></code></pre>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/rm.html" class="external-link">rm</a></span><span class="op">(</span><span class="va">PhiRes</span><span class="op">)</span>; <span class="fu"><a href="https://rdrr.io/r/base/gc.html" class="external-link">gc</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">##             used   (Mb) gc trigger   (Mb) limit (Mb)  max used   (Mb)</span></span>
+<span><span class="co">## Ncells   7048616  376.5   11571268  618.0         NA   9009361  481.2</span></span>
+<span><span class="co">## Vcells 452127734 3449.5  581760156 4438.5      18432 465231127 3549.5</span></span></code></pre>
+<p>Next we transfer this continuous annotation from bridge to query.
+Note that we use bridgeATACpeaks as reference in the following code to
+match the query. Peaks in both bridge and query have been normalised
+using <a href="https://stuartlab.org/signac/articles/pbmc_vignette" class="external-link">TF-IDF</a>.</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">PhiResPath</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">dat_dir</span>, <span class="st">"output/PhiResATACpeaks.rds"</span><span class="op">)</span></span>
+<span><span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/files.html" class="external-link">file.exists</a></span><span class="op">(</span><span class="va">PhiResPath</span><span class="op">)</span><span class="op">)</span><span class="op">{</span></span>
+<span>  <span class="va">PhiSpaceAssay</span> <span class="op">&lt;-</span> <span class="st">"data"</span></span>
+<span>  <span class="va">PhiRes</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/PhiSpaceR_1ref.html">PhiSpaceR_1ref</a></span><span class="op">(</span></span>
+<span>    reference <span class="op">=</span> <span class="va">bridgeATACpeaks</span>, </span>
+<span>    query <span class="op">=</span> <span class="va">queryPeaks</span>, </span>
+<span>    response <span class="op">=</span> <span class="va">bridgeAnn</span>,</span>
+<span>    PhiSpaceAssay <span class="op">=</span> <span class="va">PhiSpaceAssay</span>,</span>
+<span>    regMethod <span class="op">=</span> <span class="st">"PLS"</span>, </span>
+<span>    center <span class="op">=</span> <span class="cn">F</span>,</span>
+<span>    scale <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  <span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">saveRDS</a></span><span class="op">(</span><span class="va">PhiRes</span>, <span class="va">PhiResPath</span><span class="op">)</span></span>
+<span><span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
+<span>  <span class="va">PhiRes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="va">PhiResPath</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span><span class="va">PhiScPeaks</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/normPhiScores.html">normPhiScores</a></span><span class="op">(</span><span class="va">PhiRes</span><span class="op">$</span><span class="va">PhiSpaceScore</span><span class="op">)</span></span></code></pre></div>
+<p>Note that we set <code>center = F</code> here since centring would
+turn a sparse peak matrix to dense, consuming a lot of RAM. If you have
+enough RAM, centring is still encouraged.</p>
+<p>Alternatively, we can transfer continuous annotation via aggregated
+peaks or gene activity (GA) score.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">PhiResPath</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">dat_dir</span>, <span class="st">"output/PhiResATAC_GA.rds"</span><span class="op">)</span></span>
+<span><span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/files.html" class="external-link">file.exists</a></span><span class="op">(</span><span class="va">PhiResPath</span><span class="op">)</span><span class="op">)</span><span class="op">{</span></span>
+<span>  <span class="va">PhiSpaceAssay</span> <span class="op">&lt;-</span> <span class="st">"logcounts"</span></span>
+<span>  <span class="va">PhiRes</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/PhiSpaceR_1ref.html">PhiSpaceR_1ref</a></span><span class="op">(</span></span>
+<span>    reference <span class="op">=</span> <span class="va">bridgeRNA</span>, </span>
+<span>    query <span class="op">=</span> <span class="va">queryGA</span>, </span>
+<span>    response <span class="op">=</span> <span class="va">bridgeAnn</span>,</span>
+<span>    PhiSpaceAssay <span class="op">=</span> <span class="va">PhiSpaceAssay</span>,</span>
+<span>    regMethod <span class="op">=</span> <span class="st">"PLS"</span>, </span>
+<span>    center <span class="op">=</span> <span class="cn">T</span>,</span>
+<span>    scale <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  <span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">saveRDS</a></span><span class="op">(</span><span class="va">PhiRes</span>, <span class="va">PhiResPath</span><span class="op">)</span></span>
+<span><span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
+<span>  <span class="va">PhiRes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="va">PhiResPath</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span><span class="va">PhiScGA</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/normPhiScores.html">normPhiScores</a></span><span class="op">(</span><span class="va">PhiRes</span><span class="op">$</span><span class="va">PhiSpaceScore</span><span class="op">)</span></span></code></pre></div>
+<p>Now we can compare which annotation gave more accurate cell type
+annotation. An immediate problem is that the ground truth cell types for
+query were different from the reference cell types. Finding one-to-one
+correspondence between them is tricky. However, it’s possible to define
+broad cell types and align both sets of cell types with the broad cell
+types. This will also allow us to compare the accuracy of the
+peaks-based and GA-based approaches at the broad cell type level.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">refTypes_l2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">reference</span><span class="op">$</span><span class="va">celltype.l2</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="va">sort</span></span>
+<span><span class="va">refTypes_l1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span></span>
+<span>  <span class="va">refTypes_l2</span>,</span>
+<span>  <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">{</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">reference</span><span class="op">$</span><span class="va">celltype.l1</span><span class="op">[</span><span class="va">reference</span><span class="op">$</span><span class="va">celltype.l2</span> <span class="op">==</span> <span class="va">x</span><span class="op">]</span><span class="op">)</span></span>
+<span>  <span class="op">}</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">ref_lookup</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>l2 <span class="op">=</span> <span class="va">refTypes_l2</span>, l1 <span class="op">=</span> <span class="va">refTypes_l1</span><span class="op">)</span></span>
+<span><span class="co"># Query original annotations (ILC is hard to classify)</span></span>
+<span><span class="va">cellTypeTable</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">dat_dir</span>, <span class="st">"data/CellTypeTable.rds"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">queryTypes_l2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">cellTypeTable</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="va">sort</span></span>
+<span><span class="va">queryTypes_l1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>  <span class="st">"B cell"</span>, <span class="st">"Mono/DC"</span>, <span class="st">"Mono/DC"</span>, <span class="st">"T cell"</span>, <span class="st">"T cell"</span>,</span>
+<span>  <span class="st">"T cell"</span>, <span class="st">"T cell"</span>, <span class="st">"Mono/DC"</span>, <span class="st">"Progenitor cells"</span>, <span class="st">"Progenitor cells"</span>,</span>
+<span>  <span class="st">"Progenitor cells"</span>, <span class="st">"Progenitor cells"</span>, <span class="st">"ILC"</span>, <span class="st">"Progenitor cells"</span>, <span class="st">"Progenitor cells"</span>,</span>
+<span>  <span class="st">"B cell"</span>, <span class="st">"NK"</span>, <span class="st">"Progenitor cells"</span>, <span class="st">"Mono/DC"</span>, <span class="st">"B cell"</span>,</span>
+<span>  <span class="st">"Progenitor cells"</span>, <span class="st">"B cell"</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">query_lookup</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  l2 <span class="op">=</span> <span class="va">queryTypes_l2</span>,</span>
+<span>  l1 <span class="op">=</span> <span class="va">queryTypes_l1</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>Evaluate performances: calculating overall and balanced (per cell
+type average) classification errors. Indeed using aggregated peaks gave
+lower erros compared to using peaks.</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">originAnn</span> <span class="op">&lt;-</span> <span class="va">queryGA</span><span class="op">$</span><span class="va">cellType</span></span>
+<span><span class="va">originAnn_l1</span> <span class="op">&lt;-</span> <span class="va">query_lookup</span><span class="op">$</span><span class="va">l1</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/match.html" class="external-link">match</a></span><span class="op">(</span><span class="va">originAnn</span>, <span class="va">query_lookup</span><span class="op">$</span><span class="va">l2</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="co"># Translate PhiSpace labels</span></span>
+<span><span class="va">PhiSpaceAnn</span> <span class="op">&lt;-</span> <span class="va">PhiScGA</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="va">getClass</span></span>
+<span><span class="va">PhiSpaceAnn_l1</span> <span class="op">&lt;-</span> <span class="va">ref_lookup</span><span class="op">$</span><span class="va">l1</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/match.html" class="external-link">match</a></span><span class="op">(</span><span class="va">PhiSpaceAnn</span>, <span class="va">ref_lookup</span><span class="op">$</span><span class="va">l2</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="va">PhiSpaceAnnPeaks</span> <span class="op">&lt;-</span> <span class="va">PhiScPeaks</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="../reference/getClass.html">getClass</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">PhiSpaceANN_l1_peaks</span> <span class="op">&lt;-</span> <span class="va">ref_lookup</span><span class="op">$</span><span class="va">l1</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/match.html" class="external-link">match</a></span><span class="op">(</span><span class="va">PhiSpaceAnnPeaks</span>, <span class="va">ref_lookup</span><span class="op">$</span><span class="va">l2</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="fu">PhiSpace</span><span class="fu">:::</span><span class="fu"><a href="../reference/classErr.html">classErr</a></span><span class="op">(</span><span class="va">PhiSpaceAnn_l1</span>, <span class="va">originAnn_l1</span><span class="op">)</span><span class="op">$</span><span class="va">err</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] 0.2291131 0.3536215</span></span></code></pre>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">PhiSpace</span><span class="fu">:::</span><span class="fu"><a href="../reference/classErr.html">classErr</a></span><span class="op">(</span><span class="va">PhiSpaceANN_l1_peaks</span>, <span class="va">originAnn_l1</span><span class="op">)</span><span class="op">$</span><span class="va">err</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] 0.2892031 0.3978839</span></span></code></pre>
 </div>
   </div>
 
@@ -112,7 +361,7 @@ Mao</h4>
 
 <div class="pkgdown">
   <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
 </div>
 
       </footer>
