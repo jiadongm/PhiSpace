@@ -22,7 +22,7 @@ plotPhiSpaceHeatMap(
 \arguments{
 \item{PhiSpaceScore}{Matrix.}
 
-\item{phenoDict}{}
+\item{phenoDict}{A named list, categorising columns (phenotypes) in \code{PhiSpaceScore}. Total number of elements have to be identical to number of columns of \code{PhiSpaceScore}.}
 
 \item{phenotypes}{Optional. Types of phenotypes. If provided, has to be of the same length as phenoDict.}
 

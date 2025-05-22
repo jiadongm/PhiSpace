@@ -12,7 +12,6 @@
 #' @param show_column_names Logic.
 #' @param row_title_rot Rotation (angle) of row titles, inherited from `ComplexHeatmap::Heatmap`
 #' @param ... Additional parameters adjusting the `ComplexHeatmap` object
-#' @param phenoDict
 #'
 #' @return A heatmap of PhiSpace scores.
 #' @export
