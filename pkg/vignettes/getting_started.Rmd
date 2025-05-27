@@ -163,32 +163,35 @@ DC_cols_source <- c(
 
 ## Heatmap
 The most straightforward visualisation of phenotype space embeddings is heatmap. Sometimes a heatmap can already provide a lot of insights for interesting cell states. In PhiSpace package we have `plotPhiSpaceHeatMap`, which is a wrapper based on `ComplexHeatmap`. 
-```{r}
+```{r fig.width=6, fig.asp=1.2}
 PhiScores_norm <- reducedDim(query, "PhiSpace")
 queryLabs <- query$mainTypes
 queryLabs[queryLabs %in% c("Day9_SP", "Day9_DP")] <- "Day9"
 lvls <- c("DC1", "DC2", "pDC", "HEF", "Day3", "Day6", "Day9")
+phenoDict <- list(
+  cellType = sort(unique(reference$`Cell Type`)),
+  sampleSource = sort(unique(reference$`Sample Source`))
+)
 p <- plotPhiSpaceHeatMap(
-  PhiSpaceScore = PhiScores_norm,
-  reference = reference,
-  phenotypes = phenotypes,
+  PhiSpaceScore = PhiScores_norm, 
+  phenoDict = phenoDict,
   queryLabs = queryLabs, 
   queryLvls = lvls,
   column_names_rot = 20,
   name = "Phenotype space embedding",
-  row_names_gp = gpar(fontsize = 8),
-  column_names_gp = gpar(fontsize = 8),
+  row_names_gp = gpar(fontsize = 6),
+  column_names_gp = gpar(fontsize = 6),
   show_row_dend = F,
   show_column_dend = T,
   # row_title = row_title, 
-  row_title_gp = gpar(fontsize = 8),
-  column_title_gp = gpar(fontsize = 8, fontface = "bold"),
+  row_title_gp = gpar(fontsize = 6),
+  column_title_gp = gpar(fontsize = 6, fontface = "bold"),
   heatmap_legend_param = list(
     title_position = "leftcenter",
-    title_gp = gpar(fontsize = 10),
+    title_gp = gpar(fontsize = 6),
     grid_height = unit(2, "mm"),
     grid_width = unit(2, "mm"),
-    labels_gp = gpar(fontsize = 10),
+    labels_gp = gpar(fontsize = 5),
     legend_direction = "horizontal"
   )
 ) 
