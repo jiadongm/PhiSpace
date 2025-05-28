@@ -108,7 +108,7 @@ matrixPlot <- function(
         p_legend <- cowplot::get_legend(
           p + theme(
             legend.position = "right"
-          ) + guides(colour = guide_legend(title = legendTitle))
+          ) + labs(colour = legendTitle)
 
         )
       )
@@ -237,7 +237,7 @@ matrixPlot <- function(
           size = pointSize,
           shape = 16,
           stroke = 0
-        ) + guides(colour = guide_legend(title = legendTitle))
+        ) + labs(colour = legendTitle)
 
     }
 
@@ -291,7 +291,7 @@ matrixPlot <- function(
         scores %>%
         ggplot(aes(x = !! sym(var1), y = !! sym(var2))) +
         geom_point(aes(colour = colBy), size = pointSize, stroke = 0) +
-        theme_bw(base_size = fsize) + guides(colour = guide_legend(title = legendTitle)) +
+        theme_bw(base_size = fsize) + labs(colour = legendTitle) +
         theme(legend.position = legendPosition)
 
 
