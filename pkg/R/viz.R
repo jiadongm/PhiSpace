@@ -15,6 +15,7 @@
 #' @param returnPlotList Logical. Whether to return individual plots.
 #' @param legendTitle Legend title.
 #' @param compName Name of the components, default is "comp", so that the 1st column is named comp1 etc.
+#' @param legendPosition Location of the legend when plotting two scores.
 #'
 #' @export
 matrixPlot <- function(
@@ -29,7 +30,8 @@ matrixPlot <- function(
     fsize = 14,
     returnPlotList = F,
     legendTitle = "",
-    compName = "comp"
+    compName = "comp",
+    legendPosition = c("right", "left",  "bottom", "top", "inside", "none")
   ){
 
   if(is.null(max_ncomp) & is.null(comp_idx)){
@@ -104,9 +106,7 @@ matrixPlot <- function(
         p_legend <- cowplot::get_legend(
           p + theme(
             legend.position = "right"
-          ) + labs(
-            colour = legendTitle
-          )
+          ) + guides(colour = guide_legend(title = legendTitle))
 
         )
       )
@@ -235,10 +235,8 @@ matrixPlot <- function(
           size = pointSize,
           shape = 16,
           stroke = 0
-        ) +
-        labs(
-          colour = legendTitle
-        )
+        ) + guides(colour = guide_legend(title = legendTitle))
+
     }
 
 
@@ -281,7 +279,8 @@ matrixPlot <- function(
       p <- scores %>%
         ggplot(aes(x = !! sym(var1), y = !! sym(var2))) +
         geom_point(size = pointSize, stroke = 0) +
-        theme_bw(base_size = fsize)
+        theme_bw(base_size = fsize) +
+        theme(legend.position = legendPosition)
 
 
     } else {
@@ -290,14 +289,12 @@ matrixPlot <- function(
         scores %>%
         ggplot(aes(x = !! sym(var1), y = !! sym(var2))) +
         geom_point(aes(colour = colBy), size = pointSize, stroke = 0) +
-        theme_bw(base_size = fsize) +
-        labs(
-          colour = legendTitle
-        )
+        theme_bw(base_size = fsize) + guides(colour = guide_legend(title = legendTitle)) +
+        theme(legend.position = legendPosition)
+
 
       if(!is.null(manualCol)){
-        p <- p +
-          scale_color_manual(values = manualCol)
+        p <- p + scale_color_manual(values = manualCol)
       } else {
         if(is.numeric(colBy)) p <- p + scale_colour_gradientn(colours = MATLAB_cols)
       }

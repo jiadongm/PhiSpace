@@ -16,7 +16,8 @@ matrixPlot(
   fsize = 14,
   returnPlotList = F,
   legendTitle = "",
-  compName = "comp"
+  compName = "comp",
+  legendPosition = c("right", "left", "bottom", "top", "inside", "none")
 )
 }
 \arguments{
@@ -43,6 +44,8 @@ matrixPlot(
 \item{legendTitle}{Legend title.}
 
 \item{compName}{Name of the components, default is "comp", so that the 1st column is named comp1 etc.}
+
+\item{legendPosition}{Location of the legend when plotting two scores.}
 }
 \description{
 Density and pairwise scatter plots for visualising score matrices.
