@@ -34,6 +34,8 @@ matrixPlot <- function(
     legendPosition = c("right", "left",  "bottom", "top", "inside", "none")
   ){
 
+  legendPosition <- match.arg(legendPosition)
+
   if(is.null(max_ncomp) & is.null(comp_idx)){
     stop("Need to specify either max_ncomp or comp_idx.")
   }
