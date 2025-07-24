@@ -9,7 +9,8 @@ PhiSpace(
   query,
   phenotypes = NULL,
   response = NULL,
-  PhiSpaceAssay = "rank",
+  refAssay = "rank",
+  queryAssay = NULL,
   regMethod = c("PLS", "PCA"),
   ncomp = NULL,
   nfeat = NULL,
@@ -18,20 +19,21 @@ PhiSpace(
   scale = FALSE,
   DRinfo = FALSE,
   storeUnNorm = FALSE,
-  updateRef = FALSE,
-  assay2rank = NULL
+  updateRef = FALSE
 )
 }
 \arguments{
-\item{reference}{The references. A \code{SingleCellExperiment} (SCE) object or a list of SCE objects. Each must contain an assay named by \code{PhiSpaceAssay}.}
+\item{reference}{The references. A \code{SingleCellExperiment} (SCE) object or a list of SCE objects. Each must contain an assay named by \code{refAssay}.}
 
-\item{query}{The queries. An SCE object or a list of SCE object. Each must contain an assay named by \code{PhiSpaceAssay}.}
+\item{query}{The queries. An SCE object or a list of SCE object. Each must contain an assay named by \code{queryAssay}.}
 
 \item{phenotypes}{Which phenotypes (e.g. "cell type") to predict. If \code{NULL}, then have to specify \code{response}.}
 
 \item{response}{Named matrix. Rows correpond to cells (columns) in reference; columns correspond to phenotypes. If not \code{NULL}, then will override \code{phenotypes}.}
 
-\item{PhiSpaceAssay}{Character. Which assay to use to train.}
+\item{refAssay}{Character. Which assay in reference to use to train PhiSpace.}
+
+\item{queryAssay}{Character. Which assay in query to use to predict.}
 
 \item{regMethod}{Character. Regression method: one of "PLS" and "PCA".}
 
@@ -50,8 +52,6 @@ PhiSpace(
 \item{storeUnNorm}{Store unnormalised raw PhiSpace scores or not. Default is \code{FALSE}.}
 
 \item{updateRef}{Update reference (store reference PhiSpace scores in reference sce object) or not.}
-
-\item{assay2rank}{Which assay should be used for rank transform. If not specified, "rank" will be used.}
 }
 \value{
 \itemize{

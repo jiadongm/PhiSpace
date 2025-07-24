@@ -4,7 +4,8 @@
 #' @param query SCE or a list of SCE. The query.
 #' @param phenotypes Charater. Which types of phenotypes to predict. If `NULL`, then have to specify `response`. Currently only support categorical phenotypes. For continuous ones, specify `response` directly.
 #' @param response Named matrix. Rows correspond to cells (columns) in reference; columns correspond to phenotypes. If not `NULL`, then will override `phenotypes`. Can be continuous values such as age and BMI.
-#' @param PhiSpaceAssay Character. Which assay to use to train
+#' @param refAssay Character. Which assay in reference to use to train PhiSpace
+#' @param queryAssay Character. Which assay in query to use for prediction; by default same as refAssay
 #' @param regMethod Character. Regression method: one of PLS and PCA
 #' @param ncomp Integer.
 #' @param nfeat Integer.
@@ -12,7 +13,6 @@
 #' @param center Logic.
 #' @param scale Logic.
 #' @param DRinfo Logic. Whether to return dimension reduction information from PCA or PLS. Disable to save memory.
-#' @param assay2rank Which assay should be used for rank transform. If not specified, "rank" will be used.
 #'
 #' @return A list
 #'
@@ -22,32 +22,28 @@ PhiSpaceR_1ref <- function(
     query,
     phenotypes = NULL,
     response = NULL,
-    PhiSpaceAssay = "rank",
+    refAssay = "log1p",
+    queryAssay = NULL,
     regMethod = c("PLS", "PCA"),
     ncomp = NULL,
     nfeat = NULL,
     selectedFeat = NULL,
     center = TRUE,
     scale = FALSE,
-    DRinfo = FALSE,
-    assay2rank = NULL
+    DRinfo = FALSE
 ){
 
   if(!inherits(query, "list")) query <- list(query)
 
-  # Check if PhiSpaceAssya exists (doens't matter if PhiSpaceAssay == "rank", see below)
-  if(PhiSpaceAssay != "rank"){
-
-    if(!(PhiSpaceAssay %in% assayNames(reference))) stop("PhiSpaceAssay is not present in reference.")
-  }
+  # Check if PhiSpaceAssya exists
+  if(is.null(queryAssay)) queryAssay <- refAssay
+  if(!(refAssay %in% assayNames(reference))) stop("refAssay is not present in reference.")
+  if(!(queryAssay %in% assayNames(query))) stop("queryAssay is not present in reference.")
 
   # Intersection of names of assays in all queries
   allAssayNames <- lapply(query, assayNames)
   allAssayNames <- Reduce(intersect, allAssayNames)
-  if(PhiSpaceAssay != "rank"){
-
-    if(!(PhiSpaceAssay %in% allAssayNames)) stop("PhiSpaceAssay needs to be present in every query.")
-  }
+  if(!(queryAssay %in% allAssayNames)) stop("queryAssay needs to be present in every query.")
 
 
   regMethod <- match.arg(regMethod)
@@ -82,19 +78,6 @@ PhiSpaceR_1ref <- function(
   reference <- reference[featNames,]
   query <- lapply(query, function(x) x[featNames, ])
 
-  if(PhiSpaceAssay == "rank"){
-
-    if(is.null(assay2rank)){
-
-      assay2rank <- "rank"
-    }
-
-    if(!(assay2rank %in% assayNames(reference))) stop("assay2rank is not present in reference; specify a different assay2rank.")
-
-    reference <- RankTransf(reference, assay2rank)
-    query <- lapply(query, RankTransf, assayname = assay2rank)
-  }
-
   ## Build atlas
   if(is.null(ncomp)) ncomp <- ncol(YY)
 
@@ -109,11 +92,13 @@ PhiSpaceR_1ref <- function(
   } else {
 
     if(!is.null(nfeat)){ # if nfeat has been specified
-      impScores <- mvr(t(assay(reference, PhiSpaceAssay)),
-                       YY,
-                       ncomp,
-                       method = regMethod,
-                       center = center, scale = scale)$coefficients[,,ncomp]
+      impScores <- mvr(
+        t(assay(reference, refAssay)),
+        YY,
+        ncomp,
+        method = regMethod,
+        center = center, scale = scale
+      )$coefficients[,,ncomp]
       selectedFeat <- selectFeat(impScores, nfeat)$selectedFeat
     } else {
 
@@ -129,7 +114,7 @@ PhiSpaceR_1ref <- function(
     YY = YY,
     ncomp = ncomp,
     selectedFeat = selectedFeat,
-    assayName = PhiSpaceAssay,
+    assayName = refAssay,
     regMethod = regMethod,
     center = center,
     scale = scale,
@@ -142,18 +127,18 @@ PhiSpaceR_1ref <- function(
   }
 
   YrefHat <- phenotype(
-    phenoAssay = t(assay(reference, PhiSpaceAssay)),
+    phenoAssay = t(assay(reference, refAssay)),
     atlas_re = atlas_re,
-    assayName = PhiSpaceAssay
+    assayName = refAssay
   )
   ## Project query
   PhiSpaceScore_l <- lapply(
     query,
     function(x){
       phenotype(
-        phenoAssay = t(assay(x, PhiSpaceAssay)),
+        phenoAssay = t(assay(x, queryAssay)),
         atlas_re = atlas_re,
-        assayName = PhiSpaceAssay
+        assayName = queryAssay
       )
     }
   )

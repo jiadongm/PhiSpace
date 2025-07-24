@@ -9,15 +9,15 @@ PhiSpaceR_1ref(
   query,
   phenotypes = NULL,
   response = NULL,
-  PhiSpaceAssay = "rank",
+  refAssay = "log1p",
+  queryAssay = NULL,
   regMethod = c("PLS", "PCA"),
   ncomp = NULL,
   nfeat = NULL,
   selectedFeat = NULL,
   center = TRUE,
   scale = FALSE,
-  DRinfo = FALSE,
-  assay2rank = NULL
+  DRinfo = FALSE
 )
 }
 \arguments{
@@ -29,7 +29,9 @@ PhiSpaceR_1ref(
 
 \item{response}{Named matrix. Rows correspond to cells (columns) in reference; columns correspond to phenotypes. If not \code{NULL}, then will override \code{phenotypes}. Can be continuous values such as age and BMI.}
 
-\item{PhiSpaceAssay}{Character. Which assay to use to train}
+\item{refAssay}{Character. Which assay in reference to use to train PhiSpace}
+
+\item{queryAssay}{Character. Which assay in query to use for prediction; by default same as refAssay}
 
 \item{regMethod}{Character. Regression method: one of PLS and PCA}
 
@@ -44,8 +46,6 @@ PhiSpaceR_1ref(
 \item{scale}{Logic.}
 
 \item{DRinfo}{Logic. Whether to return dimension reduction information from PCA or PLS. Disable to save memory.}
-
-\item{assay2rank}{Which assay should be used for rank transform. If not specified, "rank" will be used.}
 }
 \value{
 A list

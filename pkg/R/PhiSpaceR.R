@@ -3,11 +3,12 @@
 #' PhiSpace annotates a query dataset or a list of query datasets, given an annotated bulk or single-cell
 #' RNA-seq references. PhiSpace can simultaneously model multiple layers of cell phenotypes, e.g. cell type and disease condtion.
 #'
-#' @param reference The references. A `SingleCellExperiment` (SCE) object or a list of SCE objects. Each must contain an assay named by `PhiSpaceAssay`.
-#' @param query The queries. An SCE object or a list of SCE object. Each must contain an assay named by `PhiSpaceAssay`.
+#' @param reference The references. A `SingleCellExperiment` (SCE) object or a list of SCE objects. Each must contain an assay named by `refAssay`.
+#' @param query The queries. An SCE object or a list of SCE object. Each must contain an assay named by `queryAssay`.
 #' @param phenotypes Which phenotypes (e.g. "cell type") to predict. If `NULL`, then have to specify `response`.
 #' @param response Named matrix. Rows correpond to cells (columns) in reference; columns correspond to phenotypes. If not `NULL`, then will override `phenotypes`.
-#' @param PhiSpaceAssay Character. Which assay to use to train.
+#' @param refAssay Character. Which assay in reference to use to train PhiSpace.
+#' @param queryAssay Character. Which assay in query to use to predict.
 #' @param regMethod Character. Regression method: one of "PLS" and "PCA".
 #' @param ncomp Integer. Number of components. If `NULL`, will use the default, i.e. same as the total number of phenotypes.
 #' @param nfeat Integer. Number of features to choose to predict each phenotype. See details.
@@ -17,7 +18,6 @@
 #' @param DRinfo Logic. Whether to return dimension reduction information from PCA or PLS. By default disabled to save memory.
 #' @param storeUnNorm Store unnormalised raw PhiSpace scores or not. Default is `FALSE`.
 #' @param updateRef Update reference (store reference PhiSpace scores in reference sce object) or not.
-#' @param assay2rank Which assay should be used for rank transform. If not specified, "rank" will be used.
 #'
 #' @return
 #' - If `updateRef = FALSE` (default): An updated query SCE object with PhiSpace annotation results stored in reducedDim slot "PhiSpace";
@@ -48,7 +48,8 @@ PhiSpace <- function(
     query,
     phenotypes = NULL,
     response = NULL,
-    PhiSpaceAssay = "rank",
+    refAssay = "rank",
+    queryAssay = NULL,
     regMethod = c("PLS", "PCA"),
     ncomp = NULL,
     nfeat = NULL,
@@ -57,8 +58,7 @@ PhiSpace <- function(
     scale = FALSE,
     DRinfo = FALSE,
     storeUnNorm = FALSE,
-    updateRef = FALSE,
-    assay2rank = NULL
+    updateRef = FALSE
 ){
 
   # Check if multiple references are provided
@@ -84,15 +84,15 @@ PhiSpace <- function(
         query = query,
         phenotypes = phenotypes,
         response = response,
-        PhiSpaceAssay = PhiSpaceAssay,
+        refAssay = refAssay,
+        queryAssay = queryAssay,
         regMethod = regMethod,
         ncomp = ncomp,
         nfeat = nfeat,
         selectedFeat = selectedFeat,
         center = center,
         scale = scale,
-        DRinfo = DRinfo,
-        assay2rank = assay2rank
+        DRinfo = DRinfo
       )
 
       # Rename cell type names by appending reference dataset name
@@ -150,15 +150,15 @@ PhiSpace <- function(
       query = query,
       phenotypes = phenotypes,
       response = response,
-      PhiSpaceAssay = PhiSpaceAssay,
+      refAssay = refAssay,
+      queryAssay = queryAssay,
       regMethod = regMethod,
       ncomp = ncomp,
       nfeat = nfeat,
       selectedFeat = selectedFeat,
       center = center,
       scale = scale,
-      DRinfo = DRinfo,
-      assay2rank = assay2rank
+      DRinfo = DRinfo
     )
 
     if(!is.list(query)){
