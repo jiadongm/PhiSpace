@@ -1,5 +1,7 @@
 #' Relative counts normalisation.
 #'
+#' Do log1p normalisation by default.
+#'
 #' @param sce SingleCellExperiment object.
 #' @param assayName Character.
 #' @param targetAssay Character.
@@ -14,8 +16,8 @@ logTransf <- function(
     sce,
     scalFactor = 10000,
     assayName = "counts",
-    targetAssay = "data",
-    use_log1p = FALSE,
+    targetAssay = "log1p",
+    use_log1p = TRUE,
     sparse = TRUE
 ){
 

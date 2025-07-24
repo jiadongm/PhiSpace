@@ -8,8 +8,8 @@ logTransf(
   sce,
   scalFactor = 10000,
   assayName = "counts",
-  targetAssay = "data",
-  use_log1p = FALSE,
+  targetAssay = "log1p",
+  use_log1p = TRUE,
   sparse = TRUE
 )
 }
@@ -30,5 +30,5 @@ logTransf(
 A SingleCellExperiment object containing a new assay after relative counts normalisation.
 }
 \description{
-Relative counts normalisation.
+Do log1p normalisation by default.
 }
