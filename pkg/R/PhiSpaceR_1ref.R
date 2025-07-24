@@ -35,12 +35,11 @@ PhiSpaceR_1ref <- function(
 
   if(!inherits(query, "list")) query <- list(query)
 
-  # Check if PhiSpaceAssya exists
+  # Check if refAssay is in reference
   if(is.null(queryAssay)) queryAssay <- refAssay
   if(!(refAssay %in% assayNames(reference))) stop("refAssay is not present in reference.")
-  if(!(queryAssay %in% assayNames(query))) stop("queryAssay is not present in reference.")
 
-  # Intersection of names of assays in all queries
+  # Check if queryAssay is in all queries
   allAssayNames <- lapply(query, assayNames)
   allAssayNames <- Reduce(intersect, allAssayNames)
   if(!(queryAssay %in% allAssayNames)) stop("queryAssay needs to be present in every query.")
