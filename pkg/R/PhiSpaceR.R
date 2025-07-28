@@ -117,7 +117,7 @@ PhiSpace <- function(
       }
 
       sc_list[[refDataName]] <- sc_norm
-      if(storeUnNorm) scUnnorm_list [[refDataName]] <- sc
+      if(storeUnNorm) scUnnorm_list[[refDataName]] <- sc
     }
 
 
@@ -141,7 +141,7 @@ PhiSpace <- function(
       if(storeUnNorm) reducedDim(query, "PhiSpaceNonNorm") <-  Reduce(cbind, scUnnorm_list)
     }
 
-
+    return(query)
 
   } else { # If single reference was provided
 
