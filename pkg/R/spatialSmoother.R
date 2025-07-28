@@ -12,7 +12,9 @@
 #' @param kernel Kernel function: "gaussian", "uniform", or "linear" (default: "gaussian")
 #' @param sigma Bandwidth parameter for Gaussian kernel (default: auto-computed)
 #' @param include_self Whether to include the cell itself in smoothing (default: TRUE)
+#'
 #' @return Modified object with new smoothed assay or reduced dimension
+#' @export
 spatialSmoother <- function(object,
                             assay2smooth = "logcounts",
                             smoothedAssay = NULL,
