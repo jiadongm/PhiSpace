@@ -16,7 +16,8 @@ spatialSmoother(
   k = 10,
   kernel = "linear",
   sigma = NULL,
-  include_self = TRUE
+  include_self = TRUE,
+  verbose = TRUE
 )
 }
 \arguments{
@@ -43,6 +44,8 @@ spatialSmoother(
 \item{sigma}{Bandwidth parameter for Gaussian kernel (default: auto-computed)}
 
 \item{include_self}{Whether to include the cell itself in smoothing (default: TRUE)}
+
+\item{verbose}{Show progress bar or not.}
 }
 \value{
 Modified object with new smoothed assay or reduced dimension
