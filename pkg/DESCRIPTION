@@ -35,9 +35,13 @@ Imports:
     S4Vectors
 Suggests: 
     testthat (>= 3.0.0)
-Additional_repositories: 
-    https://bioconductor.org/packages/release/bioc,
-    https://bioconductor.org/packages/release/data/annotation,
-    https://bioconductor.org/packages/release/data/experiment
+Remotes: 
+    bioc::ComplexHeatmap,
+    bioc::SummarizedExperiment,
+    bioc::SingleCellExperiment,
+    bioc::SpatialExperiment,
+    bioc::scran,
+    bioc::scuttle,
+    bioc::S4Vectors
 Config/testthat/edition: 3
 URL: https://jiadongm.github.io/PhiSpace/
