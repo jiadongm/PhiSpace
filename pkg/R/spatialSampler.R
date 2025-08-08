@@ -11,7 +11,7 @@
 #' @param grid_size Number of grid cells per dimension for grid method (default: auto-calculated)
 #' @param seed Random seed for reproducibility (default: 123)
 #' @param min_cells_per_region Minimum cells required per spatial region (default: 1)
-#' @param balance_regions Whether to balance sampling across spatial regions (default: TRUE)
+#' @param balance_regions Whether to balance sampling across spatial regions (default: FALSE; if true, might create duplicated spatial units)
 #'
 #' @return Subsampled SpatialExperiment object
 #'
@@ -22,7 +22,7 @@ spatialSampler <- function(spe,
                            grid_size = NULL,
                            seed = 123,
                            min_cells_per_region = 1,
-                           balance_regions = TRUE) {
+                           balance_regions = FALSE) {
 
   # Input validation
   if (!inherits(spe, "SpatialExperiment")) {

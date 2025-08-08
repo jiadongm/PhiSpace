@@ -11,7 +11,7 @@ spatialSampler(
   grid_size = NULL,
   seed = 123,
   min_cells_per_region = 1,
-  balance_regions = TRUE
+  balance_regions = FALSE
 )
 }
 \arguments{
@@ -27,7 +27,7 @@ spatialSampler(
 
 \item{min_cells_per_region}{Minimum cells required per spatial region (default: 1)}
 
-\item{balance_regions}{Whether to balance sampling across spatial regions (default: TRUE)}
+\item{balance_regions}{Whether to balance sampling across spatial regions (default: FALSE; if true, might create duplicated spatial units)}
 }
 \value{
 Subsampled SpatialExperiment object
