@@ -6,6 +6,11 @@
 \usage{
 sample_random(coordinates, n_target)
 }
+\arguments{
+\item{coordinates}{Spatial coordiantes}
+
+\item{n_target}{Number of targets}
+}
 \description{
 Random sampling (baseline method)
 }

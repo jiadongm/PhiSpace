@@ -97,11 +97,22 @@ spatialSampler <- function(spe,
 }
 
 #' Random sampling (baseline method)
+#'
+#' @param coordinates Spatial coordiantes
+#' @param n_target Number of targets
 sample_random <- function(coordinates, n_target) {
   return(sample(coordinates$cell_id, n_target))
 }
 
+
+
 #' Grid-based spatial sampling
+#'
+#' @param coordinates Spatial coordinates
+#' @param n_target Number of neighbours
+#' @param grid_size Grid size
+#' @param min_cells_per_region Mimimum cells per region
+#' @param balance_regions Balance regions
 sample_grid <- function(coordinates, n_target, grid_size, min_cells_per_region, balance_regions) {
 
   # Auto-calculate grid size if not provided
@@ -167,6 +178,11 @@ sample_grid <- function(coordinates, n_target, grid_size, min_cells_per_region, 
 }
 
 #' K-means based spatial sampling
+#'
+#' @param coordinates Spatial coordinates
+#' @param n_target Number of targets
+#' @param min_cells_per_region Minimum cells per region
+#' @param balance_regions Balance regions
 sample_kmeans <- function(coordinates, n_target, min_cells_per_region, balance_regions) {
 
   # Determine number of clusters (spatial regions)

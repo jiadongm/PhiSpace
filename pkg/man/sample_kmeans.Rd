@@ -6,6 +6,15 @@
 \usage{
 sample_kmeans(coordinates, n_target, min_cells_per_region, balance_regions)
 }
+\arguments{
+\item{coordinates}{Spatial coordinates}
+
+\item{n_target}{Number of targets}
+
+\item{min_cells_per_region}{Minimum cells per region}
+
+\item{balance_regions}{Balance regions}
+}
 \description{
 K-means based spatial sampling
 }

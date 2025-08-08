@@ -12,6 +12,17 @@ sample_grid(
   balance_regions
 )
 }
+\arguments{
+\item{coordinates}{Spatial coordinates}
+
+\item{n_target}{Number of neighbours}
+
+\item{grid_size}{Grid size}
+
+\item{min_cells_per_region}{Mimimum cells per region}
+
+\item{balance_regions}{Balance regions}
+}
 \description{
 Grid-based spatial sampling
 }
