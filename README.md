@@ -1,12 +1,5 @@
 # Φ-Space: Continuous phenotyping of single-cell and spatial omics data.
 
-## News
-- [10 Feb 2025] Our PhiSpace ST paper is on [bioRxiv](https://www.biorxiv.org/content/10.1101/2025.02.05.636735v1).
-
-- [12 Dec 2024] Added support for SpatialExperiment as input.
-
-- [1 Nov 2024] Version 1.0.0.9000 is released. This is a under-development version towards Φ-Space ST, a unified approach for spatial transcriptomics (ST) data analysis. New manuscript and vignettes coming soon!
-
 
 <p float="left">
   <img src="./figs/PhiSpace.png" width="30%" /> 
