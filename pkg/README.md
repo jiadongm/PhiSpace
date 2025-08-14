@@ -3,16 +3,13 @@
 
 ## Installation
 
-Installing BioConductor dependencies:
+Installing Bioconductor dependencies and then PhiSpace:
 ``` r
 if(!requireNamespace("BiocManager", quietly = TRUE)) {
   install.packages("BiocManager")
 }
 BiocManager::install(c("SingleCellExperiment", "scran", "scuttle", "ComplexHeatmap", "SpatialExperiment"))
-```
 
-Install the GitHub version of PhiSpace:
-``` r
 if(!requireNamespace("devtools", quietly = TRUE)) {
   install.packages("devtools")
 }
