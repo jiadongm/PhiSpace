@@ -10,6 +10,7 @@
 ## Vignettes
 
 [PhiSpace pkgdown site](https://jiadongm.github.io/PhiSpace/) 
+
 [A workflow including SpaNorm, PhiSpace and jazzPanda](https://github.com/bhuvad/CosMxSpatialAnalysisWorkshop)
 
 
