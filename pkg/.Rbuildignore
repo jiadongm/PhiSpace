@@ -10,4 +10,4 @@
 ^docs$
 ^pkgdown$
 ^\.github$
-^articles$
+^vignettes$
