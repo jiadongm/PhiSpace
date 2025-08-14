@@ -2,18 +2,68 @@
 % Please edit documentation in R/align_clusters.R
 \name{align_clusters}
 \alias{align_clusters}
-\title{Align clustering results.}
+\title{Align clustering results to a reference.}
 \usage{
-align_clusters(clust, clust_ref)
+align_clusters(
+  clust,
+  clust_ref,
+  clust_names = NULL,
+  handle_unmatched = c("label", "NA", "nearest"),
+  verbose = FALSE
+)
 }
 \arguments{
-\item{clust}{Query clustering result, can be a numerical, character or factor vector.}
+\item{clust}{Query clustering result(s). Can be:
+\itemize{
+\item A vector (numeric, character, or factor) for single clustering
+\item A matrix/data.frame where each column is a clustering result
+\item A list of clustering vectors
+}}
 
-\item{clust_ref}{Reference clustering result.}
+\item{clust_ref}{Reference clustering result (vector).}
+
+\item{clust_names}{Optional names for the clustering results (for matrix/list input).}
+
+\item{handle_unmatched}{How to handle unmatched clusters:
+\itemize{
+\item "label": create new labels like "Unmatched_X" (default)
+\item "NA": assign NA to unmatched clusters
+\item "nearest": assign to nearest matching cluster
+}}
+
+\item{verbose}{Logical. Print alignment progress for multiple clusterings.}
 }
 \value{
-Re-aligned clustering result, represented as a factor vector.
+\itemize{
+\item If input is a single vector: aligned clustering (factor)
+\item If input is matrix/data.frame: matrix with aligned clusterings
+\item If input is a list: list with aligned clusterings
+}
 }
 \description{
-Given a reference clustering result, represented by a vector of cluster labels, align a query clustering result to the reference one.
+Given a reference clustering result, align one or more query clustering results
+to the reference using the Hungarian algorithm. Can handle both single clustering
+vectors and multiple clusterings in a matrix/data.frame format.
+}
+\examples{
+# Single clustering alignment
+ref <- factor(c("A", "A", "B", "B", "C", "C"))
+query <- factor(c(2, 2, 1, 1, 3, 3))
+aligned <- align_clusters(query, ref)
+
+# Multiple clusterings alignment
+query_matrix <- cbind(
+  method1 = c(1, 1, 2, 2, 3, 3),
+  method2 = c("a", "a", "b", "b", "c", "c"),
+  method3 = c(2, 2, 2, 1, 1, 1)
+)
+aligned_all <- align_clusters(query_matrix, ref)
+
+# List of clusterings
+query_list <- list(
+  kmeans = c(1, 1, 2, 2, 3, 3),
+  hierarchical = c("x", "x", "y", "y", "z", "z")
+)
+aligned_list <- align_clusters(query_list, ref)
+
 }
