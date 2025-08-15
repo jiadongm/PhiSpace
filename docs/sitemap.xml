@@ -6,6 +6,7 @@
 <url><loc>https://jiadongm.github.io/PhiSpace/articles/CITE-seq.html</loc></url>
 <url><loc>https://jiadongm.github.io/PhiSpace/articles/CosMx.html</loc></url>
 <url><loc>https://jiadongm.github.io/PhiSpace/articles/Multiome.html</loc></url>
+<url><loc>https://jiadongm.github.io/PhiSpace/articles/PerturbSeq.html</loc></url>
 <url><loc>https://jiadongm.github.io/PhiSpace/articles/StereoSeq.html</loc></url>
 <url><loc>https://jiadongm.github.io/PhiSpace/articles/Visium.html</loc></url>
 <url><loc>https://jiadongm.github.io/PhiSpace/articles/getting_started.html</loc></url>
@@ -22,9 +23,13 @@
 <url><loc>https://jiadongm.github.io/PhiSpace/reference/PhiSpaceR_1ref.html</loc></url>
 <url><loc>https://jiadongm.github.io/PhiSpace/reference/RTassay.html</loc></url>
 <url><loc>https://jiadongm.github.io/PhiSpace/reference/RankTransf.html</loc></url>
+<url><loc>https://jiadongm.github.io/PhiSpace/reference/Score2Prob.html</loc></url>
 <url><loc>https://jiadongm.github.io/PhiSpace/reference/SuperPC.html</loc></url>
 <url><loc>https://jiadongm.github.io/PhiSpace/reference/VizSpatial.html</loc></url>
 <url><loc>https://jiadongm.github.io/PhiSpace/reference/align_clusters.html</loc></url>
+<url><loc>https://jiadongm.github.io/PhiSpace/reference/align_clusters_list.html</loc></url>
+<url><loc>https://jiadongm.github.io/PhiSpace/reference/align_clusters_matrix.html</loc></url>
+<url><loc>https://jiadongm.github.io/PhiSpace/reference/align_single_clustering.html</loc></url>
 <url><loc>https://jiadongm.github.io/PhiSpace/reference/as.sparse.matrix.html</loc></url>
 <url><loc>https://jiadongm.github.io/PhiSpace/reference/basicPlotFormat.html</loc></url>
 <url><loc>https://jiadongm.github.io/PhiSpace/reference/cellTypeCorMat.html</loc></url>
@@ -32,7 +37,10 @@
 <url><loc>https://jiadongm.github.io/PhiSpace/reference/codeY.html</loc></url>
 <url><loc>https://jiadongm.github.io/PhiSpace/reference/codeY_vec.html</loc></url>
 <url><loc>https://jiadongm.github.io/PhiSpace/reference/computUMAP.html</loc></url>
+<url><loc>https://jiadongm.github.io/PhiSpace/reference/computeUMAP.html</loc></url>
+<url><loc>https://jiadongm.github.io/PhiSpace/reference/compute_kernel_weights.html</loc></url>
 <url><loc>https://jiadongm.github.io/PhiSpace/reference/doubleCent.html</loc></url>
+<url><loc>https://jiadongm.github.io/PhiSpace/reference/findNiches.html</loc></url>
 <url><loc>https://jiadongm.github.io/PhiSpace/reference/getClass.html</loc></url>
 <url><loc>https://jiadongm.github.io/PhiSpace/reference/getErr.html</loc></url>
 <url><loc>https://jiadongm.github.io/PhiSpace/reference/getErr_nfeat.html</loc></url>
@@ -49,8 +57,14 @@
 <url><loc>https://jiadongm.github.io/PhiSpace/reference/plotSankey3.html</loc></url>
 <url><loc>https://jiadongm.github.io/PhiSpace/reference/pseudoBulk.html</loc></url>
 <url><loc>https://jiadongm.github.io/PhiSpace/reference/reNameCols.html</loc></url>
+<url><loc>https://jiadongm.github.io/PhiSpace/reference/sample_grid.html</loc></url>
+<url><loc>https://jiadongm.github.io/PhiSpace/reference/sample_kmeans.html</loc></url>
+<url><loc>https://jiadongm.github.io/PhiSpace/reference/sample_random.html</loc></url>
 <url><loc>https://jiadongm.github.io/PhiSpace/reference/scranTransf.html</loc></url>
 <url><loc>https://jiadongm.github.io/PhiSpace/reference/selectFeat.html</loc></url>
+<url><loc>https://jiadongm.github.io/PhiSpace/reference/spatialSampler.html</loc></url>
+<url><loc>https://jiadongm.github.io/PhiSpace/reference/spatialSmoother.html</loc></url>
+<url><loc>https://jiadongm.github.io/PhiSpace/reference/spatial_smooth_expression.html</loc></url>
 <url><loc>https://jiadongm.github.io/PhiSpace/reference/split2.html</loc></url>
 <url><loc>https://jiadongm.github.io/PhiSpace/reference/subsample.html</loc></url>
 <url><loc>https://jiadongm.github.io/PhiSpace/reference/translateLabel.html</loc></url>

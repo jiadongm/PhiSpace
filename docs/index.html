@@ -39,7 +39,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">PhiSpace</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.0.0.9000</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.1.0</span>
       </span>
     </div>
 
@@ -76,15 +76,14 @@
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<p>Installing BioConductor dependencies:</p>
+<p>Installing Bioconductor dependencies and then PhiSpace:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"BiocManager"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"BiocManager"</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
-<span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://bioconductor.github.io/BiocManager/reference/install.html" class="external-link">install</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"SingleCellExperiment"</span>, <span class="st">"scran"</span>, <span class="st">"scuttle"</span>, <span class="st">"ComplexHeatmap"</span>, <span class="st">"SpatialExperiment"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p>Install the GitHub version of PhiSpace:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"devtools"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://bioconductor.github.io/BiocManager/reference/install.html" class="external-link">install</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"SingleCellExperiment"</span>, <span class="st">"scran"</span>, <span class="st">"scuttle"</span>, <span class="st">"ComplexHeatmap"</span>, <span class="st">"SpatialExperiment"</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"devtools"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"devtools"</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">'jiadongm/PhiSpace/pkg'</span><span class="op">)</span></span></code></pre></div>
@@ -112,56 +111,56 @@
 <col width="25%">
 <col width="25%">
 </colgroup>
-<thead><tr class="header">
+<thead><tr>
 <th align="left">Reference</th>
 <th align="left">Query</th>
 <th align="left">Note</th>
 <th align="left">Vignettes</th>
 </tr></thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td align="left">bulk RNA-seq</td>
 <td align="left">scRNA-seq</td>
 <td align="left">Dendritic cell development</td>
 <td align="left"><a href="articles/getting_started.html">Stemformatics DC atlas</a></td>
 </tr>
-<tr class="even">
+<tr>
 <td align="left">bulk RNA-seq</td>
 <td align="left">scRNA-seq (Perturb-seq)</td>
 <td align="left">T cell states development</td>
 <td align="left"><a href="articles/PerturbSeq.html">Perturb-seq</a></td>
 </tr>
-<tr class="odd">
+<tr>
 <td align="left">scRNA-seq</td>
 <td align="left">scRNA-seq</td>
 <td align="left"></td>
 <td align="left">TBC</td>
 </tr>
-<tr class="even">
+<tr>
 <td align="left">scRNA-seq</td>
 <td align="left">scATAC-seq</td>
 <td align="left">requires a bimodal bridge dataset</td>
 <td align="left"><a href="articles/BridgeAnnotation.html">Bridge annotation</a></td>
 </tr>
-<tr class="odd">
+<tr>
 <td align="left">CITE-seq (scRNA+Protein-seq)</td>
 <td align="left">CITE-seq</td>
 <td align="left">using both modalities</td>
 <td align="left"><a href="articles/CITE-seq.html">Covid CITE-seq</a></td>
 </tr>
-<tr class="even">
+<tr>
 <td align="left">scRNA-seq</td>
 <td align="left">supercellular spatial RNA-seq</td>
 <td align="left">e.g. 10x Visium, Slide-seqV2</td>
 <td align="left"><a href="articles/Visium.html">Cell type deconvolution for Visium</a></td>
 </tr>
-<tr class="odd">
+<tr>
 <td align="left">scRNA-seq</td>
 <td align="left">subcellular spatial RNA-seq (imaging-based)</td>
 <td align="left">e.g. CosMx, 10x Xenium</td>
 <td align="left"><a href="articles/CosMx.html">CosMx lung cancer microenvironment</a></td>
 </tr>
-<tr class="even">
+<tr>
 <td align="left">scRNA-seq</td>
 <td align="left">subcellular spatial RNA-seq (sequencing-based)</td>
 <td align="left">e.g. Stereo-seq, 10x Visium HD</td>
@@ -218,7 +217,7 @@
 
 <div class="pkgdown">
   <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
       </footer>

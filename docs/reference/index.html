@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">PhiSpace</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.0.0.9000</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.1.0</span>
       </span>
     </div>
 
@@ -83,6 +83,10 @@
         </td>
         <td><p>Rank transform of a <code>SingleCellExperiment</code> object.</p></td>
       </tr><tr><td>
+          <p><code><a href="Score2Prob.html">Score2Prob()</a></code> </p>
+        </td>
+        <td><p>Convert PhiSpace Scores to Probabilities</p></td>
+      </tr><tr><td>
           <p><code><a href="SuperPC.html">SuperPC()</a></code> </p>
         </td>
         <td><p>Compute regression model using selected features.</p></td>
@@ -93,7 +97,7 @@
       </tr><tr><td>
           <p><code><a href="align_clusters.html">align_clusters()</a></code> </p>
         </td>
-        <td><p>Align clustering results.</p></td>
+        <td><p>Align clustering results to a reference.</p></td>
       </tr><tr><td>
           <p><code><a href="as.sparse.matrix.html">as.sparse.matrix()</a></code> </p>
         </td>
@@ -123,9 +127,17 @@
         </td>
         <td><p>Compute UMAP.</p></td>
       </tr><tr><td>
+          <p><code><a href="compute_kernel_weights.html">compute_kernel_weights()</a></code> </p>
+        </td>
+        <td><p>Compute kernel weights based on distances</p></td>
+      </tr><tr><td>
           <p><code><a href="doubleCent.html">doubleCent()</a></code> </p>
         </td>
         <td><p>Double center a matrix by column and row means, resulting in a new matrix with zero row and column means.</p></td>
+      </tr><tr><td>
+          <p><code><a href="findNiches.html">findNiches()</a></code> </p>
+        </td>
+        <td><p>Find spatial niches by clustering PhiSpace scores</p></td>
       </tr><tr><td>
           <p><code><a href="getClass.html">getClass()</a></code> </p>
         </td>
@@ -187,6 +199,18 @@
         </td>
         <td><p>Turn a matrix to a data.frame withe newly defined colnames.</p></td>
       </tr><tr><td>
+          <p><code><a href="sample_grid.html">sample_grid()</a></code> </p>
+        </td>
+        <td><p>Grid-based spatial sampling</p></td>
+      </tr><tr><td>
+          <p><code><a href="sample_kmeans.html">sample_kmeans()</a></code> </p>
+        </td>
+        <td><p>K-means based spatial sampling</p></td>
+      </tr><tr><td>
+          <p><code><a href="sample_random.html">sample_random()</a></code> </p>
+        </td>
+        <td><p>Random sampling (baseline method)</p></td>
+      </tr><tr><td>
           <p><code><a href="scranTransf.html">scranTransf()</a></code> </p>
         </td>
         <td><p>Run scran normalisation</p></td>
@@ -194,6 +218,18 @@
           <p><code><a href="selectFeat.html">selectFeat()</a></code> </p>
         </td>
         <td><p>Select nfeat top features from each column (label) of impScores</p></td>
+      </tr><tr><td>
+          <p><code><a href="spatialSampler.html">spatialSampler()</a></code> </p>
+        </td>
+        <td><p>Spatially-aware subsampling of SpatialExperiment objects</p></td>
+      </tr><tr><td>
+          <p><code><a href="spatialSmoother.html">spatialSmoother()</a></code> </p>
+        </td>
+        <td><p>Spatial smoother wrapper for SpatialExperiment and SingleCellExperiment objects</p></td>
+      </tr><tr><td>
+          <p><code><a href="spatial_smooth_expression.html">spatial_smooth_expression()</a></code> </p>
+        </td>
+        <td><p>Spatial smoothing of gene expression using KNN with kernel weighting</p></td>
       </tr><tr><td>
           <p><code><a href="split2.html">split2()</a></code> </p>
         </td>
@@ -227,7 +263,7 @@
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
       </footer></div>
