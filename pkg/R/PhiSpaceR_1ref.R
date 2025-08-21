@@ -57,6 +57,7 @@ PhiSpaceR_1ref <- function(
 
     # Phenotypes has to be specified
     if(is.null(phenotypes)) stop("phenotypes and response cannot both be NULL.")
+    if(sum(is.na(colData(reference)[,phenotypes]))) stop("phenotypes cannot contain NAs.")
 
     YY <- codeY(reference, phenotypes)
     phenoDict <-
