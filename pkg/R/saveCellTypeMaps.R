@@ -217,7 +217,7 @@ saveCellTypeMaps <- function(
 
     # Create plot
     p <- ggplot(plot_data, aes(x = .data[[coordNames[1]]], y = .data[[coordNames[2]]])) +
-      geom_point(aes(colour = score), size = psize, alpha = 1, stroke = 0) +
+      geom_point(aes(colour = .data[["score"]]), size = psize, alpha = 1, stroke = 0) +
       theme_void() +
       scale_colour_gradientn(
         colours = MATLAB_cols,

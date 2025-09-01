@@ -8,6 +8,7 @@ matrixPlot(
   scores,
   max_ncomp = NULL,
   comp_idx = NULL,
+  var_names = NULL,
   colBy = NULL,
   pointAlpha = NULL,
   pointSize = 1,
@@ -23,9 +24,11 @@ matrixPlot(
 \arguments{
 \item{scores}{Matrix of scores to be plotted}
 
-\item{max_ncomp}{Default NULL. Number of first components to plot. If specified, will override comp_idx.}
+\item{max_ncomp}{Default NULL. Number of first components to plot. If specified, will override comp_idx and var_names.}
 
-\item{comp_idx}{Default NULL. Indices of components to plot.}
+\item{comp_idx}{Default NULL. Indices of components to plot. Will override var_names if specified.}
+
+\item{var_names}{Default NULL. Character vector of variable names (column names) to plot. Will be overridden by max_ncomp or comp_idx if they are specified.}
 
 \item{colBy}{Numeric or charactor vectors to specify colour of points.}
 
