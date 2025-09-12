@@ -12,6 +12,7 @@ PhiSpace(
   refAssay = "rank",
   queryAssay = NULL,
   regMethod = c("PLS", "PCA"),
+  reducedDimName = "PhiSpace",
   ncomp = NULL,
   nfeat = NULL,
   selectedFeat = NULL,
@@ -36,6 +37,8 @@ PhiSpace(
 \item{queryAssay}{Character. Which assay in query to use to predict.}
 
 \item{regMethod}{Character. Regression method: one of "PLS" and "PCA".}
+
+\item{reducedDimName}{Name of reducedDim layer to store PhiSpace scores, i.e. PhiSpace scores will be stored in reducedDim(query, reducedDimName); default is "PhiSpace".}
 
 \item{ncomp}{Integer. Number of components. If \code{NULL}, will use the default, i.e. same as the total number of phenotypes.}
 

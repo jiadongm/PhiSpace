@@ -10,6 +10,7 @@
 #' @param refAssay Character. Which assay in reference to use to train PhiSpace.
 #' @param queryAssay Character. Which assay in query to use to predict.
 #' @param regMethod Character. Regression method: one of "PLS" and "PCA".
+#' @param reducedDimName Name of reducedDim layer to store PhiSpace scores, i.e. PhiSpace scores will be stored in reducedDim(query, reducedDimName); default is "PhiSpace".
 #' @param ncomp Integer. Number of components. If `NULL`, will use the default, i.e. same as the total number of phenotypes.
 #' @param nfeat Integer. Number of features to choose to predict each phenotype. See details.
 #' @param selectedFeat Character. Alternatively, can provide a vector of pre-selected features.
@@ -51,6 +52,7 @@ PhiSpace <- function(
     refAssay = "rank",
     queryAssay = NULL,
     regMethod = c("PLS", "PCA"),
+    reducedDimName = "PhiSpace",
     ncomp = NULL,
     nfeat = NULL,
     selectedFeat = NULL,
@@ -127,18 +129,18 @@ PhiSpace <- function(
       for(i in 1:length(query)){
 
         scSingleQuery_list <- lapply(sc_list, function(x) x[[i]])
-        reducedDim(query[[i]], "PhiSpace") <- Reduce(cbind, scSingleQuery_list)
+        reducedDim(query[[i]], reducedDimName) <- Reduce(cbind, scSingleQuery_list)
 
         if(storeUnNorm){
 
           scSingleQuery_list <- lapply(scUnnorm_list, function(x) x[[i]])
-          reducedDim(query[[i]], "PhiSpaceNonNorm") <- Reduce(cbind, scSingleQuery_list)
+          reducedDim(query[[i]], paste0(reducedDimName, "_nonNorm")) <- Reduce(cbind, scSingleQuery_list)
         }
       }
     } else {
 
-      reducedDim(query, "PhiSpace") <- Reduce(cbind, sc_list)
-      if(storeUnNorm) reducedDim(query, "PhiSpaceNonNorm") <-  Reduce(cbind, scUnnorm_list)
+      reducedDim(query, reducedDimName) <- Reduce(cbind, sc_list)
+      if(storeUnNorm) reducedDim(query, paste0(reducedDimName, "_nonNorm")) <-  Reduce(cbind, scUnnorm_list)
     }
 
     return(query)
@@ -163,21 +165,21 @@ PhiSpace <- function(
 
     if(!is.list(query)){
 
-      if(storeUnNorm) reducedDim(query, "PhiSpaceNonNorm") <- PhiRes$PhiSpaceScore
-      reducedDim(query, "PhiSpace") <- normPhiScores(PhiRes$PhiSpaceScore)
+      if(storeUnNorm) reducedDim(query, paste0(reducedDimName, "_nonNorm")) <- PhiRes$PhiSpaceScore
+      reducedDim(query, reducedDimName) <- normPhiScores(PhiRes$PhiSpaceScore)
     } else {
 
       for(i in 1:length(query)){
 
-        if(storeUnNorm) reducedDim(query[[i]], "PhiSpaceNonNorm") <- PhiRes$PhiSpaceScore[[i]]
-        reducedDim(query[[i]], "PhiSpace") <- normPhiScores(PhiRes$PhiSpaceScore[[i]])
+        if(storeUnNorm) reducedDim(query[[i]], paste0(reducedDimName, "_nonNorm")) <- PhiRes$PhiSpaceScore[[i]]
+        reducedDim(query[[i]], reducedDimName) <- normPhiScores(PhiRes$PhiSpaceScore[[i]])
       }
     }
 
     if(updateRef){
 
-      if(storeUnNorm) reducedDim(reference, "PhiSpaceNonNorm") <- PhiRes$YrefHat
-      reducedDim(reference, "PhiSpace") <- normPhiScores(PhiRes$YrefHat)
+      if(storeUnNorm) reducedDim(reference, paste0(reducedDimName, "_nonNorm")) <- PhiRes$YrefHat
+      reducedDim(reference, reducedDimName) <- normPhiScores(PhiRes$YrefHat)
 
       return(
         list(
