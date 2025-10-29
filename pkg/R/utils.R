@@ -1,3 +1,23 @@
+MATLAB_cols <- c(rgb(54, 70, 157, maxColorValue = 255),
+                 rgb(61, 146, 185, maxColorValue = 255),
+                 rgb(126, 203, 166, maxColorValue = 255),
+                 rgb(204, 234, 156, maxColorValue = 255),
+                 rgb(249, 252, 181, maxColorValue = 255),
+                 rgb(255, 226, 144, maxColorValue = 255),
+                 rgb(253, 164, 93, maxColorValue = 255),
+                 rgb(234, 95, 70, maxColorValue = 255),
+                 rgb(185, 30, 72, maxColorValue = 255))
+
+censor <- function(vec, quant = 0.05){
+
+  vec <- as.vector(vec)
+
+  cutoff <- stats::quantile(vec, 1-quant)
+  vec[vec <= cutoff] <- cutoff
+  vec
+}
+
+
 #' Apply rank transform to a gene by cell matrix.
 #'
 #' @param X A gene by cell matrix.
