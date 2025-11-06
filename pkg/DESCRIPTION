@@ -33,7 +33,8 @@ Imports:
     umap,
     clue,
     FNN,
-    S4Vectors
+    S4Vectors,
+    kerndwd
 Suggests: 
     testthat (>= 3.0.0)
 Remotes: 
