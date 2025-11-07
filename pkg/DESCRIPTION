@@ -34,7 +34,8 @@ Imports:
     clue,
     FNN,
     S4Vectors,
-    kerndwd
+    kerndwd,
+    cluster
 Suggests: 
     testthat (>= 3.0.0)
 Remotes: 
