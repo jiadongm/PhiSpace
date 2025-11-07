@@ -74,7 +74,7 @@ lung cancer microenvironment</h1>
                         <h4 data-toc-skip class="author">Jiadong
 Mao</h4>
             
-            <h4 data-toc-skip class="date">2025-08-15</h4>
+            <h4 data-toc-skip class="date">2025-11-07</h4>
       
 
       <div class="hidden name"><code>CosMx.Rmd</code></div>
@@ -289,22 +289,22 @@ that T and B cells are very common in these lymphoid structures.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/VizSpatial.html">VizSpatial</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"sdimx"</span>, <span class="st">"sdimy"</span>, ptSize <span class="op">=</span> <span class="fl">1</span>, groupBy <span class="op">=</span> <span class="st">"niche"</span>, legend.position <span class="op">=</span> <span class="st">"top"</span>, legend.symb.size <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_colour_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="va">nicheCol</span><span class="op">)</span> </span></code></pre></div>
-<p><img src="CosMx_files/figure-html/unnamed-chunk-6-1.png" width="700"></p>
+<p><img src="CosMx_files/figure-html/unnamed-chunk-6-1.png" class="r-plt" width="700"></p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/VizSpatial.html">VizSpatial</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"sdimx"</span>, <span class="st">"sdimy"</span>, ptSize <span class="op">=</span> <span class="fl">1</span>, reducedDim <span class="op">=</span> <span class="st">"TransAT2(epi)"</span>, censor <span class="op">=</span> <span class="cn">T</span>, legend.position <span class="op">=</span> <span class="st">"top"</span>, reOrder <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span></code></pre></div>
-<p><img src="CosMx_files/figure-html/unnamed-chunk-6-2.png" width="700"></p>
+<p><img src="CosMx_files/figure-html/unnamed-chunk-6-2.png" class="r-plt" width="700"></p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/VizSpatial.html">VizSpatial</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"sdimx"</span>, <span class="st">"sdimy"</span>, ptSize <span class="op">=</span> <span class="fl">1</span>, reducedDim <span class="op">=</span> <span class="st">"Mesothelial(mesen)"</span>, censor <span class="op">=</span> <span class="cn">T</span>, legend.position <span class="op">=</span> <span class="st">"top"</span>, reOrder <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span></code></pre></div>
-<p><img src="CosMx_files/figure-html/unnamed-chunk-6-3.png" width="700"></p>
+<p><img src="CosMx_files/figure-html/unnamed-chunk-6-3.png" class="r-plt" width="700"></p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/VizSpatial.html">VizSpatial</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"sdimx"</span>, <span class="st">"sdimy"</span>, ptSize <span class="op">=</span> <span class="fl">1</span>, reducedDim <span class="op">=</span> <span class="st">"AT2(epi)"</span>, censor <span class="op">=</span> <span class="cn">T</span>, legend.position <span class="op">=</span> <span class="st">"top"</span>, reOrder <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span></code></pre></div>
-<p><img src="CosMx_files/figure-html/unnamed-chunk-6-4.png" width="700"></p>
+<p><img src="CosMx_files/figure-html/unnamed-chunk-6-4.png" class="r-plt" width="700"></p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/VizSpatial.html">VizSpatial</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"sdimx"</span>, <span class="st">"sdimy"</span>, ptSize <span class="op">=</span> <span class="fl">1</span>, reducedDim <span class="op">=</span> <span class="st">"CD4(immu)"</span>, censor <span class="op">=</span> <span class="cn">T</span>, legend.position <span class="op">=</span> <span class="st">"top"</span>, reOrder <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span></code></pre></div>
-<p><img src="CosMx_files/figure-html/unnamed-chunk-6-5.png" width="700"></p>
+<p><img src="CosMx_files/figure-html/unnamed-chunk-6-5.png" class="r-plt" width="700"></p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/VizSpatial.html">VizSpatial</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"sdimx"</span>, <span class="st">"sdimy"</span>, ptSize <span class="op">=</span> <span class="fl">1</span>, reducedDim <span class="op">=</span> <span class="st">"B cells(immu)"</span>, censor <span class="op">=</span> <span class="cn">T</span>, legend.position <span class="op">=</span> <span class="st">"top"</span>, reOrder <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span></code></pre></div>
-<p><img src="CosMx_files/figure-html/unnamed-chunk-6-6.png" width="700"></p>
+<p><img src="CosMx_files/figure-html/unnamed-chunk-6-6.png" class="r-plt" width="700"></p>
 <p>It is very encouraging to see how a simple spatial heatmap can alreay
 be so informative. Since the distribution of different cell types show
 such diverse spatial distributions, why can’t we use them to define
@@ -349,7 +349,7 @@ the ‘tumour interior’ domain of He et al. (2022).</p>
 <span>    legend.key.spacing <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html" class="external-link">unit</a></span><span class="op">(</span><span class="fl">0</span>, <span class="st">"pt"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>colour <span class="op">=</span> <span class="st">""</span><span class="op">)</span> </span></code></pre></div>
-<p><img src="CosMx_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
+<p><img src="CosMx_files/figure-html/unnamed-chunk-7-1.png" class="r-plt" width="700"></p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Comparison of spatial domains defined by He et al. (2022) and spatial niches defined by PhiSpace</span></span>
 <span><span class="va">nicheClust</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">query</span><span class="op">$</span><span class="va">niche</span>, <span class="va">query</span><span class="op">$</span><span class="va">PhiClust</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="va">t</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame.matrix</a></span><span class="op">(</span><span class="op">)</span></span>
@@ -364,7 +364,7 @@ the ‘tumour interior’ domain of He et al. (2022).</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span></span>
 <span>    legend.position <span class="op">=</span> <span class="st">"none"</span></span>
 <span>  <span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ylab</a></span><span class="op">(</span><span class="st">"PhiSpace clusters"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">xlab</a></span><span class="op">(</span><span class="st">"Proportions"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="CosMx_files/figure-html/unnamed-chunk-7-2.png" width="700"></p>
+<p><img src="CosMx_files/figure-html/unnamed-chunk-7-2.png" class="r-plt" width="700"></p>
 <p>It turns out that our clustering split the ‘tumour interior’ domain
 of He et al. (2022) into two niches with different <em>cell type
 divergence</em>. The motivation for defining cell type divergence is
@@ -389,7 +389,7 @@ completely different context but based on the same principle.)</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"bottom"</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## Scale for <span style="color: #00BB00;">colour</span> is already present.</span></span>
 <span><span class="co">## Adding another scale for <span style="color: #00BB00;">colour</span>, which will replace the existing scale.</span></span></code></pre>
-<p><img src="CosMx_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
+<p><img src="CosMx_files/figure-html/unnamed-chunk-8-1.png" class="r-plt" width="700"></p>
 <p>Next we visualise the PhiSpace-niche-specific cell type divergence.
 Recall that niches 5 and 9 are both located in the ‘tumour interior’
 domain. Here we can see that these two niches have very different cell
@@ -403,7 +403,7 @@ ST paper</a>.</p>
 <span>    legend.position <span class="op">=</span> <span class="st">"none"</span></span>
 <span>  <span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_fill_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="va">tempClustCols</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ylab</a></span><span class="op">(</span><span class="st">"PhiSpace Niches"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">xlab</a></span><span class="op">(</span><span class="st">"Divergence"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="CosMx_files/figure-html/unnamed-chunk-9-1.png" width="700"></p>
+<p><img src="CosMx_files/figure-html/unnamed-chunk-9-1.png" class="r-plt" width="700"></p>
 </div>
 </div>
 <div class="section level2">
@@ -575,7 +575,7 @@ make the figure more readable.</p>
 <span>  <span class="va">corMat</span>, binColour <span class="op">=</span> <span class="cn">F</span>, fsize <span class="op">=</span> <span class="fl">12</span>, useSeriate <span class="op">=</span> <span class="cn">T</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">hm</span></span></code></pre></div>
-<p><img src="CosMx_files/figure-html/unnamed-chunk-13-1.png" width="700"></p>
+<p><img src="CosMx_files/figure-html/unnamed-chunk-13-1.png" class="r-plt" width="700"></p>
 <p>Compute all co-presence matrices.</p>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">corMatVec</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span></span>
@@ -651,7 +651,7 @@ tumour domains from other lungs.</p>
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">012361</span><span class="op">)</span></span>
 <span><span class="va">pca_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/getPC.html">getPC</a></span><span class="op">(</span><span class="va">corMatVec</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">niche</span>, <span class="va">sample</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="op">)</span>, ncomp <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
 <span><span class="fu">tempPCAplot</span><span class="op">(</span><span class="va">pca_res</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span>, fsize <span class="op">=</span> <span class="fl">12</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/expand_limits.html" class="external-link">expand_limits</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">9</span>, <span class="fl">4</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>axis.title <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="CosMx_files/figure-html/unnamed-chunk-15-1.png" width="700"></p>
+<p><img src="CosMx_files/figure-html/unnamed-chunk-15-1.png" class="r-plt" width="700"></p>
 <p>To investigate how tumour domains are different from non-tumour ones
 in terms of cell type co-presence, we conduced a discriminant analysis
 using <a href="https://www.jstor.org/stable/27639976" class="external-link">DWD</a>. DWD is an
@@ -702,7 +702,7 @@ non-tumour spatial domains.</p>
 <span>    legend.title <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>face <span class="op">=</span><span class="st">"bold"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">xlab</a></span><span class="op">(</span><span class="st">"DWD score"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="CosMx_files/figure-html/unnamed-chunk-17-1.png" width="700"></p>
+<p><img src="CosMx_files/figure-html/unnamed-chunk-17-1.png" class="r-plt" width="700"></p>
 <div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/loadBarplot.html">loadBarplot</a></span><span class="op">(</span><span class="va">dwd_res</span><span class="op">$</span><span class="va">loadings</span>, <span class="st">"comp1"</span>, xlab <span class="op">=</span> <span class="st">"DWD loading"</span>, nfeat <span class="op">=</span> <span class="fl">10</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span></span>
@@ -710,7 +710,7 @@ non-tumour spatial domains.</p>
 <span>    axis.ticks.x <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>    axis.text.x <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
-<p><img src="CosMx_files/figure-html/unnamed-chunk-17-2.png" width="700"></p>
+<p><img src="CosMx_files/figure-html/unnamed-chunk-17-2.png" class="r-plt" width="700"></p>
 </div>
   </div>
 
@@ -729,7 +729,7 @@ non-tumour spatial domains.</p>
 
 <div class="pkgdown">
   <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
       </footer>

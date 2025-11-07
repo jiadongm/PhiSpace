@@ -63,6 +63,7 @@ RNA-seq references. PhiSpace can simultaneously model multiple layers of cell ph
 <span>  refAssay <span class="op">=</span> <span class="st">"rank"</span>,</span>
 <span>  queryAssay <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  regMethod <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"PLS"</span>, <span class="st">"PCA"</span><span class="op">)</span>,</span>
+<span>  reducedDimName <span class="op">=</span> <span class="st">"PhiSpace"</span>,</span>
 <span>  ncomp <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  nfeat <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  selectedFeat <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -104,6 +105,10 @@ RNA-seq references. PhiSpace can simultaneously model multiple layers of cell ph
 
 <dt id="arg-regmethod">regMethod<a class="anchor" aria-label="anchor" href="#arg-regmethod"></a></dt>
 <dd><p>Character. Regression method: one of "PLS" and "PCA".</p></dd>
+
+
+<dt id="arg-reduceddimname">reducedDimName<a class="anchor" aria-label="anchor" href="#arg-reduceddimname"></a></dt>
+<dd><p>Name of reducedDim layer to store PhiSpace scores, i.e. PhiSpace scores will be stored in reducedDim(query, reducedDimName); default is "PhiSpace".</p></dd>
 
 
 <dt id="arg-ncomp">ncomp<a class="anchor" aria-label="anchor" href="#arg-ncomp"></a></dt>
@@ -176,7 +181,7 @@ that we might have included genes with small variance and scaling would greatly 
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
       </footer></div>

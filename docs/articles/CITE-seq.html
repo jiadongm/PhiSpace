@@ -73,7 +73,7 @@
                         <h4 data-toc-skip class="author">Jiadong
 Mao</h4>
             
-            <h4 data-toc-skip class="date">2025-08-15</h4>
+            <h4 data-toc-skip class="date">2025-11-07</h4>
       
 
       <div class="hidden name"><code>CITE-seq.Rmd</code></div>
@@ -311,7 +311,7 @@ corresponding colour code.</p>
 <code class="sourceCode R"><span><span class="va">p3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/ggpubr/man/ggarrange.html" class="external-link">ggarrange</a></span><span class="op">(</span><span class="va">p31</span>, <span class="va">p32</span>, <span class="va">p33</span>, nrow <span class="op">=</span> <span class="fl">1</span>,  legend <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span></span>
 <span><span class="va">p4</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/ggpubr/man/ggarrange.html" class="external-link">ggarrange</a></span><span class="op">(</span><span class="va">p41</span>, <span class="va">p42</span>, <span class="va">p43</span>, nrow <span class="op">=</span> <span class="fl">1</span>,  legend <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/ggpubr/man/ggarrange.html" class="external-link">ggarrange</a></span><span class="op">(</span><span class="va">p1</span>, <span class="va">p2</span>, <span class="va">p3</span>, <span class="va">p4</span>, nrow <span class="op">=</span> <span class="fl">4</span>, common.legend <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span></code></pre></div>
-<p><img src="CITE-seq_files/figure-html/unnamed-chunk-8-1.png" width="672"></p>
+<p><img src="CITE-seq_files/figure-html/unnamed-chunk-8-1.png" class="r-plt" width="672"></p>
 <p>By comparing these UMAPs, we can see that the totalVI model in
 Barmada et al. (2024) (top row) indeed removed a lot of batch effects,
 but the cell types were not well-separated and the disease conditions
@@ -429,11 +429,11 @@ shorter.</p>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/ComplexHeatmap/man/draw-dispatch.html" class="external-link">draw</a></span><span class="op">(</span><span class="va">p11</span> <span class="op"><a href="https://rdrr.io/pkg/ComplexHeatmap/man/pct_v_pct.html" class="external-link">%v%</a></span> <span class="va">p21</span>,heatmap_legend_side <span class="op">=</span> <span class="st">"top"</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## Warning: Heatmap/annotation names are duplicated: Median score</span></span></code></pre>
-<p><img src="CITE-seq_files/figure-html/unnamed-chunk-10-1.png" width="384"></p>
+<p><img src="CITE-seq_files/figure-html/unnamed-chunk-10-1.png" class="r-plt" width="384"></p>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/ComplexHeatmap/man/draw-dispatch.html" class="external-link">draw</a></span><span class="op">(</span><span class="va">p12</span> <span class="op"><a href="https://rdrr.io/pkg/ComplexHeatmap/man/pct_v_pct.html" class="external-link">%v%</a></span> <span class="va">p22</span>, heatmap_legend_side <span class="op">=</span> <span class="st">"top"</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## Warning: Heatmap/annotation names are duplicated: Median score</span></span></code></pre>
-<p><img src="CITE-seq_files/figure-html/unnamed-chunk-10-2.png" width="384"></p>
+<p><img src="CITE-seq_files/figure-html/unnamed-chunk-10-2.png" class="r-plt" width="384"></p>
 <p>We can further cluster different disease conditions, including COVID
 severity levels and types of autoimmune conditions, according to their
 cell type profiles. Intuitively, we cluster the columns of the heatmaps
@@ -442,7 +442,7 @@ above.</p>
 <code class="sourceCode R"><span><span class="va">sc_combo</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="va">sc_RNA_ref</span>, <span class="va">sc_ADT_ref</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="va">sc_RNA</span>, <span class="va">sc_ADT</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">clust_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/hclust.html" class="external-link">hclust</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/dist.html" class="external-link">dist</a></span><span class="op">(</span><span class="va">sc_combo</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu">ggdendro</span><span class="fu">::</span><span class="fu"><a href="https://andrie.github.io/ggdendro/reference/ggdendrogram.html" class="external-link">ggdendrogram</a></span><span class="op">(</span><span class="va">clust_res</span><span class="op">)</span></span></code></pre></div>
-<p><img src="CITE-seq_files/figure-html/unnamed-chunk-11-1.png" width="384"></p>
+<p><img src="CITE-seq_files/figure-html/unnamed-chunk-11-1.png" class="r-plt" width="384"></p>
 <p>Clustering according to cell type profiles, we can see that mild to
 critical COVID severity were separated from healthy and asymptotic.
 Among autoimmune conditions, psoriasis (Ps) was closer to more severe
@@ -467,7 +467,7 @@ cell type profiles.</p>
 
 <div class="pkgdown">
   <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
       </footer>

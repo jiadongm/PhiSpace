@@ -1,5 +1,5 @@
-pandoc: '3.4'
-pkgdown: 2.1.3
+pandoc: 3.6.3
+pkgdown: 2.2.0
 pkgdown_sha: ~
 articles:
   BridgeAnnotation: BridgeAnnotation.html
@@ -9,7 +9,7 @@ articles:
   PerturbSeq: PerturbSeq.html
   StereoSeq: StereoSeq.html
   Visium: Visium.html
-last_built: 2025-08-15T02:21Z
+last_built: 2025-11-07T10:31Z
 urls:
   reference: https://jiadongm.github.io/PhiSpace/reference
   article: https://jiadongm.github.io/PhiSpace/articles

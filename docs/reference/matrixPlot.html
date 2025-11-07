@@ -57,6 +57,7 @@
 <span>  <span class="va">scores</span>,</span>
 <span>  max_ncomp <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  comp_idx <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  var_names <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  colBy <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  pointAlpha <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  pointSize <span class="op">=</span> <span class="fl">1</span>,</span>
@@ -79,11 +80,15 @@
 
 
 <dt id="arg-max-ncomp">max_ncomp<a class="anchor" aria-label="anchor" href="#arg-max-ncomp"></a></dt>
-<dd><p>Default NULL. Number of first components to plot. If specified, will override comp_idx.</p></dd>
+<dd><p>Default NULL. Number of first components to plot. If specified, will override comp_idx and var_names.</p></dd>
 
 
 <dt id="arg-comp-idx">comp_idx<a class="anchor" aria-label="anchor" href="#arg-comp-idx"></a></dt>
-<dd><p>Default NULL. Indices of components to plot.</p></dd>
+<dd><p>Default NULL. Indices of components to plot. Will override var_names if specified.</p></dd>
+
+
+<dt id="arg-var-names">var_names<a class="anchor" aria-label="anchor" href="#arg-var-names"></a></dt>
+<dd><p>Default NULL. Character vector of variable names (column names) to plot. Will be overridden by max_ncomp or comp_idx if they are specified.</p></dd>
 
 
 <dt id="arg-colby">colBy<a class="anchor" aria-label="anchor" href="#arg-colby"></a></dt>
@@ -139,7 +144,7 @@
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
       </footer></div>

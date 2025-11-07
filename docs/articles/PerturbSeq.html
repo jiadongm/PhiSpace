@@ -74,7 +74,7 @@ strengths of CRISPRa gene perturbation</h1>
                         <h4 data-toc-skip class="author">Jiadong
 Mao</h4>
             
-            <h4 data-toc-skip class="date">2025-08-15</h4>
+            <h4 data-toc-skip class="date">2025-11-07</h4>
       
 
       <div class="hidden name"><code>PerturbSeq.Rmd</code></div>
@@ -207,7 +207,7 @@ perturbed.</p>
 <span>  queryLabs <span class="op">=</span> <span class="va">query</span><span class="op">$</span><span class="va">cluster_name</span>, </span>
 <span>  name <span class="op">=</span> <span class="st">"PhiScore"</span>, queryLvls <span class="op">=</span> <span class="va">queryLvls</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="PerturbSeq_files/figure-html/unnamed-chunk-6-1.png" width="672"></p>
+<p><img src="PerturbSeq_files/figure-html/unnamed-chunk-6-1.png" class="r-plt" width="672"></p>
 </div>
 <div class="section level2">
 <h2 id="t-cell-activation">T cell activation<a class="anchor" aria-label="anchor" href="#t-cell-activation"></a>
@@ -229,7 +229,7 @@ corners were more CD4-(CD8-)like.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Original CD4/CD8 score</span></span>
 <span><span class="fu"><a href="../reference/matrixPlot.html">matrixPlot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"umap_original"</span><span class="op">)</span>, comp_idx <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, colBy <span class="op">=</span> <span class="va">query</span><span class="op">$</span><span class="va">CD4.CD8.Score</span><span class="op">)</span></span></code></pre></div>
-<p><img src="PerturbSeq_files/figure-html/unnamed-chunk-7-1.png" width="480"></p>
+<p><img src="PerturbSeq_files/figure-html/unnamed-chunk-7-1.png" class="r-plt" width="480"></p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># New CD4/CD8 score</span></span>
 <span><span class="va">allCellTypes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"PhiSpace"</span><span class="op">)</span><span class="op">)</span></span>
@@ -238,14 +238,14 @@ corners were more CD4-(CD8-)like.</p>
 <span><span class="va">scCD4</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums-methods.html" class="external-link">rowMeans</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"PhiSpace"</span><span class="op">)</span><span class="op">[</span>,<span class="va">CD4Types</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="va">scCD8</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums-methods.html" class="external-link">rowMeans</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"PhiSpace"</span><span class="op">)</span><span class="op">[</span>,<span class="va">CD8Types</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/matrixPlot.html">matrixPlot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"umap_original"</span><span class="op">)</span>, comp_idx <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, colBy <span class="op">=</span> <span class="va">scCD4</span><span class="op">)</span></span></code></pre></div>
-<p><img src="PerturbSeq_files/figure-html/unnamed-chunk-7-2.png" width="480"></p>
+<p><img src="PerturbSeq_files/figure-html/unnamed-chunk-7-2.png" class="r-plt" width="480"></p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/matrixPlot.html">matrixPlot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"umap_original"</span><span class="op">)</span>, comp_idx <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, colBy <span class="op">=</span> <span class="va">scCD8</span><span class="op">)</span></span></code></pre></div>
-<p><img src="PerturbSeq_files/figure-html/unnamed-chunk-7-3.png" width="480"></p>
+<p><img src="PerturbSeq_files/figure-html/unnamed-chunk-7-3.png" class="r-plt" width="480"></p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">newCD4Score</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sign.html" class="external-link">sign</a></span><span class="op">(</span><span class="va">scCD4</span> <span class="op">-</span> <span class="va">scCD8</span><span class="op">)</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">scCD4</span> <span class="op">-</span> <span class="va">scCD8</span><span class="op">)</span><span class="op">^</span><span class="op">(</span><span class="fl">1</span><span class="op">/</span><span class="fl">3</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/matrixPlot.html">matrixPlot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"umap_original"</span><span class="op">)</span>, comp_idx <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, colBy <span class="op">=</span> <span class="va">newCD4Score</span><span class="op">)</span></span></code></pre></div>
-<p><img src="PerturbSeq_files/figure-html/unnamed-chunk-7-4.png" width="480"></p>
+<p><img src="PerturbSeq_files/figure-html/unnamed-chunk-7-4.png" class="r-plt" width="480"></p>
 <p>The next thing Schmidt et al. (2022) looked at was how activated the
 T cells were. They defined an activation score using T cell activation
 markers. Since we have two activated T cell types (activated CD4 and
@@ -254,13 +254,13 @@ cube root transform of the sum of activated CD4 and CD8 scores. Again,
 these two activation scores gave similar visualisation.</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/matrixPlot.html">matrixPlot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"umap_original"</span><span class="op">)</span>, comp_idx <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, colBy <span class="op">=</span> <span class="va">query</span><span class="op">$</span><span class="va">activation.score</span><span class="op">)</span></span></code></pre></div>
-<p><img src="PerturbSeq_files/figure-html/unnamed-chunk-8-1.png" width="480"></p>
+<p><img src="PerturbSeq_files/figure-html/unnamed-chunk-8-1.png" class="r-plt" width="480"></p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">scActCD4</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"PhiSpace"</span><span class="op">)</span><span class="op">[</span>,<span class="st">"T cells, CD4+, naive, stimulated"</span><span class="op">]</span></span>
 <span><span class="va">scActCD8</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"PhiSpace"</span><span class="op">)</span><span class="op">[</span>,<span class="st">"T cells, CD8+, naive, stimulated"</span><span class="op">]</span></span>
 <span><span class="va">scAct</span> <span class="op">&lt;-</span> <span class="va">scActCD4</span> <span class="op">+</span> <span class="va">scActCD8</span> </span>
 <span><span class="fu"><a href="../reference/matrixPlot.html">matrixPlot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"umap_original"</span><span class="op">)</span>, comp_idx <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, colBy <span class="op">=</span> <span class="va">scAct</span><span class="op">)</span></span></code></pre></div>
-<p><img src="PerturbSeq_files/figure-html/unnamed-chunk-8-2.png" width="480"></p>
+<p><img src="PerturbSeq_files/figure-html/unnamed-chunk-8-2.png" class="r-plt" width="480"></p>
 <p>An important question in Schmidt et al. (2022) is how individual
 CRISPRa perturbations (enhancing gene activities) contribute to T cell
 activation. They plotted the T cell activation scores grouped by
@@ -320,11 +320,11 @@ more significant positive regulators than Schmidt et al. (2025).</p>
 <span><span class="op">}</span></span>
 <span><span class="va">scAct</span> <span class="op">&lt;-</span> <span class="va">query</span><span class="op">$</span><span class="va">activation.score</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">`names&lt;-`</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">query</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu">perturbActPlot</span><span class="op">(</span><span class="va">scAct</span>, <span class="fl">650</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"Activation scores (Schmidt et al., 2022) by perturbed genes"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="PerturbSeq_files/figure-html/unnamed-chunk-9-1.png" width="672"></p>
+<p><img src="PerturbSeq_files/figure-html/unnamed-chunk-9-1.png" class="r-plt" width="672"></p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">scAct</span> <span class="op">&lt;-</span> <span class="va">scActCD4</span> <span class="op">+</span> <span class="va">scActCD8</span></span>
 <span><span class="fu">perturbActPlot</span><span class="op">(</span><span class="va">scAct</span>, <span class="fl">0.6</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"Activation scores (PhiSpace) by perturbed genes"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="PerturbSeq_files/figure-html/unnamed-chunk-9-2.png" width="672"></p>
+<p><img src="PerturbSeq_files/figure-html/unnamed-chunk-9-2.png" class="r-plt" width="672"></p>
 <p>In addition to recapitulate what was found by Schmidt et al. (2022),
 PhiSpace provides flexibility for more analyses on how perturbations
 affects T cell states. We can group any cell type scores by perturbed
@@ -377,10 +377,10 @@ of GATA3</a>).</p>
 <span>  <span class="va">p</span></span>
 <span><span class="op">}</span></span>
 <span><span class="fu">tempcTypeBoxplot</span><span class="op">(</span><span class="st">"T cells, CD4+, Th1"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="PerturbSeq_files/figure-html/unnamed-chunk-10-1.png" width="672"></p>
+<p><img src="PerturbSeq_files/figure-html/unnamed-chunk-10-1.png" class="r-plt" width="672"></p>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">tempcTypeBoxplot</span><span class="op">(</span><span class="st">"T cells, CD4+, Th2"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="PerturbSeq_files/figure-html/unnamed-chunk-10-2.png" width="672"></p>
+<p><img src="PerturbSeq_files/figure-html/unnamed-chunk-10-2.png" class="r-plt" width="672"></p>
 </div>
   </div>
 
@@ -399,7 +399,7 @@ of GATA3</a>).</p>
 
 <div class="pkgdown">
   <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
       </footer>

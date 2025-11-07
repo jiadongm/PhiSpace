@@ -74,7 +74,7 @@ multi-cellular spots</h1>
                         <h4 data-toc-skip class="author">Jiadong
 Mao</h4>
             
-            <h4 data-toc-skip class="date">2025-08-15</h4>
+            <h4 data-toc-skip class="date">2025-11-07</h4>
       
 
       <div class="hidden name"><code>Visium.Rmd</code></div>
@@ -157,10 +157,10 @@ marker.</p>
 <code class="sourceCode R"><span><span class="va">VisTissueName</span> <span class="op">&lt;-</span> <span class="st">"P11_T3"</span></span>
 <span><span class="va">qu_vis</span> <span class="op">&lt;-</span> <span class="va">query_list</span><span class="op">[[</span><span class="va">VisTissueName</span><span class="op">]</span><span class="op">]</span></span>
 <span><span class="fu"><a href="../reference/VizSpatial.html">VizSpatial</a></span><span class="op">(</span><span class="va">qu_vis</span>, feature <span class="op">=</span> <span class="st">"KRT19"</span>, assay2use <span class="op">=</span> <span class="st">"log1p"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="Visium_files/figure-html/unnamed-chunk-3-1.png" width="700"></p>
+<p><img src="Visium_files/figure-html/unnamed-chunk-3-1.png" class="r-plt" width="700"></p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/VizSpatial.html">VizSpatial</a></span><span class="op">(</span><span class="va">qu_vis</span>, feature <span class="op">=</span> <span class="st">"CD79A"</span>, assay2use <span class="op">=</span> <span class="st">"log1p"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="Visium_files/figure-html/unnamed-chunk-3-2.png" width="700"></p>
+<p><img src="Visium_files/figure-html/unnamed-chunk-3-2.png" class="r-plt" width="700"></p>
 </div>
 <div class="section level2">
 <h2 id="run-phispace">Run PhiSpace<a class="anchor" aria-label="anchor" href="#run-phispace"></a>
@@ -196,7 +196,7 @@ P11_T3.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">qu_vis</span>, <span class="st">"PhiSpace"</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="va">PhiRes</span><span class="op">[[</span><span class="st">"P11_T3"</span><span class="op">]</span><span class="op">]</span></span>
 <span><span class="fu"><a href="../reference/VizSpatial.html">VizSpatial</a></span><span class="op">(</span><span class="va">qu_vis</span>, reducedDim <span class="op">=</span> <span class="st">"B cells"</span>, reducedDim2use <span class="op">=</span> <span class="st">"PhiSpace"</span>, censor <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span></code></pre></div>
-<p><img src="Visium_files/figure-html/unnamed-chunk-5-1.png" width="700"></p>
+<p><img src="Visium_files/figure-html/unnamed-chunk-5-1.png" class="r-plt" width="700"></p>
 <p>How about the performance of other deconvolution methods? How to
 compare their performances when there is no ground truth? See the Visium
 case study in our <a href="https://www.biorxiv.org/content/10.1101/2025.02.05.636735v1" class="external-link">PhiSpace
@@ -247,10 +247,10 @@ separated into groups according to disease conditions:</p>
 </ul>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">tempPCAplot</span><span class="op">(</span><span class="va">pca_res</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/expand_limits.html" class="external-link">expand_limits</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">5.5</span>, <span class="fl">7.5</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="Visium_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
+<p><img src="Visium_files/figure-html/unnamed-chunk-8-1.png" class="r-plt" width="700"></p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/loadBarplot.html">loadBarplot</a></span><span class="op">(</span><span class="va">pca_res</span><span class="op">$</span><span class="va">loadings</span>, nfeat <span class="op">=</span> <span class="fl">20</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>axis.text.x <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>angle <span class="op">=</span> <span class="fl">45</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="Visium_files/figure-html/unnamed-chunk-8-2.png" width="700"></p>
+<p><img src="Visium_files/figure-html/unnamed-chunk-8-2.png" class="r-plt" width="700"></p>
 <p>In addition to the separation of patients, we can also observe that
 LUSC samples tend to have the largest PC1 values, healthy and background
 the lowest, and LUAD samples having intermediate PC1 values. Given that
@@ -307,7 +307,7 @@ closer to LUSC patients on the PCA scatter plot above.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>axis.text.x <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>angle <span class="op">=</span> <span class="fl">90</span><span class="op">)</span>, axis.title.x <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">cancerType</span>, scales <span class="op">=</span> <span class="st">"free"</span>, ncol <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"none"</span>, axis.title.y <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> </span></code></pre></div>
-<p><img src="Visium_files/figure-html/unnamed-chunk-9-1.png" width="700"></p>
+<p><img src="Visium_files/figure-html/unnamed-chunk-9-1.png" class="r-plt" width="700"></p>
 <p>To focus on the role of immune cell types, we repeat the above
 analysis using only immune cell types. The separation of disease
 conditions was largely retained. Note how plasmacytoid dendritic cells
@@ -350,10 +350,10 @@ along PC1.</p>
 <span><span class="va">corMatVec_immune</span> <span class="op">&lt;-</span> <span class="va">corMatVec</span><span class="op">[</span>,<span class="va">intIdx</span><span class="op">]</span></span>
 <span><span class="va">pcaImmune_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/getPC.html">getPC</a></span><span class="op">(</span><span class="va">corMatVec_immune</span>, ncomp <span class="op">=</span> <span class="fl">2</span>, center <span class="op">=</span> <span class="cn">T</span>, scale <span class="op">=</span> <span class="cn">F</span><span class="op">)</span></span>
 <span><span class="fu">tempPCAplot</span><span class="op">(</span><span class="va">pcaImmune_res</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/expand_limits.html" class="external-link">expand_limits</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">4</span>, <span class="fl">4</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="Visium_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>
+<p><img src="Visium_files/figure-html/unnamed-chunk-10-1.png" class="r-plt" width="700"></p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/loadBarplot.html">loadBarplot</a></span><span class="op">(</span><span class="va">pcaImmune_res</span><span class="op">$</span><span class="va">loadings</span>, <span class="st">"comp1"</span>, nfeat <span class="op">=</span> <span class="fl">20</span><span class="op">)</span></span></code></pre></div>
-<p><img src="Visium_files/figure-html/unnamed-chunk-10-2.png" width="700"></p>
+<p><img src="Visium_files/figure-html/unnamed-chunk-10-2.png" class="r-plt" width="700"></p>
 </div>
   </div>
 
@@ -372,7 +372,7 @@ along PC1.</p>
 
 <div class="pkgdown">
   <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
       </footer>

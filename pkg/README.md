@@ -8,12 +8,7 @@ Installing Bioconductor dependencies and then PhiSpace:
 if(!requireNamespace("BiocManager", quietly = TRUE)) {
   install.packages("BiocManager")
 }
-BiocManager::install(c("SingleCellExperiment", "scran", "scuttle", "ComplexHeatmap", "SpatialExperiment"))
-
-if(!requireNamespace("devtools", quietly = TRUE)) {
-  install.packages("devtools")
-}
-devtools::install_github('jiadongm/PhiSpace/pkg')
+BiocManager::install('jiadongm/PhiSpace/pkg')
 ```
 
 

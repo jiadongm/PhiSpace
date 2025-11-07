@@ -42,7 +42,7 @@ The Stemformatics DC atlas is a bulk RNA-seq atlas of different subtypes of huma
 Load the packages.
 ```{r}
 # Make sure you've installed the latest version of PhiSpace
-# devtools::install_github("jiadongm/PhiSpace/pkg")
+# BiocManager::install('jiadongm/PhiSpace/pkg')
 suppressPackageStartupMessages(library(PhiSpace))
 # Tidyverse packages
 suppressPackageStartupMessages(library(ggplot2))
