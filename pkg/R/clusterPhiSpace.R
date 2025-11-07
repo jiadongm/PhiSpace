@@ -1,11 +1,12 @@
 #' K-means clustering on PhiSpace principal components
 #'
 #' Performs k-means clustering on principal components derived from PhiSpace
-#' scores. This is useful for identifying spatial niches or clusters based on
-#' cell state compositions.
+#' scores or any other matrix-like data. This is useful for identifying spatial
+#' niches or clusters based on cell state compositions or gene expression patterns.
 #'
-#' @param spe A SpatialExperiment or SingleCellExperiment object containing
-#'   PhiSpace scores in reducedDim
+#' @param x Either a SpatialExperiment/SingleCellExperiment object containing
+#'   PhiSpace scores in reducedDim, OR a matrix-like object (matrix, sparse matrix,
+#'   data frame) with features in columns and observations in rows.
 #' @param k Integer specifying the number of clusters. Either provide k or
 #'   k_range but not both.
 #' @param k_range Integer vector of length 2 specifying range of k values to
@@ -18,22 +19,28 @@
 #'   clustering. If NULL (default), uses min(30, nfeatures - 1). If "all",
 #'   uses nfeatures - 1 components.
 #' @param reducedDimName Character string specifying which reducedDim slot
-#'   contains the PhiSpace scores. Default is "PhiSpace".
+#'   contains the PhiSpace scores. Only used when x is a SingleCellExperiment
+#'   or SpatialExperiment. Default is "PhiSpace".
+#' @param use_assay Character string specifying which assay to use if extracting
+#'   data from a SingleCellExperiment/SpatialExperiment object instead of using
+#'   reducedDim. If NULL (default), uses reducedDim specified by reducedDimName.
+#'   Common options: "logcounts", "counts", "normcounts".
 #' @param nstart Integer specifying number of random starts for k-means.
 #'   Default is 20.
 #' @param iter.max Integer specifying maximum number of iterations.
 #'   Default is 500.
 #' @param algorithm Character string specifying k-means algorithm. Options are
 #'   "Hartigan-Wong", "Lloyd", "Forgy", "MacQueen". Default is "Lloyd".
-#' @param center Logical indicating whether to center PhiSpace scores before PCA.
+#' @param center Logical indicating whether to center data before PCA.
 #'   Default is TRUE.
-#' @param scale Logical indicating whether to scale PhiSpace scores before PCA.
+#' @param scale Logical indicating whether to scale data before PCA.
 #'   Default is FALSE.
 #' @param seed Integer seed for reproducibility. Default is NULL (no seed set).
 #' @param return_pca Logical indicating whether to return PCA results.
 #'   Default is TRUE.
 #' @param store_in_colData Logical indicating whether to store cluster assignments
-#'   in the colData of the input object. Default is FALSE.
+#'   in the colData of the input object (only applicable when x is an SCE/SPE).
+#'   Default is FALSE.
 #' @param cluster_name Character string specifying the column name for cluster
 #'   assignments if store_in_colData is TRUE. Default is "PhiClust".
 #'
@@ -46,11 +53,11 @@
 #'   \item{optimal_k}{Selected k value (relevant when k_range is used)}
 #'   \item{k_selection}{List with selection metrics (if k_range was used)}
 #'   \item{parameters}{List of parameters used}
-#'   \item{spe}{Updated object (if store_in_colData = TRUE)}
+#'   \item{spe}{Updated object (if store_in_colData = TRUE and x is SCE/SPE)}
 #'
 #' @details
 #' This function implements a common workflow for spatial clustering:
-#' 1. Extract PhiSpace scores
+#' 1. Extract data (from reducedDim, assay, or use directly if matrix)
 #' 2. Perform PCA to reduce dimensionality
 #' 3. Select top principal components
 #' 4. Apply k-means clustering
@@ -63,6 +70,13 @@
 #' selects the optimal k using either:
 #' - **Silhouette method** (default): Maximizes average silhouette width
 #' - **Elbow method**: Identifies elbow point in total within-cluster sum of squares
+#'
+#' @section Input Types:
+#' The function accepts multiple input types:
+#' - **SingleCellExperiment/SpatialExperiment**: Uses reducedDim (default) or assay
+#' - **Matrix**: Standard R matrix with observations in rows
+#' - **Sparse matrix**: dgCMatrix or similar sparse formats
+#' - **Data frame**: Coerced to matrix
 #'
 #' @section PCA Parameters:
 #' The number of PCs to use affects clustering resolution:
@@ -78,48 +92,52 @@
 #'
 #' @examples
 #' \dontrun{
-#' # Basic usage with fixed k
+#' # Example 1: Using SingleCellExperiment with PhiSpace scores
 #' result <- clusterPhiSpace(
-#'   spe = lung_data,
+#'   x = lung_data,
 #'   k = 9,
 #'   ncomp = 30,
 #'   seed = 123
 #' )
 #'
-#' # Access clusters
-#' table(result$clusters)
-#'
-#' # Plot clusters
-#' plot(result)
-#'
-#' # Automatic k selection
+#' # Example 2: Using matrix directly
+#' phi_matrix <- reducedDim(lung_data, "PhiSpace")
 #' result <- clusterPhiSpace(
-#'   spe = lung_data,
-#'   k_range = c(5, 15),
-#'   select_k_method = "silhouette",
+#'   x = phi_matrix,
+#'   k = 9,
 #'   ncomp = 30
 #' )
 #'
-#' # Store clusters in object
+#' # Example 3: Cluster on normalized counts instead
 #' result <- clusterPhiSpace(
-#'   spe = lung_data,
+#'   x = lung_data,
+#'   use_assay = "logcounts",
 #'   k = 9,
-#'   ncomp = 30,
-#'   store_in_colData = TRUE,
-#'   cluster_name = "spatial_niche"
+#'   ncomp = 50
 #' )
-#' lung_data <- result$spe
+#'
+#' # Example 4: Using data frame
+#' df <- as.data.frame(reducedDim(lung_data, "PhiSpace"))
+#' result <- clusterPhiSpace(x = df, k = 9)
+#'
+#' # Example 5: Automatic k selection
+#' result <- clusterPhiSpace(
+#'   x = phi_matrix,
+#'   k_range = c(5, 15),
+#'   select_k_method = "silhouette"
+#' )
 #' }
 #'
 #' @importFrom stats kmeans
 #' @export
 clusterPhiSpace <- function(
-    spe,
+    x,
     k = NULL,
     k_range = NULL,
     select_k_method = c("silhouette", "elbow"),
     ncomp = NULL,
     reducedDimName = "PhiSpace",
+    use_assay = NULL,
     nstart = 20,
     iter.max = 500,
     algorithm = c("Lloyd", "Hartigan-Wong", "MacQueen", "Forgy"),
@@ -148,15 +166,69 @@ clusterPhiSpace <- function(
     set.seed(seed)
   }
 
-  # Extract PhiSpace scores
-  if (!reducedDimName %in% reducedDimNames(spe)) {
-    stop("reducedDim '", reducedDimName, "' not found in the object. ",
-         "Available reducedDims: ", paste(reducedDimNames(spe), collapse = ", "))
+  # Determine input type and extract data
+  is_sce <- inherits(x, "SingleCellExperiment") || inherits(x, "SpatialExperiment")
+
+  if (is_sce) {
+    # Input is SingleCellExperiment or SpatialExperiment
+    if (!is.null(use_assay)) {
+      # Extract from assay
+      if (!use_assay %in% assayNames(x)) {
+        stop("Assay '", use_assay, "' not found in the object. ",
+             "Available assays: ", paste(assayNames(x), collapse = ", "))
+      }
+      data_matrix <- t(as.matrix(assay(x, use_assay)))
+      data_source <- paste0("assay:", use_assay)
+    } else {
+      # Extract from reducedDim
+      if (!reducedDimName %in% reducedDimNames(x)) {
+        stop("reducedDim '", reducedDimName, "' not found in the object. ",
+             "Available reducedDims: ", paste(reducedDimNames(x), collapse = ", "))
+      }
+      data_matrix <- reducedDim(x, reducedDimName)
+      data_source <- paste0("reducedDim:", reducedDimName)
+    }
+    original_object <- x
+  } else {
+    # Input is matrix-like object
+    if (is.data.frame(x)) {
+      data_matrix <- as.matrix(x)
+      data_source <- "data.frame"
+    } else if (is.matrix(x)) {
+      data_matrix <- x
+      data_source <- "matrix"
+    } else if (inherits(x, "sparseMatrix") || inherits(x, "dgCMatrix")) {
+      data_matrix <- as.matrix(x)
+      data_source <- "sparse matrix"
+    } else {
+      # Try to coerce to matrix
+      tryCatch({
+        data_matrix <- as.matrix(x)
+        data_source <- "coerced to matrix"
+      }, error = function(e) {
+        stop("Input 'x' must be a SingleCellExperiment, SpatialExperiment, ",
+             "matrix, sparse matrix, or data.frame. Cannot coerce object of class '",
+             paste(class(x), collapse = ", "), "' to matrix.")
+      })
+    }
+    original_object <- NULL
+
+    # Validate matrix dimensions
+    if (nrow(data_matrix) < 2) {
+      stop("Input matrix must have at least 2 observations (rows)")
+    }
+    if (ncol(data_matrix) < 2) {
+      stop("Input matrix must have at least 2 features (columns)")
+    }
   }
-  phi_scores <- reducedDim(spe, reducedDimName)
+
+  # Ensure matrix has row names
+  if (is.null(rownames(data_matrix))) {
+    rownames(data_matrix) <- paste0("obs_", seq_len(nrow(data_matrix)))
+  }
 
   # Determine number of PCs
-  max_ncomp <- ncol(phi_scores) - 1
+  max_ncomp <- ncol(data_matrix) - 1
   if (is.null(ncomp)) {
     ncomp <- min(30, max_ncomp)
   } else if (is.character(ncomp) && ncomp == "all") {
@@ -169,7 +241,7 @@ clusterPhiSpace <- function(
 
   # Perform PCA
   pca_result <- getPC(
-    phi_scores,
+    data_matrix,
     ncomp = max_ncomp,
     center = center,
     scale = scale
@@ -208,9 +280,14 @@ clusterPhiSpace <- function(
   clusters <- factor(kmeans_result$cluster)
   names(clusters) <- rownames(pc_scores)
 
-  # Store in colData if requested
+  # Store in colData if requested and possible
   if (store_in_colData) {
-    colData(spe)[[cluster_name]] <- clusters
+    if (!is_sce) {
+      warning("store_in_colData = TRUE but input is not a SingleCellExperiment/SpatialExperiment. ",
+              "Cluster assignments will not be stored in the object.")
+    } else {
+      colData(original_object)[[cluster_name]] <- clusters
+    }
   }
 
   # Prepare output
@@ -232,9 +309,10 @@ clusterPhiSpace <- function(
       algorithm = algorithm,
       center = center,
       scale = scale,
-      reducedDimName = reducedDimName
+      data_source = data_source,
+      input_type = if (is_sce) class(x)[1] else class(x)[1]
     ),
-    spe = if (store_in_colData) spe else NULL
+    spe = if (store_in_colData && is_sce) original_object else NULL
   )
 
   class(result) <- c("PhiSpaceClustering", "list")
@@ -308,6 +386,8 @@ print.PhiSpaceClustering <- function(x, ...) {
   cat("PhiSpace K-means Clustering\n")
   cat("===========================\n\n")
 
+  cat("Input type:", x$parameters$input_type, "\n")
+  cat("Data source:", x$parameters$data_source, "\n")
   cat("Number of clusters (k):", x$optimal_k, "\n")
 
   if (!is.null(x$k_selection)) {

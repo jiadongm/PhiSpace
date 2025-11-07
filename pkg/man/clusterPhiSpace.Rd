@@ -5,12 +5,13 @@
 \title{K-means clustering on PhiSpace principal components}
 \usage{
 clusterPhiSpace(
-  spe,
+  x,
   k = NULL,
   k_range = NULL,
   select_k_method = c("silhouette", "elbow"),
   ncomp = NULL,
   reducedDimName = "PhiSpace",
+  use_assay = NULL,
   nstart = 20,
   iter.max = 500,
   algorithm = c("Lloyd", "Hartigan-Wong", "MacQueen", "Forgy"),
@@ -23,8 +24,9 @@ clusterPhiSpace(
 )
 }
 \arguments{
-\item{spe}{A SpatialExperiment or SingleCellExperiment object containing
-PhiSpace scores in reducedDim}
+\item{x}{Either a SpatialExperiment/SingleCellExperiment object containing
+PhiSpace scores in reducedDim, OR a matrix-like object (matrix, sparse matrix,
+data frame) with features in columns and observations in rows.}
 
 \item{k}{Integer specifying the number of clusters. Either provide k or
 k_range but not both.}
@@ -42,7 +44,13 @@ clustering. If NULL (default), uses min(30, nfeatures - 1). If "all",
 uses nfeatures - 1 components.}
 
 \item{reducedDimName}{Character string specifying which reducedDim slot
-contains the PhiSpace scores. Default is "PhiSpace".}
+contains the PhiSpace scores. Only used when x is a SingleCellExperiment
+or SpatialExperiment. Default is "PhiSpace".}
+
+\item{use_assay}{Character string specifying which assay to use if extracting
+data from a SingleCellExperiment/SpatialExperiment object instead of using
+reducedDim. If NULL (default), uses reducedDim specified by reducedDimName.
+Common options: "logcounts", "counts", "normcounts".}
 
 \item{nstart}{Integer specifying number of random starts for k-means.
 Default is 20.}
@@ -53,10 +61,10 @@ Default is 500.}
 \item{algorithm}{Character string specifying k-means algorithm. Options are
 "Hartigan-Wong", "Lloyd", "Forgy", "MacQueen". Default is "Lloyd".}
 
-\item{center}{Logical indicating whether to center PhiSpace scores before PCA.
+\item{center}{Logical indicating whether to center data before PCA.
 Default is TRUE.}
 
-\item{scale}{Logical indicating whether to scale PhiSpace scores before PCA.
+\item{scale}{Logical indicating whether to scale data before PCA.
 Default is FALSE.}
 
 \item{seed}{Integer seed for reproducibility. Default is NULL (no seed set).}
@@ -65,7 +73,8 @@ Default is FALSE.}
 Default is TRUE.}
 
 \item{store_in_colData}{Logical indicating whether to store cluster assignments
-in the colData of the input object. Default is FALSE.}
+in the colData of the input object (only applicable when x is an SCE/SPE).
+Default is FALSE.}
 
 \item{cluster_name}{Character string specifying the column name for cluster
 assignments if store_in_colData is TRUE. Default is "PhiClust".}
@@ -80,17 +89,17 @@ A list with class "PhiSpaceClustering" containing:
 \item{optimal_k}{Selected k value (relevant when k_range is used)}
 \item{k_selection}{List with selection metrics (if k_range was used)}
 \item{parameters}{List of parameters used}
-\item{spe}{Updated object (if store_in_colData = TRUE)}
+\item{spe}{Updated object (if store_in_colData = TRUE and x is SCE/SPE)}
 }
 \description{
 Performs k-means clustering on principal components derived from PhiSpace
-scores. This is useful for identifying spatial niches or clusters based on
-cell state compositions.
+scores or any other matrix-like data. This is useful for identifying spatial
+niches or clusters based on cell state compositions or gene expression patterns.
 }
 \details{
 This function implements a common workflow for spatial clustering:
 \enumerate{
-\item Extract PhiSpace scores
+\item Extract data (from reducedDim, assay, or use directly if matrix)
 \item Perform PCA to reduce dimensionality
 \item Select top principal components
 \item Apply k-means clustering
@@ -109,6 +118,17 @@ selects the optimal k using either:
 \item \strong{Elbow method}: Identifies elbow point in total within-cluster sum of squares
 }
 }
+\section{Input Types}{
+
+The function accepts multiple input types:
+\itemize{
+\item \strong{SingleCellExperiment/SpatialExperiment}: Uses reducedDim (default) or assay
+\item \strong{Matrix}: Standard R matrix with observations in rows
+\item \strong{Sparse matrix}: dgCMatrix or similar sparse formats
+\item \strong{Data frame}: Coerced to matrix
+}
+}
+
 \section{PCA Parameters}{
 
 The number of PCs to use affects clustering resolution:
@@ -131,37 +151,40 @@ The number of PCs to use affects clustering resolution:
 
 \examples{
 \dontrun{
-# Basic usage with fixed k
+# Example 1: Using SingleCellExperiment with PhiSpace scores
 result <- clusterPhiSpace(
-  spe = lung_data,
+  x = lung_data,
   k = 9,
   ncomp = 30,
   seed = 123
 )
 
-# Access clusters
-table(result$clusters)
-
-# Plot clusters
-plot(result)
-
-# Automatic k selection
+# Example 2: Using matrix directly
+phi_matrix <- reducedDim(lung_data, "PhiSpace")
 result <- clusterPhiSpace(
-  spe = lung_data,
-  k_range = c(5, 15),
-  select_k_method = "silhouette",
+  x = phi_matrix,
+  k = 9,
   ncomp = 30
 )
 
-# Store clusters in object
+# Example 3: Cluster on normalized counts instead
 result <- clusterPhiSpace(
-  spe = lung_data,
+  x = lung_data,
+  use_assay = "logcounts",
   k = 9,
-  ncomp = 30,
-  store_in_colData = TRUE,
-  cluster_name = "spatial_niche"
+  ncomp = 50
 )
-lung_data <- result$spe
+
+# Example 4: Using data frame
+df <- as.data.frame(reducedDim(lung_data, "PhiSpace"))
+result <- clusterPhiSpace(x = df, k = 9)
+
+# Example 5: Automatic k selection
+result <- clusterPhiSpace(
+  x = phi_matrix,
+  k_range = c(5, 15),
+  select_k_method = "silhouette"
+)
 }
 
 }
