@@ -10,6 +10,7 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 Depends:
+    R (>= 4.5.0),
     SummarizedExperiment,
     SingleCellExperiment,
     SpatialExperiment,
@@ -17,25 +18,21 @@ Depends:
     methods
 Imports: 
     ComplexHeatmap,
-    cowplot,
     dplyr,
     ggplot2,
     ggpubr,
-    gridExtra,
     irlba,
     magrittr,
-    networkD3,
     plyr,
     stats,
     scran,
     scuttle,
-    tidyr,
-    umap,
-    clue,
     FNN,
     S4Vectors,
     kerndwd,
-    cluster
+    cluster,
+    umap,
+    vizOmics
 Suggests: 
     testthat (>= 3.0.0)
 Remotes: 
@@ -45,6 +42,7 @@ Remotes:
     bioc::SpatialExperiment,
     bioc::scran,
     bioc::scuttle,
-    bioc::S4Vectors
+    bioc::S4Vectors,
+    ByronSyun/vizOmics
 Config/testthat/edition: 3
 URL: https://jiadongm.github.io/PhiSpace/
