@@ -13,10 +13,10 @@ Depends:
     R (>= 4.5.0),
     SummarizedExperiment,
     SingleCellExperiment,
-    SpatialExperiment,
-    Matrix,
-    methods
+    SpatialExperiment
 Imports: 
+    Matrix,
+    methods,
     ComplexHeatmap,
     dplyr,
     ggplot2,
@@ -36,13 +36,6 @@ Imports:
 Suggests: 
     testthat (>= 3.0.0)
 Remotes: 
-    bioc::ComplexHeatmap,
-    bioc::SummarizedExperiment,
-    bioc::SingleCellExperiment,
-    bioc::SpatialExperiment,
-    bioc::scran,
-    bioc::scuttle,
-    bioc::S4Vectors,
     ByronSyun/vizOmics
 Config/testthat/edition: 3
 URL: https://jiadongm.github.io/PhiSpace/
