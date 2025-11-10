@@ -321,6 +321,8 @@ clusterPhiSpace <- function(
 
 
 #' Internal function to select optimal k
+#'
+#' @importFrom stats dist
 #' @keywords internal
 .select_optimal_k <- function(pc_scores, k_range, method, nstart, iter.max, algorithm) {
 
