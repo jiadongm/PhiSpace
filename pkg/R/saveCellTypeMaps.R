@@ -200,7 +200,7 @@ saveCellTypeMaps <- function(
 
   # Extract coordinate data once
   if (inherits(sce, "SpatialExperiment")) {
-    coord_data <- as.data.frame(spatialCoordsNames(sce))
+    coord_data <- as.data.frame(spatialCoords(sce))
   } else {
     coord_data <- as.data.frame(colData(sce)[, coordNames, drop = FALSE])
   }
