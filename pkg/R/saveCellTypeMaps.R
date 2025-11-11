@@ -158,11 +158,14 @@ saveCellTypeMaps <- function(
     }
   }
 
-  # Check coordinate columns
-  missing_coords <- coordNames[!coordNames %in% colnames(colData(sce))]
-  if (length(missing_coords) > 0) {
-    stop("Coordinate columns not found in colData: ", paste(missing_coords, collapse = ", "))
+  # Check coordinate columns if input is sce
+  if(inherits(sce, "SingleCellExperiment")){
+    missing_coords <- coordNames[!coordNames %in% colnames(colData(sce))]
+    if (length(missing_coords) > 0) {
+      stop("Coordinate columns not found in colData: ", paste(missing_coords, collapse = ", "))
+    }
   }
+
 
   # Extract scores matrix
   scores <- as.matrix(reducedDim(sce, methodName))
@@ -199,7 +202,13 @@ saveCellTypeMaps <- function(
   names(outPlots) <- ctypes
 
   # Extract coordinate data once
-  coord_data <- as.data.frame(colData(sce)[, coordNames, drop = FALSE])
+  if (inherits(sce, "SpatialExperiment")) {
+    coord_data <- as.data.frame(spatialCoordsNames(sce))
+  } else {
+    coord_data <- as.data.frame(colData(sce)[, coordNames, drop = FALSE])
+  }
+
+
 
   for (i in seq_along(ctypes)) {
     ctype <- ctypes[i]
