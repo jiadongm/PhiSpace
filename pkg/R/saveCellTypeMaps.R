@@ -156,10 +156,7 @@ saveCellTypeMaps <- function(
       coordNames <- spatial_coords[1:2]
       message("Using spatial coordinates: ", paste(coordNames, collapse = ", "))
     }
-  }
-
-  # Check coordinate columns if input is sce
-  if(inherits(sce, "SingleCellExperiment")){
+  } else {
     missing_coords <- coordNames[!coordNames %in% colnames(colData(sce))]
     if (length(missing_coords) > 0) {
       stop("Coordinate columns not found in colData: ", paste(missing_coords, collapse = ", "))
