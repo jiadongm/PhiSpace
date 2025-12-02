@@ -10,7 +10,7 @@ VizSpatial(
   y_coord = "y",
   ptSize = 2,
   ptShape = 16,
-  groupBy = NULL,
+  colBy = NULL,
   feature = NULL,
   assay2use = NULL,
   reducedDim = NULL,
@@ -36,7 +36,7 @@ VizSpatial(
 
 \item{ptShape}{Shape of point.}
 
-\item{groupBy}{Name of a metadata column to colour points by.}
+\item{colBy}{Name of a metadata column to colour points by.}
 
 \item{feature}{Name of a feature (eg gene) to colour points by.}
 

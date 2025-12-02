@@ -172,7 +172,7 @@ basicPlotFormat <- function(
 #' @param y_coord y coordinate name of a column of colData (if `type(ojb) == SingleCellExperiemnt`).
 #' @param ptSize Size of point, representing spatial cell like objects (segmented cells, spots etc).
 #' @param ptShape Shape of point.
-#' @param groupBy Name of a metadata column to colour points by.
+#' @param colBy Name of a metadata column to colour points by.
 #' @param feature Name of a feature (eg gene) to colour points by.
 #' @param assay2use Which assay to use when feature is specified.
 #' @param reducedDim Name of reducedDim column to colour points by.
@@ -195,7 +195,7 @@ VizSpatial <- function(
     y_coord = "y",
     ptSize = 2,
     ptShape = 16,
-    groupBy = NULL,
+    colBy = NULL,
     feature = NULL,
     assay2use = NULL,
     reducedDim = NULL,
@@ -281,10 +281,10 @@ VizSpatial <- function(
   }
 
 
-  if(!is.null(groupBy)){
+  if(!is.null(colBy)){
 
     if(reOrder){
-      plot_dat <- dplyr::arrange(plot_dat, !!sym(groupBy))
+      plot_dat <- dplyr::arrange(plot_dat, !!sym(colBy))
     }
   }
 
@@ -296,18 +296,18 @@ VizSpatial <- function(
       )
     )
 
-  if(!is.null(groupBy)){
+  if(!is.null(colBy)){
 
     p <- p +
       geom_point(
         aes(
-          colour = !!sym(groupBy)
+          colour = !!sym(colBy)
         ),
         size = ptSize, shape = ptShape,
         stroke = 0
       )
 
-    if(is.numeric(plot_dat[,groupBy])){
+    if(is.numeric(plot_dat[,colBy])){
       p <- p + scale_colour_gradientn(colours = MATLAB_cols)
     }
 

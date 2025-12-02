@@ -6,11 +6,11 @@
 \usage{
 spatialSmoother(
   object,
-  assay2smooth = "logcounts",
-  smoothedAssay = NULL,
-  smoothReducedDim = FALSE,
   reducedDim2smooth = "PhiSpace",
+  smoothReducedDim = TRUE,
+  assay2smooth = "logcounts",
   smoothedReducedDim = NULL,
+  smoothedAssay = NULL,
   x_coord = NULL,
   y_coord = NULL,
   k = 10,
@@ -23,15 +23,15 @@ spatialSmoother(
 \arguments{
 \item{object}{SpatialExperiment or SingleCellExperiment object}
 
-\item{assay2smooth}{Name of assay to smooth (for gene expression smoothing)}
-
-\item{smoothedAssay}{Name for the new smoothed assay (default: paste0(assay2smooth, "_smoothed"))}
+\item{reducedDim2smooth}{Name of reduced dimension to smooth (default: "PhiSpace")}
 
 \item{smoothReducedDim}{Logical, whether to smooth reduced dimensions instead of gene expression}
 
-\item{reducedDim2smooth}{Name of reduced dimension to smooth (default: "PhiSpace")}
+\item{assay2smooth}{Name of assay to smooth (for gene expression smoothing)}
 
 \item{smoothedReducedDim}{Name for the new smoothed reduced dimension (default: paste0(reducedDim2smooth, "_smoothed"))}
+
+\item{smoothedAssay}{Name for the new smoothed assay (default: paste0(assay2smooth, "_smoothed"))}
 
 \item{x_coord}{Column name in colData for x coordinates (required for SCE objects)}
 

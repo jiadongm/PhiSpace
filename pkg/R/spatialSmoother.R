@@ -1,11 +1,11 @@
 #' Spatial smoother wrapper for SpatialExperiment and SingleCellExperiment objects
 #'
 #' @param object SpatialExperiment or SingleCellExperiment object
-#' @param assay2smooth Name of assay to smooth (for gene expression smoothing)
-#' @param smoothedAssay Name for the new smoothed assay (default: paste0(assay2smooth, "_smoothed"))
-#' @param smoothReducedDim Logical, whether to smooth reduced dimensions instead of gene expression
 #' @param reducedDim2smooth Name of reduced dimension to smooth (default: "PhiSpace")
+#' @param smoothReducedDim Logical, whether to smooth reduced dimensions instead of gene expression
+#' @param assay2smooth Name of assay to smooth (for gene expression smoothing)
 #' @param smoothedReducedDim Name for the new smoothed reduced dimension (default: paste0(reducedDim2smooth, "_smoothed"))
+#' @param smoothedAssay Name for the new smoothed assay (default: paste0(assay2smooth, "_smoothed"))
 #' @param x_coord Column name in colData for x coordinates (required for SCE objects)
 #' @param y_coord Column name in colData for y coordinates (required for SCE objects)
 #' @param k Number of nearest neighbors (default: 10)
@@ -17,11 +17,11 @@
 #' @return Modified object with new smoothed assay or reduced dimension
 #' @export
 spatialSmoother <- function(object,
-                            assay2smooth = "logcounts",
-                            smoothedAssay = NULL,
-                            smoothReducedDim = FALSE,
                             reducedDim2smooth = "PhiSpace",
+                            smoothReducedDim = TRUE,
+                            assay2smooth = "logcounts",
                             smoothedReducedDim = NULL,
+                            smoothedAssay = NULL,
                             x_coord = NULL,
                             y_coord = NULL,
                             k = 10,
