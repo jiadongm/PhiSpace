@@ -74,7 +74,7 @@ multi-cellular spots</h1>
                         <h4 data-toc-skip class="author">Jiadong
 Mao</h4>
             
-            <h4 data-toc-skip class="date">2025-11-07</h4>
+            <h4 data-toc-skip class="date">2025-12-02</h4>
       
 
       <div class="hidden name"><code>Visium.Rmd</code></div>
@@ -114,9 +114,12 @@ be downloaded <a href="https://www.dropbox.com/scl/fi/glsnt6cr95pxr6tgaff34/Visi
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Name of the game</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://jiadongm.github.io/PhiSpace/">PhiSpace</a></span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/ByronSyun/vizOmics" class="external-link">vizOmics</a></span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co"># Tidyverse packages</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## Warning: package 'ggplot2' was built under R version 4.5.2</span></span></code></pre>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://magrittr.tidyverse.org" class="external-link">magrittr</a></span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://rpkgs.datanovia.com/ggpubr/" class="external-link">ggpubr</a></span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyr.tidyverse.org" class="external-link">tidyr</a></span><span class="op">)</span><span class="op">)</span></span>
@@ -146,19 +149,19 @@ quality.</li>
 scores</a>, which measures how important all the gene features are for
 predicting cell types in the reference.</li>
 </ul>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">reference</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/qs/man/qread.html" class="external-link">qread</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">dat_dir</span>, <span class="st">"data/LungRef/AzimuthLung2.0_sce_0.1sub.qs"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">impScores</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/qs/man/qread.html" class="external-link">qread</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">dat_dir</span>, <span class="st">"output/refImpScores.qs"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">query_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/qs/man/qread.html" class="external-link">qread</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">dat_dir</span>, <span class="st">"data/Visium_NSCLC/allTissues.qs"</span><span class="op">)</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">18</span><span class="op">]</span></span></code></pre></div>
 <p>Visualise a cancerous sample P11_T3. Here we look at two markers:
 KRT19 (also known as CYFRA21-1), a NSCLC marker and CD79A, a B cell
 marker.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">VisTissueName</span> <span class="op">&lt;-</span> <span class="st">"P11_T3"</span></span>
 <span><span class="va">qu_vis</span> <span class="op">&lt;-</span> <span class="va">query_list</span><span class="op">[[</span><span class="va">VisTissueName</span><span class="op">]</span><span class="op">]</span></span>
 <span><span class="fu"><a href="../reference/VizSpatial.html">VizSpatial</a></span><span class="op">(</span><span class="va">qu_vis</span>, feature <span class="op">=</span> <span class="st">"KRT19"</span>, assay2use <span class="op">=</span> <span class="st">"log1p"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="Visium_files/figure-html/unnamed-chunk-3-1.png" class="r-plt" width="700"></p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/VizSpatial.html">VizSpatial</a></span><span class="op">(</span><span class="va">qu_vis</span>, feature <span class="op">=</span> <span class="st">"CD79A"</span>, assay2use <span class="op">=</span> <span class="st">"log1p"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="Visium_files/figure-html/unnamed-chunk-3-2.png" class="r-plt" width="700"></p>
 </div>
@@ -169,19 +172,19 @@ marker.</p>
 select 500 genes that are most useful for predicting each cell type.
 This gives us 4613 genes. However, if RAM is still not enough, simply
 download the annotation results from <a href="https://www.dropbox.com/scl/fi/v2i62f229lbhtzofco430/combo_PhiRes.qs?rlkey=g1k0ubpx83gs83wjfg4h0psu2&amp;st=hbi77arg&amp;dl=0" class="external-link">here</a>.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">YtrainName</span> <span class="op">&lt;-</span> <span class="st">"ann_finest_level"</span></span>
 <span><span class="va">selectedFeat</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/selectFeat.html">selectFeat</a></span><span class="op">(</span><span class="va">impScores</span>, <span class="fl">500</span><span class="op">)</span><span class="op">$</span><span class="va">selectedFeat</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">selectedFeat</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## [1] 4613</span></span></code></pre>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">PhiResPath</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">dat_dir</span>, <span class="st">"output/combo_PhiRes.qs"</span><span class="op">)</span></span>
 <span><span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/files.html" class="external-link">file.exists</a></span><span class="op">(</span><span class="va">PhiResPath</span><span class="op">)</span><span class="op">)</span><span class="op">{</span></span>
 <span>  <span class="va">PhiRes</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/PhiSpaceR_1ref.html">PhiSpaceR_1ref</a></span><span class="op">(</span></span>
 <span>    <span class="va">reference</span>, </span>
 <span>    <span class="va">query_list</span>, </span>
 <span>    phenotypes <span class="op">=</span> <span class="va">YtrainName</span>, </span>
-<span>    PhiSpaceAssay <span class="op">=</span> <span class="st">"log1p"</span>,</span>
+<span>    refAssay <span class="op">=</span> <span class="st">"log1p"</span>,</span>
 <span>    selectedFeat <span class="op">=</span> <span class="va">selectedFeat</span>,</span>
 <span>    regMethod <span class="op">=</span> <span class="st">"PLS"</span>, </span>
 <span>    center <span class="op">=</span> <span class="cn">T</span>,</span>
@@ -193,7 +196,7 @@ download the annotation results from <a href="https://www.dropbox.com/scl/fi/v2i
 <span><span class="op">}</span></span></code></pre></div>
 <p>As an example, we visualise the predicted B cell abundance in sample
 P11_T3.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">qu_vis</span>, <span class="st">"PhiSpace"</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="va">PhiRes</span><span class="op">[[</span><span class="st">"P11_T3"</span><span class="op">]</span><span class="op">]</span></span>
 <span><span class="fu"><a href="../reference/VizSpatial.html">VizSpatial</a></span><span class="op">(</span><span class="va">qu_vis</span>, reducedDim <span class="op">=</span> <span class="st">"B cells"</span>, reducedDim2use <span class="op">=</span> <span class="st">"PhiSpace"</span>, censor <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span></code></pre></div>
 <p><img src="Visium_files/figure-html/unnamed-chunk-5-1.png" class="r-plt" width="700"></p>
@@ -216,7 +219,7 @@ apply dimension reduction methods to these matrices (vectorised) to
 visualise them.</p>
 <p>First we calcualte the sample-specific correlation matrices and
 vectorise them.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">VisTissueNames</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">query_list</span><span class="op">)</span></span>
 <span><span class="va">corMat_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">vector</a></span><span class="op">(</span><span class="st">"list"</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">VisTissueNames</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">`names&lt;-`</span><span class="op">(</span><span class="va">VisTissueNames</span><span class="op">)</span></span>
 <span><span class="kw">for</span><span class="op">(</span><span class="va">ii</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">VisTissueNames</span><span class="op">)</span><span class="op">)</span><span class="op">{</span></span>
@@ -234,7 +237,7 @@ vectorise them.</p>
 <span>  <span class="fu">`rownames&lt;-`</span><span class="op">(</span><span class="va">cTypeCombo</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/lower.tri.html" class="external-link">lower.tri</a></span><span class="op">(</span><span class="va">cTypeCombo</span><span class="op">)</span><span class="op">]</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p>Next we simply compute a PCA of all correlation matrices. It turns
 out that a simple PCA suffices here as the signal is very strong.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">92394</span><span class="op">)</span></span>
 <span><span class="va">pca_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/getPC.html">getPC</a></span><span class="op">(</span><span class="va">corMatVec</span>, ncomp <span class="op">=</span> <span class="fl">2</span>, center <span class="op">=</span> <span class="cn">T</span>, scale <span class="op">=</span> <span class="cn">F</span><span class="op">)</span></span></code></pre></div>
 <p>We visualise the first two PCs. As we can see, all samples were well
@@ -245,11 +248,11 @@ separated into groups according to disease conditions:</p>
 <li>LUAD: lung adenocarcinoma;</li>
 <li>LUSC: lung squamous cell carcinoma.</li>
 </ul>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">tempPCAplot</span><span class="op">(</span><span class="va">pca_res</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/expand_limits.html" class="external-link">expand_limits</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">5.5</span>, <span class="fl">7.5</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="Visium_files/figure-html/unnamed-chunk-8-1.png" class="r-plt" width="700"></p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/loadBarplot.html">loadBarplot</a></span><span class="op">(</span><span class="va">pca_res</span><span class="op">$</span><span class="va">loadings</span>, nfeat <span class="op">=</span> <span class="fl">20</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>axis.text.x <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>angle <span class="op">=</span> <span class="fl">45</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/vizOmics/man/plotLoadings.html" class="external-link">plotLoadings</a></span><span class="op">(</span><span class="va">pca_res</span><span class="op">$</span><span class="va">loadings</span>, nfeat <span class="op">=</span> <span class="fl">20</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>axis.text.x <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>angle <span class="op">=</span> <span class="fl">45</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="Visium_files/figure-html/unnamed-chunk-8-2.png" class="r-plt" width="700"></p>
 <p>In addition to the separation of patients, we can also observe that
 LUSC samples tend to have the largest PC1 values, healthy and background
@@ -272,7 +275,7 @@ However, the scores are still informative. For example, P24 was
 predicted to have the worst prognosis (lowest favourable prognosis
 score) among LUAD patients, which probably explained why it was located
 closer to LUSC patients on the PCA scatter plot above.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Common gene of all Visium slides</span></span>
 <span><span class="va">commonGeneNames</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/funprog.html" class="external-link">Reduce</a></span><span class="op">(</span><span class="va">intersect</span>, <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">query_list</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">mk_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
@@ -283,7 +286,7 @@ closer to LUSC patients on the PCA scatter plot above.</p>
 <span><span class="va">mk_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">mk_list</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://generics.r-lib.org/reference/setops.html" class="external-link">intersect</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">commonGeneNames</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co"># Function for calculate mean expression level of marker genes in all tissues</span></span>
 <span><span class="va">assay2use</span> <span class="op">&lt;-</span> <span class="st">"counts"</span></span>
-<span><span class="va">meanGeneLvls</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span><span class="va">query_list</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">18</span><span class="op">]</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums-methods.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">assay</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">assay2use</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">meanGeneLvls</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span><span class="va">query_list</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">18</span><span class="op">]</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">assay</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">assay2use</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">mkLvls_LUSC</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>favourable <span class="op">=</span> <span class="fu">meanEsts</span><span class="op">(</span><span class="va">mk_list</span><span class="op">[[</span><span class="st">"LUSC_good"</span><span class="op">]</span><span class="op">]</span><span class="op">)</span><span class="op">)</span> </span>
 <span><span class="va">mkLvls_LUAD_good</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>favourable <span class="op">=</span> <span class="fu">meanEsts</span><span class="op">(</span><span class="va">mk_list</span><span class="op">[[</span><span class="st">"LUAD_good"</span><span class="op">]</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">mkLvls_LUAD_bad</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>favourable <span class="op">=</span> <span class="fu">meanEsts</span><span class="op">(</span><span class="va">mk_list</span><span class="op">[[</span><span class="st">"LUAD_bad"</span><span class="op">]</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
@@ -313,7 +316,7 @@ analysis using only immune cell types. The separation of disease
 conditions was largely retained. Note how plasmacytoid dendritic cells
 (pDCs) played an important role in explaining the separation of samples
 along PC1.</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">immuneDF</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  celltype <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">corMat_list</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>,</span>
 <span>  immuneOrNot <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
@@ -351,8 +354,8 @@ along PC1.</p>
 <span><span class="va">pcaImmune_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/getPC.html">getPC</a></span><span class="op">(</span><span class="va">corMatVec_immune</span>, ncomp <span class="op">=</span> <span class="fl">2</span>, center <span class="op">=</span> <span class="cn">T</span>, scale <span class="op">=</span> <span class="cn">F</span><span class="op">)</span></span>
 <span><span class="fu">tempPCAplot</span><span class="op">(</span><span class="va">pcaImmune_res</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/expand_limits.html" class="external-link">expand_limits</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">4</span>, <span class="fl">4</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="Visium_files/figure-html/unnamed-chunk-10-1.png" class="r-plt" width="700"></p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/loadBarplot.html">loadBarplot</a></span><span class="op">(</span><span class="va">pcaImmune_res</span><span class="op">$</span><span class="va">loadings</span>, <span class="st">"comp1"</span>, nfeat <span class="op">=</span> <span class="fl">20</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/vizOmics/man/plotLoadings.html" class="external-link">plotLoadings</a></span><span class="op">(</span><span class="va">pcaImmune_res</span><span class="op">$</span><span class="va">loadings</span>, <span class="st">"comp1"</span>, nfeat <span class="op">=</span> <span class="fl">20</span><span class="op">)</span></span></code></pre></div>
 <p><img src="Visium_files/figure-html/unnamed-chunk-10-2.png" class="r-plt" width="700"></p>
 </div>
   </div>

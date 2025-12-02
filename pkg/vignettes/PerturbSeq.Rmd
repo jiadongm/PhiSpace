@@ -34,9 +34,10 @@ We used
 Load the packages.
 ```{r}
 # Install latest version of PhiSpace from github
-# suppressMessages(devtools::install_github("jiadongm/PhiSpace/pkg"))
+# suppressMessages(BiocManager::install("jiadongm/PhiSpace/pkg"))
 # Load packages and predefined quantities
 suppressPackageStartupMessages(library(PhiSpace))
+suppressPackageStartupMessages(library(vizOmics))
 suppressPackageStartupMessages(library(ggplot2))
 suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(tidyr))
@@ -79,15 +80,13 @@ if(!file.exists(refPath)){
 
 
 # Run PhiSpace
-
-
 ```{r}
 PhiResPath <- paste0(dat_dir, "output/PhiRes.qs")
 if(!file.exists(PhiResPath)){
   PhiAssay <- "logcounts"
   PhiRes <- PhiSpaceR_1ref(
-    reference, query, phenotypes = "label.fine",
-    PhiSpaceAssay = PhiAssay, regMethod = "PLS", nfeat = 500
+    reference, query, phenotypes = "label.fine", refAssay = PhiAssay, 
+    regMethod = "PLS", nfeat = 500
   )
   qsave(PhiRes, PhiResPath)
 } else {

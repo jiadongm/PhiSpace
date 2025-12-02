@@ -55,11 +55,11 @@
     <div id="ref-usage">
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">spatialSmoother</span><span class="op">(</span></span>
 <span>  <span class="va">object</span>,</span>
-<span>  assay2smooth <span class="op">=</span> <span class="st">"logcounts"</span>,</span>
-<span>  smoothedAssay <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  smoothReducedDim <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  reducedDim2smooth <span class="op">=</span> <span class="st">"PhiSpace"</span>,</span>
+<span>  smoothReducedDim <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  assay2smooth <span class="op">=</span> <span class="st">"logcounts"</span>,</span>
 <span>  smoothedReducedDim <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  smoothedAssay <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  x_coord <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  y_coord <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  k <span class="op">=</span> <span class="fl">10</span>,</span>
@@ -78,24 +78,24 @@
 <dd><p>SpatialExperiment or SingleCellExperiment object</p></dd>
 
 
-<dt id="arg-assay-smooth">assay2smooth<a class="anchor" aria-label="anchor" href="#arg-assay-smooth"></a></dt>
-<dd><p>Name of assay to smooth (for gene expression smoothing)</p></dd>
-
-
-<dt id="arg-smoothedassay">smoothedAssay<a class="anchor" aria-label="anchor" href="#arg-smoothedassay"></a></dt>
-<dd><p>Name for the new smoothed assay (default: paste0(assay2smooth, "_smoothed"))</p></dd>
+<dt id="arg-reduceddim-smooth">reducedDim2smooth<a class="anchor" aria-label="anchor" href="#arg-reduceddim-smooth"></a></dt>
+<dd><p>Name of reduced dimension to smooth (default: "PhiSpace")</p></dd>
 
 
 <dt id="arg-smoothreduceddim">smoothReducedDim<a class="anchor" aria-label="anchor" href="#arg-smoothreduceddim"></a></dt>
 <dd><p>Logical, whether to smooth reduced dimensions instead of gene expression</p></dd>
 
 
-<dt id="arg-reduceddim-smooth">reducedDim2smooth<a class="anchor" aria-label="anchor" href="#arg-reduceddim-smooth"></a></dt>
-<dd><p>Name of reduced dimension to smooth (default: "PhiSpace")</p></dd>
+<dt id="arg-assay-smooth">assay2smooth<a class="anchor" aria-label="anchor" href="#arg-assay-smooth"></a></dt>
+<dd><p>Name of assay to smooth (for gene expression smoothing)</p></dd>
 
 
 <dt id="arg-smoothedreduceddim">smoothedReducedDim<a class="anchor" aria-label="anchor" href="#arg-smoothedreduceddim"></a></dt>
 <dd><p>Name for the new smoothed reduced dimension (default: paste0(reducedDim2smooth, "_smoothed"))</p></dd>
+
+
+<dt id="arg-smoothedassay">smoothedAssay<a class="anchor" aria-label="anchor" href="#arg-smoothedassay"></a></dt>
+<dd><p>Name for the new smoothed assay (default: paste0(assay2smooth, "_smoothed"))</p></dd>
 
 
 <dt id="arg-x-coord">x_coord<a class="anchor" aria-label="anchor" href="#arg-x-coord"></a></dt>

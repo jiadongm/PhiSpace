@@ -38,6 +38,7 @@ Processed data and additional R code needed to run this vignette can be download
 
 ```{r}
 suppressPackageStartupMessages(library(PhiSpace))
+suppressPackageStartupMessages(library(vizOmics))
 suppressPackageStartupMessages(library(ggplot2))
 suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(magrittr))
@@ -68,7 +69,7 @@ if(!file.exists(PhiResPath)){
     reference, 
     query = query, 
     phenotypes = YtrainName, 
-    PhiSpaceAssay = PhiSpaceAssay,
+    refAssay = PhiSpaceAssay,
     regMethod = "PLS", 
     scale = FALSE
   )
@@ -103,7 +104,7 @@ if(!file.exists(PhiResPath)){
     reference, 
     query = query, 
     phenotypes = YtrainName, 
-    PhiSpaceAssay = PhiSpaceAssay,
+    refAssay = PhiSpaceAssay,
     regMethod = "PLS"
   )
   saveRDS(PhiRes, PhiResPath)

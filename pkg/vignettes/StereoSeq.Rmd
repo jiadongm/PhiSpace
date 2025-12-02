@@ -41,6 +41,7 @@ For this case study, utility functions and processed data can all be found in [t
 ```{r}
 # Name of the game
 suppressPackageStartupMessages(library(PhiSpace))
+suppressPackageStartupMessages(library(vizOmics))
 # Tidyverse packages
 suppressPackageStartupMessages(library(ggplot2))
 suppressPackageStartupMessages(library(dplyr))
@@ -74,7 +75,7 @@ if(F){ # The data has already been normalised, but if you want to try again, cha
 Visualise total RNA counts. delete bins with too few transcripts.
 
 ```{r fig.asp=0.6}
-VizSpatial(query, ptSize = 1, groupBy = "total_counts", fsize = 12)
+VizSpatial(query, ptSize = 1, colBy = "total_counts", fsize = 12)
 cell2keep <- colnames(query)[query$total_counts > quantile(query$total_counts, 0.01)]
 query <- query[,cell2keep]
 ```
@@ -142,6 +143,7 @@ We first plot the density of all clones using two-dimensional kernel density est
 ```{r fig.asp=0.8}
 xx_eval <- colData(query)[query$barcode != "nan", c("x", "y")] 
 xx <- colData(query)[query$barcode != "nan", c("x", "y")] 
+# install.packages("ks")
 suppressWarnings(kde_res <- tempDenPlot(xx, xx_eval, xylimits, ch, F, psize = 1, "", spleenOnly = F))
 estValues <- kde_res$kde_res$estimate
 estRange <- range(estValues)
@@ -384,7 +386,7 @@ if(!file.exists(pathPhiClustRes)){
   clust_res <- qread(pathPhiClustRes)
 }
 query$PhiClust <- as.character(clust_res$cluster)
-VizSpatial(query, groupBy = "PhiClust", ptSize = 1, legend.symb.size = 2) + 
+VizSpatial(query, colBy = "PhiClust", ptSize = 1, legend.symb.size = 2) + 
   scale_colour_manual(values = tempClustCols) +
   theme(legend.title = element_text(face = "bold"), legend.key.spacing = unit(0, "pt"))
 ```
@@ -402,7 +404,7 @@ if(!file.exists(pathGexClustRes)){
   clust_res <- qread(pathGexClustRes)
 }
 query$GenClust <- align_clusters(as.character(clust_res$cluster), query$PhiClust)
-VizSpatial(query, groupBy = "GenClust", ptSize = 1) +
+VizSpatial(query, colBy = "GenClust", ptSize = 1) +
   scale_colour_manual(values = tempClustCols) +
   guides(colour = guide_legend(override.aes = list(size = 2))) +
   theme(
@@ -439,7 +441,7 @@ barcodedOrNo[barcodeVec==-1] <- "Nonbarcoded"
 dwd_res$scores %>% mutate(niche = barcodedOrNo) %>% ggplot() +
   geom_density(aes(comp1, fill = niche), alpha = 0.5) +
   theme_pubr(base_size = 12) + theme(legend.title = element_blank()) + xlab("DWD score")
-loadBarplot(
+plotLoadings(
   dwd_res$loadings, comp = "comp1", showInt = F, 
   nfeat = 10, fsize = 12, xlab = "DWD loading", absVal = T
 )

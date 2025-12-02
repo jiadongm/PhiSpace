@@ -74,7 +74,7 @@ strengths of CRISPRa gene perturbation</h1>
                         <h4 data-toc-skip class="author">Jiadong
 Mao</h4>
             
-            <h4 data-toc-skip class="date">2025-11-07</h4>
+            <h4 data-toc-skip class="date">2025-12-02</h4>
       
 
       <div class="hidden name"><code>PerturbSeq.Rmd</code></div>
@@ -118,11 +118,14 @@ al. (2022)</a></p>
 <p>Load the packages.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Install latest version of PhiSpace from github</span></span>
-<span><span class="co"># suppressMessages(devtools::install_github("jiadongm/PhiSpace/pkg"))</span></span>
+<span><span class="co"># suppressMessages(BiocManager::install("jiadongm/PhiSpace/pkg"))</span></span>
 <span><span class="co"># Load packages and predefined quantities</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://jiadongm.github.io/PhiSpace/">PhiSpace</a></span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/ByronSyun/vizOmics" class="external-link">vizOmics</a></span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## Warning: package 'ggplot2' was built under R version 4.5.2</span></span></code></pre>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyr.tidyverse.org" class="external-link">tidyr</a></span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://magrittr.tidyverse.org" class="external-link">magrittr</a></span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://rpkgs.datanovia.com/ggpubr/" class="external-link">ggpubr</a></span><span class="op">)</span><span class="op">)</span></span>
@@ -137,7 +140,7 @@ al. (2022)</a></p>
 <h2 id="data-preparation">Data preparation<a class="anchor" aria-label="anchor" href="#data-preparation"></a>
 </h2>
 <p>Download the processed and query dataset <a href="https://www.dropbox.com/scl/fi/dbryqvqyenxvosv7o9lyk/sceStim.qs?rlkey=zarwoa2gn7cb4g6dltbuk8ddj&amp;st=2eryps2o&amp;dl=0" class="external-link">sceStim.qs</a>.</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">query</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/qs/man/qread.html" class="external-link">qread</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">dat_dir</span>, <span class="st">"data/sceStim.qs"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>The DICE bulk reference data can be downloaded via the
 <code>celldex</code> package. The sce object from <code>celldex</code>
@@ -145,7 +148,7 @@ contains only one assay named <code>logcounts</code>, which contains log
 transformed TPM (transcript per million) normalised counts. As raw
 counts are not available, we transform <code>logcounts</code> back to
 TPM and apply scran normalisation to TPM.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">refPath</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">dat_dir</span>, <span class="st">"data/ref_sce.qs"</span><span class="op">)</span></span>
 <span><span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/files.html" class="external-link">file.exists</a></span><span class="op">(</span><span class="va">refPath</span><span class="op">)</span><span class="op">)</span><span class="op">{</span></span>
 <span>  <span class="co"># BiocManager::install("celldex")</span></span>
@@ -165,13 +168,13 @@ TPM and apply scran normalisation to TPM.</p>
 <div class="section level2">
 <h2 id="run-phispace">Run PhiSpace<a class="anchor" aria-label="anchor" href="#run-phispace"></a>
 </h2>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">PhiResPath</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">dat_dir</span>, <span class="st">"output/PhiRes.qs"</span><span class="op">)</span></span>
 <span><span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/files.html" class="external-link">file.exists</a></span><span class="op">(</span><span class="va">PhiResPath</span><span class="op">)</span><span class="op">)</span><span class="op">{</span></span>
 <span>  <span class="va">PhiAssay</span> <span class="op">&lt;-</span> <span class="st">"logcounts"</span></span>
 <span>  <span class="va">PhiRes</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/PhiSpaceR_1ref.html">PhiSpaceR_1ref</a></span><span class="op">(</span></span>
-<span>    <span class="va">reference</span>, <span class="va">query</span>, phenotypes <span class="op">=</span> <span class="st">"label.fine"</span>,</span>
-<span>    PhiSpaceAssay <span class="op">=</span> <span class="va">PhiAssay</span>, regMethod <span class="op">=</span> <span class="st">"PLS"</span>, nfeat <span class="op">=</span> <span class="fl">500</span></span>
+<span>    <span class="va">reference</span>, <span class="va">query</span>, phenotypes <span class="op">=</span> <span class="st">"label.fine"</span>, refAssay <span class="op">=</span> <span class="va">PhiAssay</span>, </span>
+<span>    regMethod <span class="op">=</span> <span class="st">"PLS"</span>, nfeat <span class="op">=</span> <span class="fl">500</span></span>
 <span>  <span class="op">)</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/pkg/qs/man/qsave.html" class="external-link">qsave</a></span><span class="op">(</span><span class="va">PhiRes</span>, <span class="va">PhiResPath</span><span class="op">)</span></span>
 <span><span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
@@ -179,11 +182,11 @@ TPM and apply scran normalisation to TPM.</p>
 <span><span class="op">}</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">PhiRes</span><span class="op">$</span><span class="va">selectedFeat</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## [1] 2821</span></span></code></pre>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"PhiSpace"</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/normPhiScores.html">normPhiScores</a></span><span class="op">(</span><span class="va">PhiRes</span><span class="op">$</span><span class="va">PhiSpaceScore</span><span class="op">)</span></span></code></pre></div>
 <p>Some cell types in the reference are not T cells. Keep only T cell
 types for better interpretation.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cTypeRemove</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"B cells, naive"</span>, <span class="st">"Monocytes, CD14+"</span>, <span class="st">"Monocytes, CD16+"</span>, <span class="st">"NK cells"</span><span class="op">)</span></span>
 <span><span class="va">cTypeKeep</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/setops.html" class="external-link">setdiff</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"PhiSpace"</span><span class="op">)</span><span class="op">)</span>, <span class="va">cTypeRemove</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"reducedPhiSpace"</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"PhiSpace"</span><span class="op">)</span><span class="op">[</span>,<span class="va">cTypeKeep</span><span class="op">]</span></span></code></pre></div>
@@ -195,7 +198,7 @@ PhiSpace score is around 0.5 (figure legend), which suggests that the T
 cells tended to have uncertain cell types compared to the reference bulk
 samples. This is reasonable as most of these cells were CRISPR
 perturbed.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ht_opt</span><span class="op">$</span><span class="va">message</span> <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="va">queryLvls</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1: IFNG High 1"</span>, <span class="st">"2: Negative Regulators"</span>, <span class="st">"3: Th2"</span>, <span class="st">"4: IL22 High"</span>,</span>
 <span>               <span class="st">"5: Proliferative (S)"</span>, <span class="st">"6: Proliferative (G2/M)"</span>, <span class="st">"7: TNF Locus High"</span>,</span>
@@ -226,25 +229,25 @@ has the same meaning as the one defined by Schmidt et al. (2022).</p>
 <p>The two scores gave very similar visualisation (UMAP) as the
 original. Both implied that cells towards the top left (bottom right)
 corners were more CD4-(CD8-)like.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Original CD4/CD8 score</span></span>
-<span><span class="fu"><a href="../reference/matrixPlot.html">matrixPlot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"umap_original"</span><span class="op">)</span>, comp_idx <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, colBy <span class="op">=</span> <span class="va">query</span><span class="op">$</span><span class="va">CD4.CD8.Score</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/pkg/vizOmics/man/matrixPlot.html" class="external-link">matrixPlot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"umap_original"</span><span class="op">)</span>, comp_idx <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, colBy <span class="op">=</span> <span class="va">query</span><span class="op">$</span><span class="va">CD4.CD8.Score</span><span class="op">)</span></span></code></pre></div>
 <p><img src="PerturbSeq_files/figure-html/unnamed-chunk-7-1.png" class="r-plt" width="480"></p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># New CD4/CD8 score</span></span>
 <span><span class="va">allCellTypes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"PhiSpace"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">CD4Types</span> <span class="op">&lt;-</span> <span class="va">allCellTypes</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"CD4"</span>, <span class="va">allCellTypes</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="va">CD8Types</span> <span class="op">&lt;-</span> <span class="va">allCellTypes</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"CD8"</span>, <span class="va">allCellTypes</span><span class="op">)</span><span class="op">]</span></span>
-<span><span class="va">scCD4</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums-methods.html" class="external-link">rowMeans</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"PhiSpace"</span><span class="op">)</span><span class="op">[</span>,<span class="va">CD4Types</span><span class="op">]</span><span class="op">)</span></span>
-<span><span class="va">scCD8</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums-methods.html" class="external-link">rowMeans</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"PhiSpace"</span><span class="op">)</span><span class="op">[</span>,<span class="va">CD8Types</span><span class="op">]</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/matrixPlot.html">matrixPlot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"umap_original"</span><span class="op">)</span>, comp_idx <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, colBy <span class="op">=</span> <span class="va">scCD4</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">scCD4</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">rowMeans</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"PhiSpace"</span><span class="op">)</span><span class="op">[</span>,<span class="va">CD4Types</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="va">scCD8</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">rowMeans</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"PhiSpace"</span><span class="op">)</span><span class="op">[</span>,<span class="va">CD8Types</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/vizOmics/man/matrixPlot.html" class="external-link">matrixPlot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"umap_original"</span><span class="op">)</span>, comp_idx <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, colBy <span class="op">=</span> <span class="va">scCD4</span><span class="op">)</span></span></code></pre></div>
 <p><img src="PerturbSeq_files/figure-html/unnamed-chunk-7-2.png" class="r-plt" width="480"></p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/matrixPlot.html">matrixPlot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"umap_original"</span><span class="op">)</span>, comp_idx <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, colBy <span class="op">=</span> <span class="va">scCD8</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/vizOmics/man/matrixPlot.html" class="external-link">matrixPlot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"umap_original"</span><span class="op">)</span>, comp_idx <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, colBy <span class="op">=</span> <span class="va">scCD8</span><span class="op">)</span></span></code></pre></div>
 <p><img src="PerturbSeq_files/figure-html/unnamed-chunk-7-3.png" class="r-plt" width="480"></p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">newCD4Score</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sign.html" class="external-link">sign</a></span><span class="op">(</span><span class="va">scCD4</span> <span class="op">-</span> <span class="va">scCD8</span><span class="op">)</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">scCD4</span> <span class="op">-</span> <span class="va">scCD8</span><span class="op">)</span><span class="op">^</span><span class="op">(</span><span class="fl">1</span><span class="op">/</span><span class="fl">3</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/matrixPlot.html">matrixPlot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"umap_original"</span><span class="op">)</span>, comp_idx <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, colBy <span class="op">=</span> <span class="va">newCD4Score</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/pkg/vizOmics/man/matrixPlot.html" class="external-link">matrixPlot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"umap_original"</span><span class="op">)</span>, comp_idx <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, colBy <span class="op">=</span> <span class="va">newCD4Score</span><span class="op">)</span></span></code></pre></div>
 <p><img src="PerturbSeq_files/figure-html/unnamed-chunk-7-4.png" class="r-plt" width="480"></p>
 <p>The next thing Schmidt et al. (2022) looked at was how activated the
 T cells were. They defined an activation score using T cell activation
@@ -252,14 +255,14 @@ markers. Since we have two activated T cell types (activated CD4 and
 CD8) in the reference, we simply define a new activation score as the
 cube root transform of the sum of activated CD4 and CD8 scores. Again,
 these two activation scores gave similar visualisation.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/matrixPlot.html">matrixPlot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"umap_original"</span><span class="op">)</span>, comp_idx <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, colBy <span class="op">=</span> <span class="va">query</span><span class="op">$</span><span class="va">activation.score</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/vizOmics/man/matrixPlot.html" class="external-link">matrixPlot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"umap_original"</span><span class="op">)</span>, comp_idx <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, colBy <span class="op">=</span> <span class="va">query</span><span class="op">$</span><span class="va">activation.score</span><span class="op">)</span></span></code></pre></div>
 <p><img src="PerturbSeq_files/figure-html/unnamed-chunk-8-1.png" class="r-plt" width="480"></p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">scActCD4</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"PhiSpace"</span><span class="op">)</span><span class="op">[</span>,<span class="st">"T cells, CD4+, naive, stimulated"</span><span class="op">]</span></span>
 <span><span class="va">scActCD8</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"PhiSpace"</span><span class="op">)</span><span class="op">[</span>,<span class="st">"T cells, CD8+, naive, stimulated"</span><span class="op">]</span></span>
 <span><span class="va">scAct</span> <span class="op">&lt;-</span> <span class="va">scActCD4</span> <span class="op">+</span> <span class="va">scActCD8</span> </span>
-<span><span class="fu"><a href="../reference/matrixPlot.html">matrixPlot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"umap_original"</span><span class="op">)</span>, comp_idx <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, colBy <span class="op">=</span> <span class="va">scAct</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/pkg/vizOmics/man/matrixPlot.html" class="external-link">matrixPlot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"umap_original"</span><span class="op">)</span>, comp_idx <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, colBy <span class="op">=</span> <span class="va">scAct</span><span class="op">)</span></span></code></pre></div>
 <p><img src="PerturbSeq_files/figure-html/unnamed-chunk-8-2.png" class="r-plt" width="480"></p>
 <p>An important question in Schmidt et al. (2022) is how individual
 CRISPRa perturbations (enhancing gene activities) contribute to T cell
@@ -277,7 +280,7 @@ suppressed activation, e.g. VAV1 and CD28 (promoting), MUC1 and MAP4K1
 significantly suppressing activation, whereas in Schmidt et al. (2025)
 one negative regulator (IKZF3) was not found significant. We also found
 more significant positive regulators than Schmidt et al. (2025).</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ctrlReg</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"NO-TARGET"</span><span class="op">)</span></span>
 <span><span class="co"># Define positive and negative regulators according to Schmidt et al. (2022)</span></span>
 <span><span class="va">negReg</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
@@ -321,7 +324,7 @@ more significant positive regulators than Schmidt et al. (2025).</p>
 <span><span class="va">scAct</span> <span class="op">&lt;-</span> <span class="va">query</span><span class="op">$</span><span class="va">activation.score</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">`names&lt;-`</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">query</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu">perturbActPlot</span><span class="op">(</span><span class="va">scAct</span>, <span class="fl">650</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"Activation scores (Schmidt et al., 2022) by perturbed genes"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="PerturbSeq_files/figure-html/unnamed-chunk-9-1.png" class="r-plt" width="672"></p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">scAct</span> <span class="op">&lt;-</span> <span class="va">scActCD4</span> <span class="op">+</span> <span class="va">scActCD8</span></span>
 <span><span class="fu">perturbActPlot</span><span class="op">(</span><span class="va">scAct</span>, <span class="fl">0.6</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"Activation scores (PhiSpace) by perturbed genes"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="PerturbSeq_files/figure-html/unnamed-chunk-9-2.png" class="r-plt" width="672"></p>
@@ -334,7 +337,7 @@ scores highlighted TBX21 and GATA3, which were known as key genes in the
 Th1 and Th2 cell fates (<a href="https://www.cell.com/immunity/fulltext/S1074-7613(22)00128-5?_returnURL=https%3A%2F%2Flinkinghub.elsevier.com%2Fretrieve%2Fpii%2FS1074761322001285%3Fshowall%3Dtrue" class="external-link">role
 of TBX21</a> and <a href="https://www.nature.com/articles/nri2476" class="external-link">role
 of GATA3</a>).</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"reducedPhiSpace"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##  [1] "T cells, CD4+, memory TREG"       "T cells, CD4+, naive"            </span></span>
 <span><span class="co">##  [3] "T cells, CD4+, naive, stimulated" "T cells, CD4+, naive TREG"       </span></span>
@@ -342,7 +345,7 @@ of GATA3</a>).</p>
 <span><span class="co">##  [7] "T cells, CD4+, Th1_17"            "T cells, CD4+, Th17"             </span></span>
 <span><span class="co">##  [9] "T cells, CD4+, Th2"               "T cells, CD8+, naive"            </span></span>
 <span><span class="co">## [11] "T cells, CD8+, naive, stimulated"</span></span></code></pre>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">tempcTypeBoxplot</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">cType</span><span class="op">)</span><span class="op">{</span></span>
 <span>  </span>
 <span>  <span class="va">sc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"PhiSpace"</span><span class="op">)</span><span class="op">[</span>,<span class="va">cType</span><span class="op">]</span></span>
@@ -378,7 +381,7 @@ of GATA3</a>).</p>
 <span><span class="op">}</span></span>
 <span><span class="fu">tempcTypeBoxplot</span><span class="op">(</span><span class="st">"T cells, CD4+, Th1"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="PerturbSeq_files/figure-html/unnamed-chunk-10-1.png" class="r-plt" width="672"></p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">tempcTypeBoxplot</span><span class="op">(</span><span class="st">"T cells, CD4+, Th2"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="PerturbSeq_files/figure-html/unnamed-chunk-10-2.png" class="r-plt" width="672"></p>
 </div>

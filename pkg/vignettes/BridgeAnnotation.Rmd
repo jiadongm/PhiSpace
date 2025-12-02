@@ -45,6 +45,7 @@ In our [paper](https://www.biorxiv.org/content/10.1101/2024.06.19.599787v1.full)
 All data related to this case study can be downloaded [here](https://www.dropbox.com/scl/fo/jeuqzjfyyr2j7doa922ve/AI-2U_wtZBpPGOswxMzReGQ?rlkey=n328yyr2llf81gz3chynjg0r6&st=nb1svufg&dl=0).
 ```{r}
 suppressPackageStartupMessages(library(PhiSpace))
+suppressPackageStartupMessages(library(vizOmics))
 suppressPackageStartupMessages(library(ggplot2))
 suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(magrittr))
@@ -82,7 +83,7 @@ if(!file.exists(PhiResPath)){
     reference, 
     query = bridgeRNA, 
     phenotypes = YtrainName, 
-    PhiSpaceAssay = PhiSpaceAssay,
+    refAssay = PhiSpaceAssay,
     regMethod = "PLS",
     scale = FALSE
   )
@@ -109,7 +110,7 @@ if(!file.exists(PhiResPath)){
     reference = bridgeATACpeaks, 
     query = queryPeaks, 
     response = bridgeAnn,
-    PhiSpaceAssay = PhiSpaceAssay,
+    refAssay = PhiSpaceAssay,
     regMethod = "PLS", 
     center = F,
     scale = FALSE
@@ -133,7 +134,7 @@ if(!file.exists(PhiResPath)){
     reference = bridgeRNA, 
     query = queryGA, 
     response = bridgeAnn,
-    PhiSpaceAssay = PhiSpaceAssay,
+    refAssay = PhiSpaceAssay,
     regMethod = "PLS", 
     center = T,
     scale = FALSE

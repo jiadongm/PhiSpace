@@ -74,7 +74,7 @@ lung cancer microenvironment</h1>
                         <h4 data-toc-skip class="author">Jiadong
 Mao</h4>
             
-            <h4 data-toc-skip class="date">2025-11-07</h4>
+            <h4 data-toc-skip class="date">2025-12-02</h4>
       
 
       <div class="hidden name"><code>CosMx.Rmd</code></div>
@@ -118,9 +118,12 @@ be downloaded <a href="https://www.dropbox.com/scl/fi/zi12ovivk9ys0b8pk4t0t/CosM
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Name of the game</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://jiadongm.github.io/PhiSpace/">PhiSpace</a></span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/ByronSyun/vizOmics" class="external-link">vizOmics</a></span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co"># Tidyverse packages</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## Warning: package 'ggplot2' was built under R version 4.5.2</span></span></code></pre>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://magrittr.tidyverse.org" class="external-link">magrittr</a></span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://rpkgs.datanovia.com/ggpubr/" class="external-link">ggpubr</a></span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyr.tidyverse.org" class="external-link">tidyr</a></span><span class="op">)</span><span class="op">)</span></span>
@@ -143,7 +146,7 @@ be downloaded <a href="https://www.dropbox.com/scl/fi/zi12ovivk9ys0b8pk4t0t/CosM
 and downsampled into sce objects, each contain cells from a lineage
 (immune, epithelilal, endothelial or mesenchymal). Download thse sce
 objects from <a href="https://www.dropbox.com/scl/fo/7wvz9y8871sgx8u9rxtan/ALd0xPKl3jLgc4-aXJKUSS4?rlkey=vn7s0iqp7n4ni0qi1e73dhoen&amp;st=a8gx9sp5&amp;dl=0" class="external-link">here</a>.</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ref_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"immune"</span>, <span class="st">"epithelial"</span>, <span class="st">"endothelial"</span>, <span class="st">"mesenchymal"</span><span class="op">)</span>,</span>
 <span>  <span class="kw">function</span><span class="op">(</span><span class="va">lineage</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/pkg/qs/man/qread.html" class="external-link">qread</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">dat_dir</span>, <span class="st">"data/LungFibrosis/"</span>, <span class="va">lineage</span>, <span class="st">"_sce.qs"</span><span class="op">)</span><span class="op">)</span></span>
@@ -153,21 +156,21 @@ objects from <a href="https://www.dropbox.com/scl/fo/7wvz9y8871sgx8u9rxtan/ALd0x
 (patient) and biological replicate. We first showcase the annotation
 performance of PhiSpace using one particular lung sample Lung5_Rep1,
 which can be downloaded <a href="https://www.dropbox.com/scl/fi/nzs9kynj4wj3a096ojx4a/Lung5_Rep1_SCE.qs?rlkey=adiyctqb8onbk1s1ubhxp04ua&amp;st=a04p03rf&amp;dl=0" class="external-link">here</a>.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">YtrainName</span> <span class="op">&lt;-</span> <span class="st">"manual_annotation_1"</span></span>
 <span><span class="va">tissueName</span> <span class="op">&lt;-</span> <span class="st">"Lung5_Rep1"</span></span>
 <span><span class="va">qs_dir</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">dat_dir</span>, <span class="st">"data/CosMx_lung/"</span>, <span class="va">tissueName</span>, <span class="st">"_SCE.qs"</span><span class="op">)</span></span>
 <span><span class="va">query</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/qs/man/qread.html" class="external-link">qread</a></span><span class="op">(</span><span class="va">qs_dir</span><span class="op">)</span></span>
 <span><span class="va">query</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/zeroFeatQC.html">zeroFeatQC</a></span><span class="op">(</span><span class="va">query</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## All features have at least 1 nonzero value.</span></span></code></pre>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">query</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/logTransf.html">logTransf</a></span><span class="op">(</span><span class="va">query</span>, use_log1p <span class="op">=</span> <span class="cn">TRUE</span>, targetAssay <span class="op">=</span> <span class="st">"log1p"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="run-phispace">Run PhiSpace<a class="anchor" aria-label="anchor" href="#run-phispace"></a>
 </h3>
 <p>Run PhiSpace using 4 references.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">PhiAssay</span> <span class="op">&lt;-</span> <span class="st">"log1p"</span></span>
 <span><span class="va">PhiResPath</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">dat_dir</span>, <span class="st">"output/CosMxLung5Rep1PhiRes4Refs.qs"</span><span class="op">)</span></span>
 <span><span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/files.html" class="external-link">file.exists</a></span><span class="op">(</span><span class="va">PhiResPath</span><span class="op">)</span><span class="op">)</span><span class="op">{</span></span>
@@ -181,7 +184,7 @@ which can be downloaded <a href="https://www.dropbox.com/scl/fi/nzs9kynj4wj3a096
 <span>    <span class="co"># Run PhiSpace</span></span>
 <span>    <span class="va">PhiRes</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/PhiSpaceR_1ref.html">PhiSpaceR_1ref</a></span><span class="op">(</span></span>
 <span>      <span class="va">reference</span>, <span class="va">query</span>, </span>
-<span>      phenotypes <span class="op">=</span> <span class="va">YtrainName</span>, PhiSpaceAssay <span class="op">=</span> <span class="st">"log1p"</span>,</span>
+<span>      phenotypes <span class="op">=</span> <span class="va">YtrainName</span>, refAssay <span class="op">=</span> <span class="st">"log1p"</span>,</span>
 <span>      regMethod <span class="op">=</span> <span class="st">"PLS"</span>, center <span class="op">=</span> <span class="cn">T</span>, scale <span class="op">=</span> <span class="cn">F</span></span>
 <span>    <span class="op">)</span></span>
 <span>    <span class="co"># Extract cell type scores and rename cell types by adding lineage info</span></span>
@@ -196,7 +199,7 @@ which can be downloaded <a href="https://www.dropbox.com/scl/fi/nzs9kynj4wj3a096
 <span><span class="op">}</span></span></code></pre></div>
 <p>Concatenate annotations from 4 references into one and simplify cell
 type names.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cbindSc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/funprog.html" class="external-link">Reduce</a></span><span class="op">(</span><span class="va">cbind</span>, <span class="va">sc_list</span><span class="op">)</span></span>
 <span><span class="va">scNames</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">cbindSc</span><span class="op">)</span></span>
 <span><span class="va">scNames</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">gsub</a></span><span class="op">(</span><span class="st">"immune"</span>, <span class="st">"immu"</span>, <span class="va">scNames</span><span class="op">)</span></span>
@@ -258,7 +261,7 @@ type names.</p>
 <span><span class="co">## [41,] "Pericyte(mesen)"                    "Pericyte(mesen)"             </span></span>
 <span><span class="co">## [42,] "Mesothelial(mesen)"                 "Mesothelial(mesen)"          </span></span>
 <span><span class="co">## [43,] "MyoFB - Activated(mesen)"           "MyoFB Act(mesen)"</span></span></code></pre>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"PhiSpace"</span><span class="op">)</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="va">simpleNames</span></span></code></pre></div>
 </div>
 <div class="section level3">
@@ -286,23 +289,23 @@ is really transitonal instead of non-transitional.</p>
 cells. Their territories overlapped a lot and both tended to form
 island-like lymphoid structures. This makes perfect sense as we know
 that T and B cells are very common in these lymphoid structures.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/VizSpatial.html">VizSpatial</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"sdimx"</span>, <span class="st">"sdimy"</span>, ptSize <span class="op">=</span> <span class="fl">1</span>, groupBy <span class="op">=</span> <span class="st">"niche"</span>, legend.position <span class="op">=</span> <span class="st">"top"</span>, legend.symb.size <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">+</span> </span>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/VizSpatial.html">VizSpatial</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"sdimx"</span>, <span class="st">"sdimy"</span>, ptSize <span class="op">=</span> <span class="fl">1</span>, colBy <span class="op">=</span> <span class="st">"niche"</span>, legend.position <span class="op">=</span> <span class="st">"top"</span>, legend.symb.size <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_colour_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="va">nicheCol</span><span class="op">)</span> </span></code></pre></div>
 <p><img src="CosMx_files/figure-html/unnamed-chunk-6-1.png" class="r-plt" width="700"></p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/VizSpatial.html">VizSpatial</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"sdimx"</span>, <span class="st">"sdimy"</span>, ptSize <span class="op">=</span> <span class="fl">1</span>, reducedDim <span class="op">=</span> <span class="st">"TransAT2(epi)"</span>, censor <span class="op">=</span> <span class="cn">T</span>, legend.position <span class="op">=</span> <span class="st">"top"</span>, reOrder <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span></code></pre></div>
 <p><img src="CosMx_files/figure-html/unnamed-chunk-6-2.png" class="r-plt" width="700"></p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/VizSpatial.html">VizSpatial</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"sdimx"</span>, <span class="st">"sdimy"</span>, ptSize <span class="op">=</span> <span class="fl">1</span>, reducedDim <span class="op">=</span> <span class="st">"Mesothelial(mesen)"</span>, censor <span class="op">=</span> <span class="cn">T</span>, legend.position <span class="op">=</span> <span class="st">"top"</span>, reOrder <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span></code></pre></div>
 <p><img src="CosMx_files/figure-html/unnamed-chunk-6-3.png" class="r-plt" width="700"></p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/VizSpatial.html">VizSpatial</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"sdimx"</span>, <span class="st">"sdimy"</span>, ptSize <span class="op">=</span> <span class="fl">1</span>, reducedDim <span class="op">=</span> <span class="st">"AT2(epi)"</span>, censor <span class="op">=</span> <span class="cn">T</span>, legend.position <span class="op">=</span> <span class="st">"top"</span>, reOrder <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span></code></pre></div>
 <p><img src="CosMx_files/figure-html/unnamed-chunk-6-4.png" class="r-plt" width="700"></p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/VizSpatial.html">VizSpatial</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"sdimx"</span>, <span class="st">"sdimy"</span>, ptSize <span class="op">=</span> <span class="fl">1</span>, reducedDim <span class="op">=</span> <span class="st">"CD4(immu)"</span>, censor <span class="op">=</span> <span class="cn">T</span>, legend.position <span class="op">=</span> <span class="st">"top"</span>, reOrder <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span></code></pre></div>
 <p><img src="CosMx_files/figure-html/unnamed-chunk-6-5.png" class="r-plt" width="700"></p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/VizSpatial.html">VizSpatial</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"sdimx"</span>, <span class="st">"sdimy"</span>, ptSize <span class="op">=</span> <span class="fl">1</span>, reducedDim <span class="op">=</span> <span class="st">"B cells(immu)"</span>, censor <span class="op">=</span> <span class="cn">T</span>, legend.position <span class="op">=</span> <span class="st">"top"</span>, reOrder <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span></code></pre></div>
 <p><img src="CosMx_files/figure-html/unnamed-chunk-6-6.png" class="r-plt" width="700"></p>
 <p>It is very encouraging to see how a simple spatial heatmap can alreay
@@ -314,7 +317,7 @@ al. (2022). As we see below, these clusters correspond well to the
 domains defined by He et al. (2022), but with more subtlety. In
 particular, our PhiSpace clustering seemed to idnetify two niches within
 the ‘tumour interior’ domain of He et al. (2022).</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">clustResPath</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">dat_dir</span>, <span class="st">"output/Lung5_Rep1_PhiClusts4Refs.qs"</span><span class="op">)</span></span>
 <span><span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/files.html" class="external-link">file.exists</a></span><span class="op">(</span><span class="va">clustResPath</span><span class="op">)</span><span class="op">)</span><span class="op">{</span></span>
 <span>  <span class="va">PhiPCRes</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/getPC.html">getPC</a></span><span class="op">(</span></span>
@@ -336,7 +339,7 @@ the ‘tumour interior’ domain of He et al. (2022).</p>
 <span>  <span class="st">"5"</span> <span class="op">=</span> <span class="st">"gray50"</span>, <span class="st">"6"</span> <span class="op">=</span> <span class="st">"#A6CEE3"</span> , <span class="st">"7"</span> <span class="op">=</span>  <span class="st">"#6A3D9A"</span>, <span class="st">"8"</span> <span class="op">=</span>  <span class="st">"#FFFF99"</span>, <span class="st">"9"</span> <span class="op">=</span> <span class="st">"black"</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/VizSpatial.html">VizSpatial</a></span><span class="op">(</span></span>
-<span>  <span class="va">query</span>, x_coord <span class="op">=</span> <span class="st">"sdimx"</span>, y_coord <span class="op">=</span> <span class="st">"sdimy"</span>, groupBy <span class="op">=</span> <span class="st">"PhiClust"</span>, ptSize <span class="op">=</span> <span class="fl">0.5</span></span>
+<span>  <span class="va">query</span>, x_coord <span class="op">=</span> <span class="st">"sdimx"</span>, y_coord <span class="op">=</span> <span class="st">"sdimy"</span>, colBy <span class="op">=</span> <span class="st">"PhiClust"</span>, ptSize <span class="op">=</span> <span class="fl">0.5</span></span>
 <span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_colour_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="va">tempClustCols</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guides.html" class="external-link">guides</a></span><span class="op">(</span></span>
 <span>    colour <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guide_legend.html" class="external-link">guide_legend</a></span><span class="op">(</span></span>
@@ -350,7 +353,7 @@ the ‘tumour interior’ domain of He et al. (2022).</p>
 <span>  <span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>colour <span class="op">=</span> <span class="st">""</span><span class="op">)</span> </span></code></pre></div>
 <p><img src="CosMx_files/figure-html/unnamed-chunk-7-1.png" class="r-plt" width="700"></p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Comparison of spatial domains defined by He et al. (2022) and spatial niches defined by PhiSpace</span></span>
 <span><span class="va">nicheClust</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">query</span><span class="op">$</span><span class="va">niche</span>, <span class="va">query</span><span class="op">$</span><span class="va">PhiClust</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="va">t</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame.matrix</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">nicheClust</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
@@ -380,10 +383,10 @@ cell type identities, then it should also have a higher 75% quantile of
 scores. (This definition is actually inspired by <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5798764/" class="external-link">RLE plot</a>
 developed by our wonderful WEHI colleagues, which is used in a
 completely different context but based on the same principle.)</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">query</span><span class="op">$</span><span class="va">divergence</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">query</span>, <span class="st">"PhiSpace"</span><span class="op">)</span>, <span class="fl">1</span>, <span class="va">quantile</span>, prob <span class="op">=</span> <span class="fl">0.75</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/VizSpatial.html">VizSpatial</a></span><span class="op">(</span></span>
-<span>  <span class="va">query</span>, <span class="st">"sdimx"</span>, <span class="st">"sdimy"</span>, ptSize <span class="op">=</span> <span class="fl">0.5</span>, groupBy <span class="op">=</span> <span class="st">"divergence"</span>, reOrder <span class="op">=</span> <span class="cn">T</span>, fsize <span class="op">=</span> <span class="fl">12</span></span>
+<span>  <span class="va">query</span>, <span class="st">"sdimx"</span>, <span class="st">"sdimy"</span>, ptSize <span class="op">=</span> <span class="fl">0.5</span>, colBy <span class="op">=</span> <span class="st">"divergence"</span>, reOrder <span class="op">=</span> <span class="cn">T</span>, fsize <span class="op">=</span> <span class="fl">12</span></span>
 <span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_steps.html" class="external-link">scale_colour_stepsn</a></span><span class="op">(</span>colours <span class="op">=</span> <span class="fu">PhiSpace</span><span class="fu">:::</span><span class="va">MATLAB_cols</span>, values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"bottom"</span><span class="op">)</span></span></code></pre></div>
@@ -395,7 +398,7 @@ Recall that niches 5 and 9 are both located in the ‘tumour interior’
 domain. Here we can see that these two niches have very different cell
 type divergence. For more analysis along this line see our <a href="https://www.biorxiv.org/content/10.1101/2025.02.05.636735v1" class="external-link">PhiSpace
 ST paper</a>.</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">query</span><span class="op">@</span><span class="va">colData</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">PhiClust</span>, x <span class="op">=</span> <span class="va">divergence</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_boxplot.html" class="external-link">geom_boxplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="va">PhiClust</span><span class="op">)</span>, outlier.size <span class="op">=</span> <span class="fl">0.5</span>, linewidth <span class="op">=</span> <span class="fl">0.1</span>, outlier.stroke <span class="op">=</span> <span class="fl">0</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">12</span><span class="op">)</span> <span class="op">+</span></span>
@@ -415,7 +418,7 @@ the CosMx dataset.</p>
 <p>Load all query lung samples, which can be downloaded <a href="https://www.dropbox.com/scl/fo/p8zg76jdysuqtx4t2lm0e/AERmTZE4wLD9Uyg_AEMDNLQ?rlkey=o8hcksuvhs6ymv1zt3jvu8xnn&amp;st=bl89z34f&amp;dl=0" class="external-link">here</a>.
 Also load the precomputed <a href="https://www.dropbox.com/scl/fi/qy3m2co5npmucm2tj406k/CosMxAllLungsPhiRes4Refs.qs?rlkey=hefck049m8isu9utpzcp630ot&amp;st=y0p4kvhk&amp;dl=0" class="external-link">PhiSpace
 annotation results</a> to save RAM.</p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">tissueNames</span> <span class="op">&lt;-</span> <span class="va">tissueNames_CosMx</span></span>
 <span><span class="va">query_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">vector</a></span><span class="op">(</span><span class="st">"list"</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">tissueNames</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">`names&lt;-`</span><span class="op">(</span><span class="va">tissueNames</span><span class="op">)</span></span>
 <span><span class="va">PhiResPath</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">dat_dir</span>, <span class="st">"output/CosMxAllLungsPhiRes4Refs.qs"</span><span class="op">)</span></span>
@@ -438,7 +441,7 @@ annotation results</a> to save RAM.</p>
 <span>  <span class="va">query_list</span><span class="op">[[</span><span class="va">ii</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">query</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <pre><code><span><span class="co">## All features have at least 1 nonzero value.All features have at least 1 nonzero value.All features have at least 1 nonzero value.All features have at least 1 nonzero value.All features have at least 1 nonzero value.All features have at least 1 nonzero value.All features have at least 1 nonzero value.All features have at least 1 nonzero value.</span></span></code></pre>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">originalNames</span> <span class="op">&lt;-</span> <span class="va">simpleNames</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">query_list</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>, <span class="st">"PhiSpace"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">simpleNames</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">4</span>, <span class="fl">9</span>, <span class="fl">10</span>, <span class="fl">12</span>, <span class="fl">18</span>, <span class="fl">21</span>, <span class="fl">23</span>, <span class="fl">24</span>, <span class="fl">25</span>, <span class="fl">26</span>, <span class="fl">43</span><span class="op">)</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
 <span>  <span class="st">"MoMacroph(immu)"</span>, <span class="st">"InflamMono(immu)"</span>,  <span class="st">"AlveolarMacroph(immu)"</span>,</span>
@@ -455,7 +458,7 @@ annotation results</a> to save RAM.</p>
 identify cell types that are most enriched in different spatial niches
 within different samples. This allows us to compare tumour heterogeneity
 across samples.</p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">tumourSig</span> <span class="op">&lt;-</span> <span class="va">tumourSig_indiv</span>  <span class="op">&lt;-</span> <span class="va">regCoef_list</span> <span class="op">&lt;-</span> <span class="va">regCoefIndiv_list</span> <span class="op">&lt;-</span>  <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">vector</a></span><span class="op">(</span><span class="st">"list"</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">tissueNames</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu">`names&lt;-`</span><span class="op">(</span><span class="va">tissueNames</span><span class="op">)</span></span>
 <span><span class="kw">for</span><span class="op">(</span><span class="va">ii</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">tissueNames</span><span class="op">)</span><span class="op">)</span><span class="op">{</span></span>
@@ -476,7 +479,7 @@ biological replicates (e.g. Lung5_Rep1, Lung5_Rep2, Lung5_Rep3) are very
 similar. But tumour cell states from different patients tend to be more
 different. See our <a href="https://www.biorxiv.org/content/10.1101/2025.02.05.636735v1" class="external-link">PhiSpace
 ST paper</a> for more detailed analysis on this result.</p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">tumTab</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="st">"cbind"</span>, <span class="va">tumourSig</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>,<span class="op">]</span></span>
 <span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">tumTab</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
@@ -562,7 +565,7 @@ sample-specific matrices as in Visium case.</p>
 <p>First we visualise the cell type co-presence matrix of tumour
 interior niche of Lung5_Rep1 as an example. We sampled 25 cell types to
 make the figure more readable.</p>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">tissueName</span> <span class="op">&lt;-</span> <span class="st">"Lung5_Rep1"</span></span>
 <span><span class="va">query</span> <span class="op">&lt;-</span> <span class="va">query_list</span><span class="op">[[</span><span class="va">tissueName</span><span class="op">]</span><span class="op">]</span></span>
 <span><span class="va">x</span> <span class="op">&lt;-</span> <span class="st">"tumor interior"</span></span>
@@ -577,7 +580,7 @@ make the figure more readable.</p>
 <span><span class="va">hm</span></span></code></pre></div>
 <p><img src="CosMx_files/figure-html/unnamed-chunk-13-1.png" class="r-plt" width="700"></p>
 <p>Compute all co-presence matrices.</p>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">corMatVec</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span></span>
 <span>  <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">tissueNames</span><span class="op">)</span>,</span>
 <span>  <span class="kw">function</span><span class="op">(</span><span class="va">ii</span><span class="op">)</span><span class="op">{</span></span>
@@ -647,7 +650,7 @@ single PC so we cannot simply attribute this separation to a PC and plot
 its loadings as we did in the Visium case study. Another thing is that
 tumour domains from Lung 5 (shortend as L5 on plot) are separated from
 tumour domains from other lungs.</p>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">012361</span><span class="op">)</span></span>
 <span><span class="va">pca_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/getPC.html">getPC</a></span><span class="op">(</span><span class="va">corMatVec</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">niche</span>, <span class="va">sample</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="op">)</span>, ncomp <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
 <span><span class="fu">tempPCAplot</span><span class="op">(</span><span class="va">pca_res</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span>, fsize <span class="op">=</span> <span class="fl">12</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/expand_limits.html" class="external-link">expand_limits</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">9</span>, <span class="fl">4</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>axis.title <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
@@ -661,7 +664,7 @@ very good interpretability. We can easily extract features that are most
 useful for separating two classes (DWD is a binary classifier). Note
 that we use the <code>kerndwd</code> package, which is a <a href="https://academic.oup.com/jrsssb/article/80/1/177/7048416" class="external-link">more
 efficient implementation</a> of DWD.</p>
-<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">kerndwd</span><span class="op">)</span></span>
 <span><span class="va">nicheBinary</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">corMatVec</span><span class="op">$</span><span class="va">niche</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"tumor interior"</span>, <span class="st">"tumor-stroma boundary"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">nicheBinary</span><span class="op">[</span><span class="va">nicheBinary</span> <span class="op">==</span> <span class="fl">0</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="op">-</span><span class="fl">1</span></span>
@@ -675,7 +678,7 @@ efficient implementation</a> of DWD.</p>
 <span><span class="va">cv_res</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/kerndwd/man/cv.kerndwd.html" class="external-link">cv.kerndwd</a></span><span class="op">(</span><span class="va">X_cent</span>, <span class="va">nicheBinary</span>, <span class="va">kern</span>, qval<span class="op">=</span><span class="fl">1</span>, lambda<span class="op">=</span><span class="va">lambda</span>, eps<span class="op">=</span><span class="fl">1e-5</span>, maxit<span class="op">=</span><span class="fl">1e5</span><span class="op">)</span></span>
 <span><span class="va">da_res</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/kerndwd/man/kerndwd.html" class="external-link">kerndwd</a></span><span class="op">(</span><span class="va">X_cent</span>, <span class="va">nicheBinary</span>, <span class="va">kern</span>, qval<span class="op">=</span><span class="fl">1</span>, lambda<span class="op">=</span><span class="va">cv_res</span><span class="op">$</span><span class="va">lambda.min</span>, eps<span class="op">=</span><span class="fl">1e-5</span>, maxit<span class="op">=</span><span class="fl">1e5</span><span class="op">)</span></span>
 <span><span class="va">A</span> <span class="op">&lt;-</span> <span class="va">da_res</span><span class="op">$</span><span class="va">alpha</span><span class="op">[</span><span class="op">-</span><span class="fl">1</span>,,drop<span class="op">=</span><span class="cn">F</span><span class="op">]</span></span>
-<span><span class="va">dwdLoad</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/matmult-methods.html" class="external-link">crossprod</a></span><span class="op">(</span><span class="va">X_cent</span>, <span class="va">A</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">`colnames&lt;-`</span><span class="op">(</span><span class="st">"comp1"</span><span class="op">)</span> <span class="co"># worked out by looking at predict.dwd</span></span>
+<span><span class="va">dwdLoad</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/crossprod.html" class="external-link">crossprod</a></span><span class="op">(</span><span class="va">X_cent</span>, <span class="va">A</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">`colnames&lt;-`</span><span class="op">(</span><span class="st">"comp1"</span><span class="op">)</span> <span class="co"># worked out by looking at predict.dwd</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">dwdLoad</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">gsub</a></span><span class="op">(</span><span class="st">"\\([^\\)]*\\)"</span>, <span class="st">""</span>, <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">dwdLoad</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">dwdScore</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/kerndwd/man/predict.kerndwd.html" class="external-link">predict.kerndwd</a></span><span class="op">(</span><span class="va">da_res</span>, <span class="va">kern</span>, <span class="va">X_cent</span>, <span class="va">X_cent</span>, <span class="st">"link"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">`colnames&lt;-`</span><span class="op">(</span><span class="st">"comp1"</span><span class="op">)</span></span>
 <span><span class="va">dwd_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
@@ -688,7 +691,7 @@ types of domains, resulting in 1-dimensional representation of these
 matrices, i.e. scores. Loadings represent how this direction is defined,
 i.e. which cell type co-presence best distinguished tumour and
 non-tumour spatial domains.</p>
-<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dwd_res</span><span class="op">$</span><span class="va">scores</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span></span>
 <span>    niche <span class="op">=</span> <span class="va">nicheBinaryByName</span></span>
@@ -697,14 +700,14 @@ non-tumour spatial domains.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_density.html" class="external-link">geom_density</a></span><span class="op">(</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">comp1</span>, fill <span class="op">=</span> <span class="va">niche</span><span class="op">)</span>, alpha <span class="op">=</span> <span class="fl">0.5</span></span>
 <span>  <span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/ggpubr/man/theme_pubr.html" class="external-link">theme_pubr</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">12</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://rpkgs.datanovia.com/ggpubr/reference/theme_pubr.html" class="external-link">theme_pubr</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">12</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span></span>
 <span>    legend.title <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>face <span class="op">=</span><span class="st">"bold"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">xlab</a></span><span class="op">(</span><span class="st">"DWD score"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="CosMx_files/figure-html/unnamed-chunk-17-1.png" class="r-plt" width="700"></p>
-<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/loadBarplot.html">loadBarplot</a></span><span class="op">(</span><span class="va">dwd_res</span><span class="op">$</span><span class="va">loadings</span>, <span class="st">"comp1"</span>, xlab <span class="op">=</span> <span class="st">"DWD loading"</span>, nfeat <span class="op">=</span> <span class="fl">10</span><span class="op">)</span> <span class="op">+</span></span>
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/vizOmics/man/plotLoadings.html" class="external-link">plotLoadings</a></span><span class="op">(</span><span class="va">dwd_res</span><span class="op">$</span><span class="va">loadings</span>, <span class="st">"comp1"</span>, xlab <span class="op">=</span> <span class="st">"DWD loading"</span>, nfeat <span class="op">=</span> <span class="fl">10</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span></span>
 <span>    axis.title.x <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>    axis.ticks.x <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span>,</span>

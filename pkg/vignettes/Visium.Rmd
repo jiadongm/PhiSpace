@@ -34,6 +34,7 @@ For this case study, we have defined some util functions, which can be downloade
 ```{r}
 # Name of the game
 suppressPackageStartupMessages(library(PhiSpace))
+suppressPackageStartupMessages(library(vizOmics))
 # Tidyverse packages
 suppressPackageStartupMessages(library(ggplot2))
 suppressPackageStartupMessages(library(dplyr))
@@ -82,7 +83,7 @@ if(!file.exists(PhiResPath)){
     reference, 
     query_list, 
     phenotypes = YtrainName, 
-    PhiSpaceAssay = "log1p",
+    refAssay = "log1p",
     selectedFeat = selectedFeat,
     regMethod = "PLS", 
     center = T,
@@ -141,7 +142,7 @@ We visualise the first two PCs. As we can see, all samples were well separated i
 - LUSC: lung squamous cell carcinoma.
 ```{r fig.asp=1}
 tempPCAplot(pca_res) + expand_limits(x = c(-5.5, 7.5))
-loadBarplot(pca_res$loadings, nfeat = 20) + theme(axis.text.x = element_text(angle = 45))
+plotLoadings(pca_res$loadings, nfeat = 20) + theme(axis.text.x = element_text(angle = 45))
 ```
 
 
@@ -226,7 +227,7 @@ set.seed(92399)
 corMatVec_immune <- corMatVec[,intIdx]
 pcaImmune_res <- getPC(corMatVec_immune, ncomp = 2, center = T, scale = F)
 tempPCAplot(pcaImmune_res) + expand_limits(x = c(-4, 4))
-loadBarplot(pcaImmune_res$loadings, "comp1", nfeat = 20)
+plotLoadings(pcaImmune_res$loadings, "comp1", nfeat = 20)
 ```
 
 

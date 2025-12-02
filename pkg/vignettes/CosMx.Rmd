@@ -34,6 +34,7 @@ For this case study, we have defined some util functions, which can be downloade
 ```{r}
 # Name of the game
 suppressPackageStartupMessages(library(PhiSpace))
+suppressPackageStartupMessages(library(vizOmics))
 # Tidyverse packages
 suppressPackageStartupMessages(library(ggplot2))
 suppressPackageStartupMessages(library(dplyr))
@@ -91,7 +92,7 @@ if(!file.exists(PhiResPath)){
     # Run PhiSpace
     PhiRes <- PhiSpaceR_1ref(
       reference, query, 
-      phenotypes = YtrainName, PhiSpaceAssay = "log1p",
+      phenotypes = YtrainName, refAssay = "log1p",
       regMethod = "PLS", center = T, scale = F
     )
     # Extract cell type scores and rename cell types by adding lineage info
@@ -138,7 +139,7 @@ Next we plot transitional alvelolar type 2 cells (TransAT2). This is a type of l
 
 Lastly we plotted two common types of immune cells, CD4 T and B cells. Their territories overlapped a lot and both tended to form island-like lymphoid structures. This makes perfect sense as we know that T and B cells are very common in these lymphoid structures.
 ```{r fig.asp=1}
-VizSpatial(query, "sdimx", "sdimy", ptSize = 1, groupBy = "niche", legend.position = "top", legend.symb.size = 2) + 
+VizSpatial(query, "sdimx", "sdimy", ptSize = 1, colBy = "niche", legend.position = "top", legend.symb.size = 2) + 
   scale_colour_manual(values = nicheCol) 
 VizSpatial(query, "sdimx", "sdimy", ptSize = 1, reducedDim = "TransAT2(epi)", censor = T, legend.position = "top", reOrder = T)
 VizSpatial(query, "sdimx", "sdimy", ptSize = 1, reducedDim = "Mesothelial(mesen)", censor = T, legend.position = "top", reOrder = T)
@@ -172,7 +173,7 @@ tempClustCols <- c(
   "5" = "gray50", "6" = "#A6CEE3" , "7" =  "#6A3D9A", "8" =  "#FFFF99", "9" = "black"
 )
 VizSpatial(
-  query, x_coord = "sdimx", y_coord = "sdimy", groupBy = "PhiClust", ptSize = 0.5
+  query, x_coord = "sdimx", y_coord = "sdimy", colBy = "PhiClust", ptSize = 0.5
 ) + scale_colour_manual(values = tempClustCols) +
   guides(
     colour = guide_legend(
@@ -206,7 +207,7 @@ It turns out that our clustering split the 'tumour interior' domain of He et al.
 ```{r fig.asp=1}
 query$divergence <- apply(reducedDim(query, "PhiSpace"), 1, quantile, prob = 0.75)
 VizSpatial(
-  query, "sdimx", "sdimy", ptSize = 0.5, groupBy = "divergence", reOrder = T, fsize = 12
+  query, "sdimx", "sdimy", ptSize = 0.5, colBy = "divergence", reOrder = T, fsize = 12
 ) +
   scale_colour_stepsn(colours = PhiSpace:::MATLAB_cols, values = c(0, 0.25, 0.5, 0.75, 1)) +
   theme(legend.position = "bottom")
@@ -433,7 +434,7 @@ dwd_res$scores %>%
     legend.title = element_text(face ="bold")
   ) +
   xlab("DWD score")
-loadBarplot(dwd_res$loadings, "comp1", xlab = "DWD loading", nfeat = 10) +
+plotLoadings(dwd_res$loadings, "comp1", xlab = "DWD loading", nfeat = 10) +
   theme(
     axis.title.x = element_blank(),
     axis.ticks.x = element_blank(),

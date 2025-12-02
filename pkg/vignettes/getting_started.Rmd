@@ -116,7 +116,7 @@ if(!file.exists(paste0(dat_dir, "output/refPhi.qs"))){
       ncomp = ncomp,
       selectedFeat = selectedFeat,
       phenotypes = phenotypes, 
-      PhiSpaceAssay = PhiSpaceAssay,
+      refAssay = PhiSpaceAssay,
       regMethod = PhiMethod,
       scale = FALSE,
       updateRef = TRUE
