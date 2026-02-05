@@ -19,6 +19,7 @@
 #' @param DRinfo Logic. Whether to return dimension reduction information from PCA or PLS. By default disabled to save memory.
 #' @param storeUnNorm Store unnormalised raw PhiSpace scores or not. Default is `FALSE`.
 #' @param updateRef Update reference (store reference PhiSpace scores in reference sce object) or not.
+#' @param cellTypeThreshold Integer or NULL. If a positive integer, cell types with fewer than this many cells in the reference will be removed before model fitting. Only used when `phenotypes` is provided. Default is `NULL` (no filtering).
 #'
 #' @return
 #' - If `updateRef = FALSE` (default): An updated query SCE object with PhiSpace annotation results stored in reducedDim slot "PhiSpace";
@@ -60,7 +61,8 @@ PhiSpace <- function(
     scale = FALSE,
     DRinfo = FALSE,
     storeUnNorm = FALSE,
-    updateRef = FALSE
+    updateRef = FALSE,
+    cellTypeThreshold = NULL
 ){
 
   # Check if multiple references are provided
@@ -94,28 +96,27 @@ PhiSpace <- function(
         selectedFeat = selectedFeat,
         center = center,
         scale = scale,
-        DRinfo = DRinfo
+        DRinfo = DRinfo,
+        cellTypeThreshold = cellTypeThreshold
       )
 
       # Rename cell type names by appending reference dataset name
       sc <- PhiRes$PhiSpaceScore
+      sc_norm <- PhiRes$PhiSpaceNorm
 
       if(is.list(sc)){
 
-        sc <- lapply(
-          sc,
-          function(x){
-            colnames(x) <- paste0(colnames(x), "(", refDataName, ")")
-            return(x)
-          }
-        )
-
-        sc_norm <- lapply(sc, normPhiScores)
+        renameCols <- function(x){
+          colnames(x) <- paste0(colnames(x), "(", refDataName, ")")
+          return(x)
+        }
+        sc <- lapply(sc, renameCols)
+        sc_norm <- lapply(sc_norm, renameCols)
 
       } else {
 
         colnames(sc) <- paste0(colnames(sc), "(", refDataName, ")")
-        sc_norm <- normPhiScores(sc)
+        colnames(sc_norm) <- paste0(colnames(sc_norm), "(", refDataName, ")")
       }
 
       sc_list[[refDataName]] <- sc_norm
@@ -160,26 +161,27 @@ PhiSpace <- function(
       selectedFeat = selectedFeat,
       center = center,
       scale = scale,
-      DRinfo = DRinfo
+      DRinfo = DRinfo,
+      cellTypeThreshold = cellTypeThreshold
     )
 
     if(!is.list(query)){
 
       if(storeUnNorm) reducedDim(query, paste0(reducedDimName, "_nonNorm")) <- PhiRes$PhiSpaceScore
-      reducedDim(query, reducedDimName) <- normPhiScores(PhiRes$PhiSpaceScore)
+      reducedDim(query, reducedDimName) <- PhiRes$PhiSpaceNorm
     } else {
 
       for(i in 1:length(query)){
 
         if(storeUnNorm) reducedDim(query[[i]], paste0(reducedDimName, "_nonNorm")) <- PhiRes$PhiSpaceScore[[i]]
-        reducedDim(query[[i]], reducedDimName) <- normPhiScores(PhiRes$PhiSpaceScore[[i]])
+        reducedDim(query[[i]], reducedDimName) <- PhiRes$PhiSpaceNorm[[i]]
       }
     }
 
     if(updateRef){
 
       if(storeUnNorm) reducedDim(reference, paste0(reducedDimName, "_nonNorm")) <- PhiRes$YrefHat
-      reducedDim(reference, reducedDimName) <- normPhiScores(PhiRes$YrefHat)
+      reducedDim(reference, reducedDimName) <- PhiRes$YrefHatNorm
 
       return(
         list(

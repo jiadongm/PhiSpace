@@ -20,7 +20,8 @@ PhiSpace(
   scale = FALSE,
   DRinfo = FALSE,
   storeUnNorm = FALSE,
-  updateRef = FALSE
+  updateRef = FALSE,
+  cellTypeThreshold = NULL
 )
 }
 \arguments{
@@ -55,6 +56,8 @@ PhiSpace(
 \item{storeUnNorm}{Store unnormalised raw PhiSpace scores or not. Default is \code{FALSE}.}
 
 \item{updateRef}{Update reference (store reference PhiSpace scores in reference sce object) or not.}
+
+\item{cellTypeThreshold}{Integer or NULL. If a positive integer, cell types with fewer than this many cells in the reference will be removed before model fitting. Only used when \code{phenotypes} is provided. Default is \code{NULL} (no filtering).}
 }
 \value{
 \itemize{

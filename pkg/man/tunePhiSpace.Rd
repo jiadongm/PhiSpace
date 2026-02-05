@@ -26,7 +26,8 @@ tunePhiSpace(
   regMethod = "PLS",
   labelCode = "-1,1",
   Ncores = 1,
-  seed = 5202056
+  seed = 5202056,
+  cellTypeThreshold = NULL
 )
 }
 \arguments{
@@ -73,6 +74,8 @@ tunePhiSpace(
 \item{Ncores}{Integer.}
 
 \item{seed}{Integer.}
+
+\item{cellTypeThreshold}{Integer or NULL. If a positive integer, cell types with fewer than this many cells in the reference will be removed before tuning. Only used when \code{phenotypes} is provided. Default is \code{NULL} (no filtering).}
 }
 \value{
 A list

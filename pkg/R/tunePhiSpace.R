@@ -22,6 +22,7 @@
 #' @param labelCode Character.
 #' @param Ncores Integer.
 #' @param seed Integer.
+#' @param cellTypeThreshold Integer or NULL. If a positive integer, cell types with fewer than this many cells in the reference will be removed before tuning. Only used when `phenotypes` is provided. Default is `NULL` (no filtering).
 #'
 #' @return A list
 #' @export
@@ -51,7 +52,35 @@ tunePhiSpace <- function(reference,
                          regMethod = 'PLS',
                          labelCode = "-1,1",
                          Ncores = 1,
-                         seed = 5202056){
+                         seed = 5202056,
+                         cellTypeThreshold = NULL){
+
+  # Validate cellTypeThreshold
+  if(!is.null(cellTypeThreshold)){
+    if(!(length(cellTypeThreshold) == 1 && is.numeric(cellTypeThreshold) &&
+         cellTypeThreshold == as.integer(cellTypeThreshold) && cellTypeThreshold > 0)){
+      stop("cellTypeThreshold must be a positive integer or NULL.")
+    }
+  }
+
+  # Filter rare cell types if cellTypeThreshold is set
+  if(!is.null(cellTypeThreshold) && !is.null(phenotypes)){
+    for(ph in phenotypes){
+      cellTypeCounts <- table(colData(reference)[, ph])
+      rareCellTypes <- names(cellTypeCounts[cellTypeCounts < cellTypeThreshold])
+      if(length(rareCellTypes) > 0){
+        message(
+          "Removing cell types with fewer than ", cellTypeThreshold,
+          " cells in '", ph, "': ",
+          paste(rareCellTypes, " (n=", cellTypeCounts[rareCellTypes], ")",
+                sep = "", collapse = ", ")
+        )
+        keepCells <- !(as.character(colData(reference)[, ph]) %in% rareCellTypes)
+        reference <- reference[, keepCells]
+      }
+    }
+    if(ncol(reference) == 0) stop("No cells remain after filtering rare cell types.")
+  }
 
   if(tune_ncomp){
 

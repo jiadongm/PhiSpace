@@ -2,7 +2,7 @@
 % Please edit documentation in R/PhiSpaceR_1ref.R
 \name{PhiSpaceR_1ref}
 \alias{PhiSpaceR_1ref}
-\title{PhiSpace using a single reference}
+\title{PhiSpace annotation using a single reference}
 \usage{
 PhiSpaceR_1ref(
   reference,
@@ -17,39 +17,100 @@ PhiSpaceR_1ref(
   selectedFeat = NULL,
   center = TRUE,
   scale = FALSE,
-  DRinfo = FALSE
+  DRinfo = FALSE,
+  cellTypeThreshold = NULL
 )
 }
 \arguments{
-\item{reference}{SCE. The reference.}
+\item{reference}{A \code{SingleCellExperiment} (SCE) object. The annotated reference dataset. Must contain
+an assay named by \code{refAssay}.}
 
-\item{query}{SCE or a list of SCE. The query.}
+\item{query}{An SCE object or a list of SCE objects. The query dataset(s) to annotate.
+Each must contain an assay named by \code{queryAssay}.}
 
-\item{phenotypes}{Charater. Which types of phenotypes to predict. If \code{NULL}, then have to specify \code{response}. Currently only support categorical phenotypes. For continuous ones, specify \code{response} directly.}
+\item{phenotypes}{Character vector. Column name(s) in \code{colData(reference)} specifying which
+phenotypes (e.g. cell type, disease condition) to predict. If \code{NULL}, \code{response} must be provided.
+Currently only supports categorical phenotypes; for continuous phenotypes, specify \code{response} directly.}
 
-\item{response}{Named matrix. Rows correspond to cells (columns) in reference; columns correspond to phenotypes. If not \code{NULL}, then will override \code{phenotypes}. Can be continuous values such as age and BMI.}
+\item{response}{Named matrix. Rows correspond to cells (columns) in \code{reference}; columns correspond
+to phenotypes. If not \code{NULL}, overrides \code{phenotypes}. Can contain continuous values such as age or BMI.}
 
-\item{refAssay}{Character. Which assay in reference to use to train PhiSpace}
+\item{refAssay}{Character. Name of the assay in \code{reference} to use for model training (default: \code{"log1p"}).}
 
-\item{queryAssay}{Character. Which assay in query to use for prediction; by default same as refAssay}
+\item{queryAssay}{Character. Name of the assay in \code{query} to use for prediction. If \code{NULL} (default),
+uses the same value as \code{refAssay}.}
 
-\item{regMethod}{Character. Regression method: one of PLS and PCA}
+\item{regMethod}{Character. Regression method: one of \code{"PLS"} (partial least squares, default) or
+\code{"PCA"} (principal component regression).}
 
-\item{ncomp}{Integer.}
+\item{ncomp}{Integer. Number of PLS/PCA components. If \code{NULL} (default), set to the total number
+of phenotype levels.}
 
-\item{nfeat}{Integer.}
+\item{nfeat}{Integer. Number of top-ranked features to select per phenotype for model fitting. If \code{NULL}
+(default), all features are used. See Details.}
 
-\item{selectedFeat}{Character.}
+\item{selectedFeat}{Character vector. A set of pre-selected feature names to use for model fitting. If
+provided, overrides \code{nfeat}.}
 
-\item{center}{Logic.}
+\item{center}{Logical. Whether to center the feature matrix before regression (default: \code{TRUE}). See Details.}
 
-\item{scale}{Logic.}
+\item{scale}{Logical. Whether to scale the feature matrix before regression (default: \code{FALSE}). See Details.}
 
-\item{DRinfo}{Logic. Whether to return dimension reduction information from PCA or PLS. Disable to save memory.}
+\item{DRinfo}{Logical. Whether to return dimension reduction information from PCA or PLS.
+Disable to save memory (default: \code{FALSE}).}
+
+\item{cellTypeThreshold}{Integer or NULL. If a positive integer, cell types with fewer than this many
+cells in the reference will be removed before model fitting. Only used when \code{phenotypes} is provided.
+Default is \code{NULL} (no filtering).}
 }
 \value{
-A list
+A list with the following components:
+\describe{
+\item{ncomp}{Integer. Number of components used.}
+\item{impScores}{Matrix. Feature importance scores (regression coefficients at the final component).}
+\item{phenoDict}{Data frame mapping phenotype labels to their categories, or \code{NULL} if \code{response}
+was provided directly.}
+\item{selectedFeat}{Character vector. Features used in the final model.}
+\item{YrefHat}{Matrix. Raw (unnormalised) predicted scores for the reference cells.}
+\item{YrefHatNorm}{Matrix. Normalised predicted scores for the reference cells (via \code{\link[=normPhiScores]{normPhiScores()}}).}
+\item{PhiSpaceScore}{Matrix or list of matrices. Raw (unnormalised) PhiSpace scores for the query
+dataset(s). A single matrix if one query was provided; a list of matrices if multiple queries.}
+\item{PhiSpaceNorm}{Matrix or list of matrices. Normalised PhiSpace scores for the query dataset(s)
+(via \code{\link[=normPhiScores]{normPhiScores()}}). Same structure as \code{PhiSpaceScore}.}
+\item{center}{Logical. Whether centering was applied.}
+\item{scale}{Logical. Whether scaling was applied.}
+\item{atlas_re}{List. Internal model object from \code{SuperPC()}, containing regression results and
+preprocessing parameters needed for prediction.}
+}
 }
 \description{
-PhiSpace using a single reference
+Core single-reference implementation for PhiSpace continuous phenotyping. Given an annotated reference
+dataset and one or more query datasets, this function builds a PLS or PCA regression model from the
+reference and projects the query onto the learned phenotype space. Both raw and normalised PhiSpace
+scores are returned. For a higher-level wrapper that handles multiple references, see \code{\link[=PhiSpace]{PhiSpace()}}.
+}
+\details{
+\itemize{
+\item \strong{Parameter tuning} By default, PhiSpace takes \code{ncomp} equal to the total number of phenotypes.
+For example, if there are 20 cell types and 5 sample sources (e.g. \emph{in vivo} and \emph{in vitro}) defined
+in the reference, \code{ncomp} will be set to be 25. By default, PhiSpace doesn't do any feature selection.
+However, feature selection is very straightforward in PhiSpace. The partial least squares model
+automatically rank all features according to their contribution to predicting each phenotype. For
+example, if there are 25 phenotypes then PLS will return 25 rankings of all features. Based on this,
+customised feature selection can be done in two ways. The user either specify \code{nfeat}, i.e. the number
+of features (or markers) used to predict each phenotype; or specify \code{selectedFeat}, i.e. a subset of
+features used to predict all phenotypes (e.g. highly variable genes). If \code{nfeat} is provided, then
+\code{selectedFeat} will be automatically defined as the union of the \code{nfeat} markers of all phenotypes.
+\item \strong{Center and scale} By default, PhiSpace only center the data but do not scale. This is because we
+often use more features than standard single-cell pipelines (e.g. Seurat selects 2,000 highly variable
+genes) for a better prediction. This means that we might have included genes with small variance and
+scaling would greatly inflate the expression levels of these genes.
+}
+}
+\references{
+Mao J., Deng, Y. and Lê Cao, K.-A. (2024). Phi-Space: Continuous phenotyping of single-cell multi-omics data. bioRxiv.
+}
+\seealso{
+\code{\link[=PhiSpace]{PhiSpace()}} for the main user-facing wrapper that handles multiple references,
+\code{\link[=normPhiScores]{normPhiScores()}} for score normalisation, \code{\link[=tunePhiSpace]{tunePhiSpace()}} for parameter tuning.
 }
