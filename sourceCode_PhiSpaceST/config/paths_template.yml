@@ -1,0 +1,39 @@
+# Path configuration template for the PhiSpace ST analysis code.
+#
+# USAGE
+#   1. Copy this file to `paths_local.yml` in the same directory:
+#        cp paths_template.yml paths_local.yml
+#   2. Edit `paths_local.yml` to match your environment.
+#   3. `paths_local.yml` is git-ignored.
+#
+# The loader (scripts/00_setup/paths_loader.{R,py}) reads `paths_local.yml`
+# if present, otherwise falls back to this template (with a warning).
+
+# ---------------------------------------------------------------------------
+# Required for ALL case studies except the AML Stereo-seq one
+# ---------------------------------------------------------------------------
+# Root of the local PhiSpace working directory. Should contain (or have room
+# for) `data/` and `output/` subdirectories. Public reference and query
+# datasets are downloaded into `${phispace_data_root}/data/` per
+# config/dataset_manifest.tsv. Analysis outputs are written into
+# `${phispace_data_root}/output/`.
+phispace_data_root: "/path/to/PhiSpace_workdir"
+
+# ---------------------------------------------------------------------------
+# Required ONLY for the AML mouse spleen Stereo-seq case study (scripts/04_)
+# ---------------------------------------------------------------------------
+# Stereo-seq + intermediate scRNA-seq + SPLINTR barcode files for the AML
+# mouse spleen experiment. RESTRICTED — Dawson lab collaborator data, not
+# redistributable. Set to a local path only if you have authorised access.
+# See dataset_manifest.tsv (rows with redistribution_allowed=no) for details.
+dawson_root: "/path/to/Dawson/MouseSpleen"
+
+# ---------------------------------------------------------------------------
+# Required ONLY for the deconvolution benchmark (scripts/06_benchmarking_supp)
+# ---------------------------------------------------------------------------
+# Cell2location and TACCO each need their own conda environment because of
+# pinned dependency versions. Provide the absolute path to the python
+# interpreter inside each env. Environment YAML files are in
+# `environment/` (e.g. tacco_env.yml).
+cell2loc_python: "/path/to/conda/envs/cell2location/bin/python"
+tacco_python:    "/path/to/conda/envs/TACCO_env/bin/python"

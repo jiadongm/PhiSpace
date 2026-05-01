@@ -1,0 +1,44 @@
+name	language	source	version_used	role
+PhiSpace	R	GitHub: jiadongm/PhiSpace/pkg	v1.1.0 (matches release tag)	core method (deconvolution + niche analysis)
+SingleCellExperiment	R	Bioconductor	>=1.24	core SC data structure
+SummarizedExperiment	R	Bioconductor	>=1.32	dependency of SingleCellExperiment
+scran	R	Bioconductor	>=1.30	pooling-based normalisation, quickCluster
+scuttle	R	Bioconductor	>=1.12	logNormCounts and basic SC utilities
+SpaNorm	R	Bioconductor	>=1.0	spatial-aware normalisation (Visium / CosMx)
+DropletUtils	R	Bioconductor	>=1.22	read10xCounts for Xenium .h5
+Seurat	R	CRAN	5.4.0	used to load Visium, GSE227136 Seurat objects
+SeuratDisk	R	GitHub: mojaveazure/SeuratDisk	dev	LoadH5Seurat for Natri mesenchymal h5seurat
+Matrix	R	CRAN	>=1.6	sparse matrix conversion (Seurat v5 workaround)
+sctransform	R	CRAN	>=0.4	default reference normalisation in benchmark
+ggplot2	R	CRAN	>=3.5	all plots
+ggpubr	R	CRAN	>=0.6	get_legend, theme helpers
+ComplexHeatmap	R	Bioconductor	>=2.18	cluster enrichment + co-presence heatmaps
+circlize	R	CRAN	>=0.4	colorRamp2 for ComplexHeatmap
+seriation	R	CRAN	>=1.5	heatmap row/col ordering
+dplyr	R	CRAN	>=1.1	general tidyverse manipulation
+tidyr	R	CRAN	>=1.3	general tidyverse manipulation
+magrittr	R	CRAN	>=2.0	pipe %>%
+qs	R	CRAN	>=0.27	fast SCE serialisation (.qs)
+yaml	R	CRAN	>=2.3	scripts/00_setup/paths_loader.R
+devtools	R	CRAN	>=2.4	install_github for PhiSpace
+Giotto	R	GitHub: drieslab/Giotto	1.x	CosMx data conversion (CosMx_prepareSCEobjects)
+spacexr	R	GitHub: dmcable/spacexr	2.2	RCTD (competitor + Visium runtime benchmark)
+SPOTlight	R	Bioconductor	1.14.0	SPOTlight competitor
+kerndwd	R	CRAN	>=2.0	DWD discriminant analysis (Stereo-seq, CosMx)
+UCell	R	Bioconductor	>=2.6	gene signature scoring (Hallmark, metaCloneStates)
+msigdbr	R	CRAN	>=7.5	MSigDB Hallmark gene sets (Mus musculus)
+scanpy	Python	conda-forge / pip	>=1.9	AnnData / spatial preprocessing (cell2location, TACCO, prepareData)
+anndata	Python	conda-forge / pip	>=0.10	AnnData IO
+numpy	Python	conda-forge / pip	>=1.24	numerical
+pandas	Python	conda-forge / pip	>=2.0	tabular IO
+scipy	Python	conda-forge / pip	1.9.1 (TACCO env pin)	sparse matrix + benchmark CSV processing
+matplotlib	Python	conda-forge / pip	!=3.7.0	plots
+seaborn	Python	conda-forge / pip	>=0.12	plots
+scikit-image	Python	conda-forge / pip	>=0.21	pathology mask manipulation (assignPathology.py)
+shapely	Python	conda-forge / pip	>=2.0	point-in-polygon for Xenium pathology assignment
+cell2location	Python	pip	0.1.4	competitor (benchmark + Visium case)
+scvi-tools	Python	pip	1.1.2	cell2location dependency
+tacco	Python	conda-forge	>=0.3	competitor (benchmark + Visium case)
+R	-	-	4.4.0 (HPC: foss/2022a)	base R; benchmark scripts also tested on 4.5.0
+Python	-	-	3.10 (TACCO + Cell2location envs); 3.8 (stereo env)	conda envs
+Bioconductor	-	-	3.18 (paired with R 4.4)	-

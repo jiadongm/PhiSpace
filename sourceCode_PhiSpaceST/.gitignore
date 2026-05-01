@@ -1,0 +1,34 @@
+# Local-only paths (per-environment, never committed)
+config/paths_local.yml
+
+# R session / IDE state
+.Rhistory
+.RData
+.Rproj.user/
+.Rapp.history
+
+# Python caches
+__pycache__/
+*.pyc
+*.pyo
+.ipynb_checkpoints/
+
+# HPC outputs
+slurm-*.out
+*.log
+*.tmp
+
+# Editor / OS
+.DS_Store
+.vscode/
+.idea/
+
+# Large intermediates (regeneratable from scripts; do NOT commit)
+outputs/
+large_intermediates/
+
+# Renv / virtualenvs (if added later)
+renv/library/
+renv/python/
+renv/staging/
+.venv/

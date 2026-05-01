@@ -1,0 +1,7 @@
+# PLACEHOLDER — will be overwritten by environment/capture_sessionInfo.R
+#
+# Generate the real sessionInfo by running, from the project root:
+#   Rscript environment/capture_sessionInfo.R
+#
+# This must be run on the same machine and R version used to produce the
+# paper figures (Spartan HPC, R 4.4.0+ with foss/2022a, see hpc/module_loads.sh).

@@ -1,0 +1,42 @@
+{
+  "title": "PhiSpace ST: a platform-agnostic method to identify cell states in spatial transcriptomics studies",
+  "upload_type": "software",
+  "version": "v1.1.0",
+  "license": "AGPL-3.0",
+  "description": "We introduce PhiSpace ST, a platform-agnostic method to identify continuous cell states in spatial transcriptomics (ST) data using multiple scRNA-seq references. For ST with supercellular resolution, PhiSpace ST achieves interpretable cell type deconvolution with significantly faster computation. For subcellular resolution, PhiSpace ST annotates cell states without cell segmentation, leading to highly insightful spatial niche identification. PhiSpace ST harmonises annotations derived from multiple scRNA-seq references, and provides interpretable characterisations of disease cell states by leveraging healthy references. We validate PhiSpace ST in four case studies involving CosMx, Visium, Xenium and Stereo-seq platforms for various cancer tissues. Our method revealed niche-specific enriched cell types and distinct cell type co-presence patterns that distinguish tumour from non-tumour tissue regions. This release archives the PhiSpace R package and the paper-specific analysis pipelines in sourceCode_PhiSpaceST/.",
+  "creators": [
+    {
+      "name": "Mao, Jiadong",
+      "orcid": "0000-0002-3818-1981",
+      "affiliation": "Melbourne Integrative Genomics, School of Mathematics and Statistics, The University of Melbourne, Australia"
+    },
+    {
+      "name": "Choi, Jarny",
+      "affiliation": "The University of Melbourne, Australia"
+    },
+    {
+      "name": "Lê Cao, Kim-Anh",
+      "affiliation": "Melbourne Integrative Genomics, School of Mathematics and Statistics, The University of Melbourne, Australia"
+    }
+  ],
+  "keywords": [
+    "spatial transcriptomics",
+    "single-cell RNA-seq",
+    "cell type annotation",
+    "cell type deconvolution",
+    "partial least squares regression",
+    "niche analysis",
+    "platform-agnostic methods",
+    "R",
+    "Bioconductor"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/jiadongm/PhiSpace",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    }
+  ],
+  "communities": [],
+  "access_right": "open"
+}
