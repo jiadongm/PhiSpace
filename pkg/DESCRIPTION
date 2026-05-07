@@ -17,6 +17,7 @@ Depends:
 Imports: 
     Matrix,
     methods,
+    BiocParallel,
     ComplexHeatmap,
     dplyr,
     ggplot2,
