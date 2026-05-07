@@ -21,7 +21,10 @@ PhiSpace(
   DRinfo = FALSE,
   storeUnNorm = FALSE,
   updateRef = FALSE,
-  cellTypeThreshold = NULL
+  cellTypeThreshold = NULL,
+  fallback = c("none", "scoreCells"),
+  fallback_min_classes = 2,
+  fallback_score = c("signature", "correlation")
 )
 }
 \arguments{
@@ -58,6 +61,16 @@ PhiSpace(
 \item{updateRef}{Update reference (store reference PhiSpace scores in reference sce object) or not.}
 
 \item{cellTypeThreshold}{Integer or NULL. If a positive integer, cell types with fewer than this many cells in the reference will be removed before model fitting. Only used when \code{phenotypes} is provided. Default is \code{NULL} (no filtering).}
+
+\item{fallback}{Character. Optional fallback for references with too few classes. \code{"none"} preserves
+standard PhiSpace behaviour. \code{"scoreCells"} calls \code{\link[=scoreCells]{scoreCells()}} through \code{\link[=PhiSpaceR_1ref]{PhiSpaceR_1ref()}} when the
+number of classes is less than \code{fallback_min_classes}.}
+
+\item{fallback_min_classes}{Integer. Minimum number of classes required before fitting the standard
+PhiSpace model when \code{fallback = "scoreCells"}.}
+
+\item{fallback_score}{Character. Which \code{scoreCells()} output to use as the fallback PhiSpace score:
+\code{"signature"} or \code{"correlation"}.}
 }
 \value{
 \itemize{

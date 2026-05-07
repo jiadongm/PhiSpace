@@ -32,6 +32,13 @@
 #' @param cellTypeThreshold Integer or NULL. If a positive integer, cell types with fewer than this many
 #'   cells in the reference will be removed before model fitting. Only used when `phenotypes` is provided.
 #'   Default is `NULL` (no filtering).
+#' @param fallback Character. Optional fallback method for references with too few classes. `"none"`
+#'   preserves the standard PhiSpace behaviour. `"scoreCells"` uses [scoreCells()] when the number of
+#'   classes is less than `fallback_min_classes`.
+#' @param fallback_min_classes Integer. Minimum number of classes required before fitting the standard
+#'   PhiSpace model when `fallback = "scoreCells"`.
+#' @param fallback_score Character. Which `scoreCells()` output to use as the fallback PhiSpace score:
+#'   `"signature"` or `"correlation"`.
 #'
 #' @return A list with the following components:
 #' \describe{
@@ -90,9 +97,14 @@ PhiSpaceR_1ref <- function(
     center = TRUE,
     scale = FALSE,
     DRinfo = FALSE,
-    cellTypeThreshold = NULL
+    cellTypeThreshold = NULL,
+    fallback = c("none", "scoreCells"),
+    fallback_min_classes = 2,
+    fallback_score = c("signature", "correlation")
 ){
 
+  fallback <- match.arg(fallback)
+  fallback_score <- match.arg(fallback_score)
   if(!inherits(query, "list")) query <- list(query)
 
   # Validate cellTypeThreshold
@@ -114,9 +126,18 @@ PhiSpaceR_1ref <- function(
 
 
   regMethod <- match.arg(regMethod)
+  .validate_phi_fallback_args(
+    fallback = fallback,
+    fallback_min_classes = fallback_min_classes,
+    fallback_score = fallback_score
+  )
 
   ## Build Y matrix
   if(!is.null(response)){ # If response is provided
+
+    if(fallback != "none"){
+      stop("fallback can only be used when phenotypes is provided, not response.")
+    }
 
     YY <- as.matrix(response)
     phenoDict <- NULL
@@ -144,6 +165,29 @@ PhiSpaceR_1ref <- function(
         }
       }
       if(ncol(reference) == 0) stop("No cells remain after filtering rare cell types.")
+    }
+
+    fallback_class_counts <- vapply(
+      phenotypes,
+      function(ph) length(unique(as.character(colData(reference)[, ph]))),
+      integer(1)
+    )
+    if(fallback == "scoreCells" && any(fallback_class_counts < fallback_min_classes)){
+      if(length(phenotypes) != 1){
+        stop("scoreCells fallback currently supports exactly one phenotype column.")
+      }
+      return(
+        .PhiSpace_scoreCells_fallback(
+          reference = reference,
+          query = query,
+          class_col = phenotypes,
+          refAssay = refAssay,
+          queryAssay = queryAssay,
+          fallback_min_classes = fallback_min_classes,
+          fallback_score = fallback_score,
+          class_count = fallback_class_counts[[1]]
+        )
+      )
     }
 
     YY <- codeY(reference, phenotypes)
@@ -254,4 +298,113 @@ PhiSpaceR_1ref <- function(
       atlas_re = atlas_re
     )
   )
+}
+
+.validate_phi_fallback_args <- function(fallback,
+                                        fallback_min_classes,
+                                        fallback_score) {
+  if(!fallback %in% c("none", "scoreCells")){
+    stop("fallback must be one of 'none' or 'scoreCells'.")
+  }
+  if(!fallback_score %in% c("signature", "correlation")){
+    stop("fallback_score must be one of 'signature' or 'correlation'.")
+  }
+  if(!(length(fallback_min_classes) == 1 && is.numeric(fallback_min_classes) &&
+       fallback_min_classes == as.integer(fallback_min_classes) &&
+       fallback_min_classes > 1)){
+    stop("fallback_min_classes must be an integer greater than 1.")
+  }
+}
+
+.PhiSpace_scoreCells_fallback <- function(reference,
+                                          query,
+                                          class_col,
+                                          refAssay,
+                                          queryAssay,
+                                          fallback_min_classes,
+                                          fallback_score,
+                                          class_count) {
+
+  score_slot <- paste0(".PhiSpaceFallback_", fallback_score)
+  fallback_queries <- lapply(
+    query,
+    function(query_single) {
+      scoreCells(
+        reference = reference,
+        query = query_single,
+        class_col = class_col,
+        assay_ref = refAssay,
+        assay_query = queryAssay,
+        scoring = fallback_score,
+        score_prefix = ".PhiSpaceFallback",
+        verbose = FALSE
+      )
+    }
+  )
+
+  PhiSpaceScore_l <- lapply(
+    fallback_queries,
+    function(query_single) reducedDim(query_single, score_slot)
+  )
+  PhiSpaceNorm_l <- lapply(PhiSpaceScore_l, .normPhiScores_fallback)
+
+  fallback_metadata <- S4Vectors::metadata(fallback_queries[[1]])$scoreCells
+  class_names <- colnames(PhiSpaceScore_l[[1]])
+  selectedFeat <- unique(unlist(fallback_metadata$signatures, use.names = FALSE))
+  if(length(selectedFeat) == 0){
+    selectedFeat <- rownames(fallback_metadata$centroids)
+  }
+
+  if(length(PhiSpaceScore_l) == 1){
+    PhiSpaceScore_l <- PhiSpaceScore_l[[1]]
+    PhiSpaceNorm_l <- PhiSpaceNorm_l[[1]]
+  }
+
+  phenoDict <- data.frame(
+    labs = class_names,
+    phenotypeCategory = rep(class_col, length(class_names)),
+    stringsAsFactors = FALSE
+  )
+
+  return(
+    list(
+      ncomp = NA_integer_,
+      impScores = NULL,
+      phenoDict = phenoDict,
+      selectedFeat = selectedFeat,
+      YrefHat = NULL,
+      YrefHatNorm = NULL,
+      PhiSpaceScore = PhiSpaceScore_l,
+      PhiSpaceNorm = PhiSpaceNorm_l,
+      center = NA,
+      scale = NA,
+      atlas_re = NULL,
+      fallback = list(
+        method = "scoreCells",
+        score = fallback_score,
+        class_col = class_col,
+        class_count = class_count,
+        fallback_min_classes = fallback_min_classes,
+        scoreCells = fallback_metadata
+      )
+    )
+  )
+}
+
+.normPhiScores_fallback <- function(X) {
+  X <- as.matrix(X)
+  Xout <- apply(
+    X,
+    2,
+    function(x) {
+      x_cent <- x - stats::median(x, na.rm = TRUE)
+      denom <- max(abs(x_cent), na.rm = TRUE)
+      if(is.na(denom) || denom == 0){
+        return(x_cent)
+      }
+      x_cent / denom
+    }
+  )
+  dimnames(Xout) <- dimnames(X)
+  return(Xout)
 }

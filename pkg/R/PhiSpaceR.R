@@ -20,6 +20,13 @@
 #' @param storeUnNorm Store unnormalised raw PhiSpace scores or not. Default is `FALSE`.
 #' @param updateRef Update reference (store reference PhiSpace scores in reference sce object) or not.
 #' @param cellTypeThreshold Integer or NULL. If a positive integer, cell types with fewer than this many cells in the reference will be removed before model fitting. Only used when `phenotypes` is provided. Default is `NULL` (no filtering).
+#' @param fallback Character. Optional fallback for references with too few classes. `"none"` preserves
+#'   standard PhiSpace behaviour. `"scoreCells"` calls [scoreCells()] through [PhiSpaceR_1ref()] when the
+#'   number of classes is less than `fallback_min_classes`.
+#' @param fallback_min_classes Integer. Minimum number of classes required before fitting the standard
+#'   PhiSpace model when `fallback = "scoreCells"`.
+#' @param fallback_score Character. Which `scoreCells()` output to use as the fallback PhiSpace score:
+#'   `"signature"` or `"correlation"`.
 #'
 #' @return
 #' - If `updateRef = FALSE` (default): An updated query SCE object with PhiSpace annotation results stored in reducedDim slot "PhiSpace";
@@ -62,8 +69,14 @@ PhiSpace <- function(
     DRinfo = FALSE,
     storeUnNorm = FALSE,
     updateRef = FALSE,
-    cellTypeThreshold = NULL
+    cellTypeThreshold = NULL,
+    fallback = c("none", "scoreCells"),
+    fallback_min_classes = 2,
+    fallback_score = c("signature", "correlation")
 ){
+
+  fallback <- match.arg(fallback)
+  fallback_score <- match.arg(fallback_score)
 
   # Check if multiple references are provided
   if(is.list(reference)){
@@ -97,7 +110,10 @@ PhiSpace <- function(
         center = center,
         scale = scale,
         DRinfo = DRinfo,
-        cellTypeThreshold = cellTypeThreshold
+        cellTypeThreshold = cellTypeThreshold,
+        fallback = fallback,
+        fallback_min_classes = fallback_min_classes,
+        fallback_score = fallback_score
       )
 
       # Rename cell type names by appending reference dataset name
@@ -162,7 +178,10 @@ PhiSpace <- function(
       center = center,
       scale = scale,
       DRinfo = DRinfo,
-      cellTypeThreshold = cellTypeThreshold
+      cellTypeThreshold = cellTypeThreshold,
+      fallback = fallback,
+      fallback_min_classes = fallback_min_classes,
+      fallback_score = fallback_score
     )
 
     if(!is.list(query)){
@@ -179,6 +198,10 @@ PhiSpace <- function(
     }
 
     if(updateRef){
+
+      if(!is.null(PhiRes$fallback)){
+        stop("updateRef = TRUE is not supported when PhiSpace uses scoreCells fallback because YrefHat and YrefHatNorm are not computed.")
+      }
 
       if(storeUnNorm) reducedDim(reference, paste0(reducedDimName, "_nonNorm")) <- PhiRes$YrefHat
       reducedDim(reference, reducedDimName) <- PhiRes$YrefHatNorm

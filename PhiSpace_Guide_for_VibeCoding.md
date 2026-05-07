@@ -97,7 +97,7 @@ If `testthat`, `devtools`, or `roxygen2` is missing, do not silently skip verifi
 
 ### 0.7 Do Not Rules
 
-- Do not integrate fallback behavior into `PhiSpace()` unless the user explicitly asks for wrapper dispatch.
+- Do not change fallback defaults or broaden automatic `PhiSpace()` fallback behavior unless the user explicitly asks for it.
 - Do not change normalized score conventions without updating downstream examples and caveats.
 - Do not assume `findMarkers()` works for one-class references; use mean-expression fallback for that regime.
 - Do not use broad refactors while adding a focused utility.
@@ -297,7 +297,7 @@ sc_norm <- normPhiScores(PhiRes$PhiSpaceScore, method = "col")
 
 ### 3.4 Fallback Scoring with `scoreCells()`
 
-`scoreCells()` is a lightweight fallback for references where a full discriminative PhiSpace model is not meaningful: single-class references, very few classes, or very few cells per class. It does **not** currently dispatch automatically from `PhiSpace()`; call it directly, then use the resulting `reducedDim()` slots with downstream tools such as `VizSpatial()`, `spatialSmoother()`, and `clusterPhiSpace()`.
+`scoreCells()` is a lightweight fallback for references where a full discriminative PhiSpace model is not meaningful: single-class references, very few classes, or very few cells per class. You can call it directly, or opt into wrapper dispatch with `PhiSpace(fallback = "scoreCells")`. The default `fallback = "none"` preserves standard PhiSpace behavior.
 
 It produces one score column per reference class:
 
@@ -339,6 +339,25 @@ score <- reducedDim(query, "scoreCells_correlation")[, "reference"]
 ```
 
 When `class_col = NULL`, or when `class_col` contains only one unique class, `scoreCells()` automatically falls back from `scran::findMarkers()` to mean-expression signature selection. This is required because marker testing is undefined with one class. In single-class mode, signature scores are z-scored across query cells instead of across classes.
+
+**Opt-in fallback through `PhiSpace()`**:
+
+```r
+query <- PhiSpace(
+  reference  = cancer_reference,
+  query      = spatial_bins,
+  phenotypes = "cell_type",
+  refAssay   = "logcounts",
+  queryAssay = "logcounts",
+  fallback   = "scoreCells",
+  fallback_min_classes = 2,
+  fallback_score = "signature"  # or "correlation"
+)
+
+scores <- reducedDim(query, "PhiSpace")
+```
+
+When fallback is triggered inside `PhiSpaceR_1ref()`, `YrefHat` and `YrefHatNorm` are intentionally not computed. Therefore `PhiSpace(updateRef = TRUE, fallback = "scoreCells")` stops if fallback is actually used.
 
 **Smoothing scoreCells outputs for spatial data**:
 
@@ -1058,6 +1077,9 @@ VizSpatial(lung5_norm, colBy = "spatial_niches", ptSize = 0.8)
 | `updateRef` | `FALSE` | If TRUE, returns `list(reference=..., query=...)` |
 | `storeUnNorm` | `FALSE` | Store raw scores in `"PhiSpace_nonNorm"` |
 | `reducedDimName` | `"PhiSpace"` | Where to store scores (PhiSpace wrapper only) |
+| `fallback` | `"none"` | Set to `"scoreCells"` to use fallback when classes are too few |
+| `fallback_min_classes` | `2` | Trigger fallback when class count is below this value |
+| `fallback_score` | `"signature"` | Use `scoreCells` `"signature"` or `"correlation"` output |
 
 ### `tunePhiSpace()`
 

@@ -18,7 +18,10 @@ PhiSpaceR_1ref(
   center = TRUE,
   scale = FALSE,
   DRinfo = FALSE,
-  cellTypeThreshold = NULL
+  cellTypeThreshold = NULL,
+  fallback = c("none", "scoreCells"),
+  fallback_min_classes = 2,
+  fallback_score = c("signature", "correlation")
 )
 }
 \arguments{
@@ -62,6 +65,16 @@ Disable to save memory (default: \code{FALSE}).}
 \item{cellTypeThreshold}{Integer or NULL. If a positive integer, cell types with fewer than this many
 cells in the reference will be removed before model fitting. Only used when \code{phenotypes} is provided.
 Default is \code{NULL} (no filtering).}
+
+\item{fallback}{Character. Optional fallback method for references with too few classes. \code{"none"}
+preserves the standard PhiSpace behaviour. \code{"scoreCells"} uses \code{\link[=scoreCells]{scoreCells()}} when the number of
+classes is less than \code{fallback_min_classes}.}
+
+\item{fallback_min_classes}{Integer. Minimum number of classes required before fitting the standard
+PhiSpace model when \code{fallback = "scoreCells"}.}
+
+\item{fallback_score}{Character. Which \code{scoreCells()} output to use as the fallback PhiSpace score:
+\code{"signature"} or \code{"correlation"}.}
 }
 \value{
 A list with the following components:
@@ -71,8 +84,10 @@ A list with the following components:
 \item{phenoDict}{Data frame mapping phenotype labels to their categories, or \code{NULL} if \code{response}
 was provided directly.}
 \item{selectedFeat}{Character vector. Features used in the final model.}
-\item{YrefHat}{Matrix. Raw (unnormalised) predicted scores for the reference cells.}
-\item{YrefHatNorm}{Matrix. Normalised predicted scores for the reference cells (via \code{\link[=normPhiScores]{normPhiScores()}}).}
+\item{YrefHat}{Matrix. Raw (unnormalised) predicted scores for the reference cells.
+\code{NULL} when \code{scoreCells} fallback is used.}
+\item{YrefHatNorm}{Matrix. Normalised predicted scores for the reference cells (via \code{\link[=normPhiScores]{normPhiScores()}}).
+\code{NULL} when \code{scoreCells} fallback is used.}
 \item{PhiSpaceScore}{Matrix or list of matrices. Raw (unnormalised) PhiSpace scores for the query
 dataset(s). A single matrix if one query was provided; a list of matrices if multiple queries.}
 \item{PhiSpaceNorm}{Matrix or list of matrices. Normalised PhiSpace scores for the query dataset(s)
@@ -81,6 +96,8 @@ dataset(s). A single matrix if one query was provided; a list of matrices if mul
 \item{scale}{Logical. Whether scaling was applied.}
 \item{atlas_re}{List. Internal model object from \code{SuperPC()}, containing regression results and
 preprocessing parameters needed for prediction.}
+\item{fallback}{List or \code{NULL}. Metadata describing the fallback run when \code{scoreCells}
+fallback is used.}
 }
 }
 \description{
