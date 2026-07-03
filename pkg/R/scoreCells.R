@@ -11,6 +11,13 @@
 #'   reference classes. If `NULL`, all reference cells are treated as one class.
 #' @param assay_ref Character. Assay in `reference` used for scoring.
 #' @param assay_query Character. Assay in `query` used for scoring.
+#' @param signature_genes `NULL`, a character vector, or a named list of
+#'   character vectors. If `NULL`, signatures are generated from `reference`.
+#'   A character vector is accepted for a single-class reference. A
+#'   multi-class reference requires a named list whose names exactly match the
+#'   reference classes. Supplied signatures are used as-is after removing
+#'   duplicates and genes unavailable in either assay; marker-selection and
+#'   housekeeping-removal arguments are ignored.
 #' @param signature_method Character. Signature selection method. `"findMarkers"`
 #'   uses `scran::findMarkers()` for multi-class references and falls back to
 #'   mean-expression ranking for single-class references. `"mean"` uses
@@ -46,12 +53,54 @@
 #' @return The modified `query` object with score matrices stored in
 #'   `reducedDim()` slots and run details stored in `metadata(query)$scoreCells`.
 #'
+#' @details
+#' A correlation score measures similarity between a query cell and a reference
+#' class centroid in the relative expression pattern across that class's
+#' effective signature genes. Different classes can therefore be scored using
+#' different genes. Correlations are `NA` for query cells with fewer than two
+#' complete observations or zero expression variance across the relevant
+#' signature.
+#'
+#' A signature score is the average query expression across the same effective
+#' signature genes, optionally z-scored. When `scoring = "both"`, the
+#' correlation and signature branches use exactly the same genes for each
+#' class.
+#'
+#' @examples
+#' \dontrun{
+#' # Generate a signature for a one-class reference.
+#' scoreCells(reference_sce, query_sce, class_col = NULL)
+#'
+#' # Supply a one-class signature.
+#' scoreCells(
+#'   reference_sce, query_sce, class_col = NULL,
+#'   signature_genes = c("C1qa", "C1qb", "C1qc", "Csf1r")
+#' )
+#'
+#' # Supply signatures for a multi-class reference.
+#' supplied <- list(
+#'   macrophage = c("C1qa", "C1qb", "Csf1r"),
+#'   monocyte = c("Lyz2", "Ccr2", "Ly6c2")
+#' )
+#' scoreCells(
+#'   reference_sce, query_sce, class_col = "celltype",
+#'   signature_genes = supplied, scoring = "correlation"
+#' )
+#'
+#' # Compute both score types from identical supplied genes.
+#' scoreCells(
+#'   reference_sce, query_sce, class_col = "celltype",
+#'   signature_genes = supplied, scoring = "both"
+#' )
+#' }
+#'
 #' @export
 scoreCells <- function(reference,
                        query,
                        class_col = NULL,
                        assay_ref = "logcounts",
                        assay_query = "logcounts",
+                       signature_genes = NULL,
                        signature_method = c("findMarkers", "mean"),
                        marker_test = c("t", "wilcox", "binom"),
                        marker_pval_type = "any",
@@ -113,22 +162,36 @@ scoreCells <- function(reference,
   ref_expr <- assay(reference, assay_ref)
   query_expr <- assay(query, assay_query)
 
-  build <- .buildClassSignatures(
-    reference = reference,
-    ref_expr = ref_expr,
-    classes = classes,
-    signature_method = signature_method,
-    marker_test = marker_test,
-    marker_pval_type = marker_pval_type,
-    marker_direction = marker_direction,
-    n_top_genes = n_top_genes,
-    n_signature_genes = n_signature_genes,
-    remove_housekeeping = remove_housekeeping,
-    housekeeping_patterns = housekeeping_patterns,
-    housekeeping_genes = housekeeping_genes,
-    BPPARAM = BPPARAM,
-    verbose = verbose
-  )
+  if (is.null(signature_genes)) {
+    build <- .buildClassSignatures(
+      reference = reference,
+      ref_expr = ref_expr,
+      classes = classes,
+      signature_method = signature_method,
+      marker_test = marker_test,
+      marker_pval_type = marker_pval_type,
+      marker_direction = marker_direction,
+      n_top_genes = n_top_genes,
+      n_signature_genes = n_signature_genes,
+      remove_housekeeping = remove_housekeeping,
+      housekeeping_patterns = housekeeping_patterns,
+      housekeeping_genes = housekeeping_genes,
+      BPPARAM = BPPARAM,
+      verbose = verbose
+    )
+    signature_source <- "generated"
+  } else {
+    build <- list(
+      signatures = .prepare_user_signatures(
+        signature_genes = signature_genes,
+        classes = classes,
+        available_genes = feature_names
+      ),
+      marker_stats = NULL,
+      centroids = .compute_class_centroids(ref_expr, classes)
+    )
+    signature_source <- "user"
+  }
 
   computed_scores <- list()
 
@@ -139,6 +202,7 @@ scoreCells <- function(reference,
     correlation_scores <- .scoreCorrelation(
       query_expr = query_expr,
       centroids = build$centroids,
+      signatures = build$signatures,
       method = cor_method
     )
     reducedDim(query, paste0(score_prefix, "_correlation")) <- correlation_scores
@@ -160,6 +224,12 @@ scoreCells <- function(reference,
 
   score_metadata <- list(
     signatures = build$signatures,
+    signature_source = signature_source,
+    correlation_genes = if (scoring %in% c("both", "correlation")) {
+      build$signatures
+    } else {
+      NULL
+    },
     marker_stats = build$marker_stats,
     centroids = build$centroids,
     classes = names(build$signatures),
@@ -180,6 +250,7 @@ scoreCells <- function(reference,
       cor_method = cor_method,
       zscore_signature = zscore_signature,
       score_prefix = score_prefix,
+      signature_genes_supplied = !is.null(signature_genes),
       reducedDims = computed_scores,
       timestamp = Sys.time()
     )
@@ -188,6 +259,74 @@ scoreCells <- function(reference,
   S4Vectors::metadata(query)$scoreCells <- score_metadata
 
   return(query)
+}
+
+.prepare_user_signatures <- function(signature_genes, classes, available_genes) {
+  class_names <- levels(classes)
+
+  if (is.character(signature_genes)) {
+    if (length(class_names) != 1) {
+      stop("signature_genes must be a named list for a multi-class reference.")
+    }
+    signature_genes <- stats::setNames(list(signature_genes), class_names)
+  } else if (is.list(signature_genes)) {
+    supplied_names <- names(signature_genes)
+    if (is.null(supplied_names) || anyNA(supplied_names) ||
+        any(!nzchar(supplied_names))) {
+      stop("signature_genes must be a named list with one entry per reference class.")
+    }
+    if (anyDuplicated(supplied_names)) {
+      stop("signature_genes contains duplicated class names.")
+    }
+    missing_classes <- setdiff(class_names, supplied_names)
+    unknown_classes <- setdiff(supplied_names, class_names)
+    if (length(missing_classes) > 0 || length(unknown_classes) > 0) {
+      details <- c(
+        if (length(missing_classes) > 0) {
+          paste0("missing: ", paste(missing_classes, collapse = ", "))
+        },
+        if (length(unknown_classes) > 0) {
+          paste0("unknown: ", paste(unknown_classes, collapse = ", "))
+        }
+      )
+      stop(
+        "signature_genes names must exactly match the reference classes (",
+        paste(details, collapse = "; "), ")."
+      )
+    }
+    signature_genes <- signature_genes[class_names]
+  } else {
+    stop("signature_genes must be NULL, a character vector, or a named list.")
+  }
+
+  signatures <- lapply(
+    class_names,
+    function(cl) {
+      genes <- signature_genes[[cl]]
+      if (!is.character(genes) || length(genes) == 0) {
+        stop("Signature for class '", cl, "' must be a non-empty character vector.")
+      }
+      if (anyNA(genes) || any(!nzchar(trimws(genes)))) {
+        stop("Signature for class '", cl, "' cannot contain NA or blank gene names.")
+      }
+      genes <- unique(genes)
+      unavailable <- setdiff(genes, available_genes)
+      if (length(unavailable) > 0) {
+        warning(
+          "Signature for class '", cl, "' contains ", length(unavailable),
+          " gene(s) unavailable in one or both selected assays; removing them.",
+          call. = FALSE
+        )
+      }
+      effective <- intersect(genes, available_genes)
+      if (length(effective) == 0) {
+        stop("No effective signature genes remain for class '", cl, "'.")
+      }
+      effective
+    }
+  )
+  names(signatures) <- class_names
+  signatures
 }
 
 .validate_score_cells_inputs <- function(reference,
@@ -468,21 +607,59 @@ scoreCells <- function(reference,
   return(list(signatures = signatures, marker_stats = marker_stats))
 }
 
-.scoreCorrelation <- function(query_expr, centroids, method) {
-  common <- intersect(rownames(query_expr), rownames(centroids))
-  query_expr <- query_expr[common, , drop = FALSE]
-  centroids <- centroids[common, , drop = FALSE]
-
-  scores <- stats::cor(
-    x = as.matrix(query_expr),
-    y = as.matrix(centroids),
-    use = "pairwise.complete.obs",
-    method = method
+.scoreCorrelation <- function(query_expr, centroids, signatures, method) {
+  class_names <- names(signatures)
+  scores <- matrix(
+    NA_real_,
+    nrow = ncol(query_expr),
+    ncol = length(class_names),
+    dimnames = list(colnames(query_expr), class_names)
   )
-  scores <- as.matrix(scores)
-  rownames(scores) <- colnames(query_expr)
-  colnames(scores) <- colnames(centroids)
-  return(scores)
+
+  for (cl in class_names) {
+    genes <- intersect(
+      signatures[[cl]],
+      intersect(rownames(query_expr), rownames(centroids))
+    )
+    if (length(genes) < 2) {
+      stop(
+        "Correlation scoring requires at least two effective signature genes ",
+        "for class '", cl, "'."
+      )
+    }
+
+    centroid <- as.numeric(centroids[genes, cl])
+    finite_centroid <- is.finite(centroid)
+    if (sum(finite_centroid) < 2 ||
+        stats::sd(centroid[finite_centroid]) == 0) {
+      stop(
+        "Correlation scoring requires nonzero centroid variance across the ",
+        "effective signature genes for class '", cl, "'."
+      )
+    }
+
+    class_query <- as.matrix(query_expr[genes, , drop = FALSE])
+    scores[, cl] <- vapply(
+      seq_len(ncol(class_query)),
+      function(i) {
+        values <- class_query[, i]
+        complete <- is.finite(values) & finite_centroid
+        if (sum(complete) < 2 ||
+            stats::sd(values[complete]) == 0 ||
+            stats::sd(centroid[complete]) == 0) {
+          return(NA_real_)
+        }
+        stats::cor(
+          values[complete],
+          centroid[complete],
+          method = method
+        )
+      },
+      numeric(1)
+    )
+  }
+
+  scores
 }
 
 .scoreSignature <- function(query_expr, signatures, zscore) {
@@ -499,9 +676,12 @@ scoreCells <- function(reference,
     },
     numeric(ncol(query_expr))
   )
-  scores <- as.matrix(scores)
-  rownames(scores) <- colnames(query_expr)
-  colnames(scores) <- class_names
+  scores <- matrix(
+    scores,
+    nrow = ncol(query_expr),
+    ncol = length(class_names),
+    dimnames = list(colnames(query_expr), class_names)
+  )
 
   if (zscore) {
     if (ncol(scores) == 1) {

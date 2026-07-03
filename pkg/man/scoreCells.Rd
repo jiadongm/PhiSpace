@@ -10,6 +10,7 @@ scoreCells(
   class_col = NULL,
   assay_ref = "logcounts",
   assay_query = "logcounts",
+  signature_genes = NULL,
   signature_method = c("findMarkers", "mean"),
   marker_test = c("t", "wilcox", "binom"),
   marker_pval_type = "any",
@@ -39,6 +40,14 @@ reference classes. If \code{NULL}, all reference cells are treated as one class.
 \item{assay_ref}{Character. Assay in \code{reference} used for scoring.}
 
 \item{assay_query}{Character. Assay in \code{query} used for scoring.}
+
+\item{signature_genes}{\code{NULL}, a character vector, or a named list of
+character vectors. If \code{NULL}, signatures are generated from \code{reference}.
+A character vector is accepted for a single-class reference. A
+multi-class reference requires a named list whose names exactly match the
+reference classes. Supplied signatures are used as-is after removing
+duplicates and genes unavailable in either assay; marker-selection and
+housekeeping-removal arguments are ignored.}
 
 \item{signature_method}{Character. Signature selection method. \code{"findMarkers"}
 uses \code{scran::findMarkers()} for multi-class references and falls back to
@@ -96,4 +105,46 @@ The modified \code{query} object with score matrices stored in
 fallback for regimes where a full PhiSpace model is not meaningful, such as
 single-class references or references with very few classes. It stores score
 matrices in \code{reducedDim()} slots with one column per reference class.
+}
+\details{
+A correlation score measures similarity between a query cell and a reference
+class centroid in the relative expression pattern across that class's
+effective signature genes. Different classes can therefore be scored using
+different genes. Correlations are \code{NA} for query cells with fewer than two
+complete observations or zero expression variance across the relevant
+signature.
+
+A signature score is the average query expression across the same effective
+signature genes, optionally z-scored. When \code{scoring = "both"}, the
+correlation and signature branches use exactly the same genes for each
+class.
+}
+\examples{
+\dontrun{
+# Generate a signature for a one-class reference.
+scoreCells(reference_sce, query_sce, class_col = NULL)
+
+# Supply a one-class signature.
+scoreCells(
+  reference_sce, query_sce, class_col = NULL,
+  signature_genes = c("C1qa", "C1qb", "C1qc", "Csf1r")
+)
+
+# Supply signatures for a multi-class reference.
+supplied <- list(
+  macrophage = c("C1qa", "C1qb", "Csf1r"),
+  monocyte = c("Lyz2", "Ccr2", "Ly6c2")
+)
+scoreCells(
+  reference_sce, query_sce, class_col = "celltype",
+  signature_genes = supplied, scoring = "correlation"
+)
+
+# Compute both score types from identical supplied genes.
+scoreCells(
+  reference_sce, query_sce, class_col = "celltype",
+  signature_genes = supplied, scoring = "both"
+)
+}
+
 }
