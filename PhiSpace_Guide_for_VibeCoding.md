@@ -114,7 +114,7 @@ PhiSpace annotates query single-cell or spatial omics data against an annotated 
 - **Reference**: An annotated `SingleCellExperiment` (SCE) with categorical phenotypes in `colData()` (e.g., cell type, disease state).
 - **Query**: An SCE or `SpatialExperiment` (SPE) to be annotated.
 - **PhiSpace scores**: A matrix stored in `reducedDim(query, "PhiSpace")` with dimensions cells × phenotype-levels. Values after normalization range in [-1, 1] (column-wise) or [0, 1] (row-wise).
-- **No batch correction needed**: Reference and query only need to use the same normalization method (e.g., both rank-transformed).
+- **Cross-platform normalization**: Reference and query may use different platform-specific normalization methods, but the assays supplied to PhiSpace should be on comparable scales. If the most suitable methods are unclear, rank-transform both datasets.
 
 ---
 
@@ -139,21 +139,21 @@ library(dplyr)
 
 ### 3.1 Data Preparation
 
-Reference and query must share gene names and use the **same normalization** in the assay passed to PhiSpace.
+Reference and query must share gene names. They do not need to use the **same normalization method**, but the assays passed to PhiSpace should be on comparable scales. Use suitable platform-specific methods when known; for example, scran normalization for scRNA-seq and log1p or SpaNorm for spatial transcriptomics. If you are unsure which methods are suitable for the reference and query datasets, rank-transform both as a robust cross-platform alternative.
 
 ```r
-# --- Rank transformation (recommended for cross-platform) ---
-# Stored as assay "rank"; use refAssay = "rank"
-reference <- RankTransf(reference, assayName = "counts")
+# --- Platform-specific normalization on comparable scales ---
+reference <- scranTransf(reference)   # scRNA-seq; creates "logcounts"
+query <- logTransf(                   # spatial transcriptomics; creates "log1p"
+  query,
+  use_log1p = TRUE,
+  targetAssay = "log1p"
+)
+# Alternatively, use a suitable spatial method such as SpaNorm for the query.
+
+# --- Cross-platform alternative when suitable methods are unclear ---
+reference <- RankTransf(reference, assayName = "counts")  # creates "rank"
 query     <- RankTransf(query,     assayName = "counts")
-
-# --- Log1p normalization ---
-# Stored as assay "log1p"; use refAssay = "log1p"
-reference <- logTransf(reference, use_log1p = TRUE, targetAssay = "log1p")
-query     <- logTransf(query,     use_log1p = TRUE, targetAssay = "log1p")
-
-# --- scran normalization (for single-cell reference) ---
-reference <- scranTransf(reference)   # creates "logcounts" assay
 
 # --- Quality control ---
 query <- zeroFeatQC(query)            # removes all-zero genes
@@ -974,7 +974,7 @@ query$PhiCellType <- getClass(query_scores)
 library(PhiSpace)
 library(SpatialExperiment)
 
-# 1. Prepare data
+# 1. Prepare data using platform-specific methods on comparable log scales
 spe <- logTransf(spe, use_log1p = TRUE, targetAssay = "log1p")
 spe <- zeroFeatQC(spe)
 
@@ -983,14 +983,15 @@ ref_list <- list(
   epithelial  = epithelial_sce,
   stromal     = stromal_sce
 )
-ref_list <- lapply(ref_list, logTransf, use_log1p = TRUE, targetAssay = "log1p")
+ref_list <- lapply(ref_list, scranTransf)   # creates "logcounts"
 
 # 2. Multi-reference annotation
 spe <- PhiSpace(
   reference  = ref_list,
   query      = spe,
   phenotypes = "cell_type",
-  refAssay   = "log1p"
+  refAssay   = "logcounts",
+  queryAssay = "log1p"
 )
 # reducedDim columns: "AT1(epithelial)", "CD4(immune)", "Fibroblast(stromal)", ...
 
@@ -1065,8 +1066,8 @@ VizSpatial(lung5_norm, colBy = "spatial_niches", ptSize = 0.8)
 | `query` | required | SCE, SPE, or list |
 | `phenotypes` | `NULL` | colData column names; mutually exclusive with `response` |
 | `response` | `NULL` | Direct response matrix (rows=cells, cols=phenotypes); for continuous phenotypes |
-| `refAssay` | `"rank"` (PhiSpace) / `"log1p"` (PhiSpaceR_1ref) | Must match `queryAssay` normalization |
-| `queryAssay` | `NULL` → `refAssay` | |
+| `refAssay` | `"rank"` (PhiSpace) / `"log1p"` (PhiSpaceR_1ref) | Reference assay; may use different normalization from `queryAssay` if both are on comparable scales |
+| `queryAssay` | `NULL` → `refAssay` | Set explicitly when the query assay name differs from `refAssay` |
 | `regMethod` | `"PLS"` | `"PLS"` or `"PCA"` |
 | `ncomp` | `NULL` → n_phenotype_levels | Number of PLS components |
 | `nfeat` | `NULL` → all | Top genes per phenotype (union used) |
@@ -1151,7 +1152,7 @@ VizSpatial(lung5_norm, colBy = "spatial_niches", ptSize = 0.8)
 
 ## 10. Important Notes & Caveats
 
-1. **Normalization must match**: Reference and query must use the **same assay normalization**. No batch correction is needed beyond this — rank transformation inherently handles different platforms.
+1. **Normalization should be scale-compatible**: Reference and query may use different platform-specific normalization methods, provided the selected assays are on comparable scales. For example, an scRNA-seq reference may use scran normalization while a spatial query uses log1p or SpaNorm. If you are unsure which methods are suitable, rank-transform both datasets as a robust cross-platform alternative.
 
 2. **`ncomp` default**: Automatically set to the total number of phenotype categories. If `phenotypes = c("cell_type", "disease")` with 20 cell types and 3 disease states, `ncomp = 23`. Tune with `tunePhiSpace()` for better accuracy.
 
