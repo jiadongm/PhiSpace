@@ -9,7 +9,7 @@ PhiSpace is an R package for continuous cell state annotation of single-cell and
 ```
 PhiSpace/
 ├── pkg/                    # R package source
-│   ├── R/                  # R source files (41 files)
+│   ├── R/                  # R source files
 │   ├── man/                # roxygen2-generated documentation
 │   ├── vignettes/          # 7 vignettes (Rmd)
 │   ├── DESCRIPTION         # Package metadata
@@ -243,5 +243,4 @@ Rscript Test/test_cellTypeThreshold.R
 
 ## Known Check Notes
 
-- Hidden `.Codex` directory in `pkg/` triggers a NOTE (not an error)
 - `plot.PhiSpaceClustering` has ggplot2 NSE binding NOTEs (cosmetic, pre-existing)
