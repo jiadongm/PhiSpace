@@ -203,7 +203,20 @@ keep runtime and memory bounded.
   max-absolute scaling in `normPhiScores()` changes. PhiSpace niche cluster
   sizes therefore differ by up to 17 bins; barcode and gene-expression
   clusterings and enrichment scores match. The expected values follow the
-  vignette code. The cached-result build still uses the older Dropbox files.
+  vignette code.
+- Stereo-seq cached results: with current ggplot2 (4.0.3), the established
+  `output/cloneKDEres.qs2` renders the 16-clone density figure blank without an
+  error, because it stores ggplot objects saved before ggplot2 4.0. Replacement
+  `PhiRes.qs2`, `PhiClustRes.qs2` and `cloneKDEres.qs2`, computed with the
+  vignette code, are in `PkgOverhaul/data/StereoSeq/replacement-2026-10-06/`
+  with hashes and a README. With them, a cached build passes all 49 result
+  checks and reproduces 21 of 22 fresh-build figures byte for byte. Pending:
+  the user uploads them to the Dropbox `output/` folder.
+- Stereo-seq DWD figure: `cv.kerndwd()` assigns random folds and the vignette
+  sets no seed before it. Fresh builds are reproducible only through earlier
+  `set.seed()` calls inside compute branches; cached builds skip those, so the
+  selected lambda and loadings change (top loadings and their scale differ by
+  about 2-fold between the two builds). Adding a seed is a pending user decision.
 - Visium fresh results match the established `combo_PhiRes.qs2` within 1.1e-6
   relative difference on all checked metrics.
 
