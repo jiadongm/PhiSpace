@@ -88,8 +88,8 @@ working explicit vignette is the oracle for evaluating a wrapper.
 | done | `getting_started.Rmd` | Compatibility-complete; automated | qs2 migration; fresh and cached builds pass |
 | done | `BridgeAnnotation.Rmd` | Compatibility-complete; automated from cached results | Private paths, file-name case; fresh build needs 17-24 GB RAM |
 | 1 | `PerturbSeq.Rmd` | Pending; `utils.R` (defines `tempPvals()`) is in the private Dropbox folder, which needs qs2 files and a public link | Hard-coded paths, disabled evaluation, qs caches; reference downloaded with celldex |
-| 2 | `CITE-seq.Rmd` | Pending | Hard-coded paths, disabled evaluation, multimodal RDS results |
-| 3 | `CosMx.Rmd` | Pending | Largest remainder; multiple references, qs caches, spatial and multi-sample analysis |
+| done | `CITE-seq.Rmd` | Compatibility-complete; automated from cached results | Private paths; fresh RNA branch saved the wrong object name; fresh build needs about 65 GB RAM |
+| 2 | `CosMx.Rmd` | Pending | Largest remainder; multiple references, qs caches, spatial and multi-sample analysis |
 
 The order may change for scientific priority, but `getting_started` should
 normally be next because it exercises the public `PhiSpace()` interface and
@@ -189,7 +189,7 @@ Done on 2026-10-07 with this procedure:
   build stages the hashed results, fails if the render rewrites any of them,
   and still runs the result checks. Run a local fresh build and compare it with
   the cached results before changing a cached file or an expected value.
-  Currently this applies to BridgeAnnotation.
+  Currently this applies to BridgeAnnotation and CITE-seq.
 
 ### Current Automation
 
@@ -213,10 +213,12 @@ export PHISPACE_STEREOSEQ_INPUTS=../Test/stereoseq-inputs
 export PHISPACE_VISIUM_INPUTS=../Test/visium-inputs
 export PHISPACE_GETTING_STARTED_INPUTS=../Test/getting-started-inputs
 export PHISPACE_BRIDGE_ANNOTATION_INPUTS=../Test/bridge-annotation-inputs
+export PHISPACE_CITE_SEQ_INPUTS=../Test/cite-seq-inputs
 Rscript --vanilla scripts/build-stereoseq.R
 Rscript --vanilla scripts/build-visium.R
 Rscript --vanilla scripts/build-bridge-annotation.R
 Rscript --vanilla scripts/build-getting-started.R
+Rscript --vanilla scripts/build-cite-seq.R
 ```
 
 See `WEBSITE.md` for variables and deployment details. As the suite grows,
@@ -284,6 +286,17 @@ keep runtime and memory bounded.
   the predictor matrix to dense (since at least `afcf7c8`, 2025-01), so
   `center = F` does not keep the peak matrix sparse; with Matrix 1.7.5 the
   fresh page shows 2.6, 8.6 and 5.4 GiB coercion warnings.
+- CITE-seq archive (RDS, no qs conversion):
+  `https://www.dropbox.com/scl/fo/it8uwxd2v4k2lyoo936at/AKws5m_xeNjOOs8Vkho-wP8?rlkey=s4d5a7cfkl5sj9qiogc7mng5t&dl=1`
+  with 7 inputs and 5 cached results in `scripts/cite-seq-inputs.tsv`. The
+  fresh RNA branch saved `PhiRes` but later code reads `PhiResRNA`; fixed in
+  `13ca910`. The ADT and RNA objects share cells, order and metadata, so the
+  fresh branch replacing `reference`/`query` with the RNA objects is harmless.
+  Fresh build: 7 minutes 42 seconds, 64.9 GB peak RAM (dense coercions of 10.1
+  and 15.2 GiB), 34 result metrics within 1e-5 of the established results.
+  Cached build: 52 seconds, 3.5 GB. Printed results match the published page;
+  heatmaps match the cached build to 1/255 colour value; the UMAP grid differs
+  in a fresh build because UMAP is recomputed (checks cover only UMAP cells).
 - Getting Started: the three Dropbox `.qs` inputs were converted to `.qs2`
   (restored objects `identical()` to the originals) and republished in one
   shared folder; hashes are in `scripts/getting-started-inputs.tsv`. All chunks

@@ -46,6 +46,8 @@ jobs:
             any::RColorBrewer
             any::zeallot
             any::plotly
+            any::seriation
+            any::ggdendro
       - name: Cache verified Stereo-seq inputs
         uses: actions/cache@v4
         with:
@@ -66,6 +68,11 @@ jobs:
         with:
           path: Test/getting-started-inputs
           key: getting-started-inputs-${{ hashFiles('scripts/getting-started-inputs.tsv') }}
+      - name: Cache verified CITE-seq inputs and results
+        uses: actions/cache@v4
+        with:
+          path: Test/cite-seq-inputs
+          key: cite-seq-inputs-${{ hashFiles('scripts/cite-seq-inputs.tsv') }}
       - name: Build Stereo-seq with fresh results
         run: Rscript --vanilla scripts/build-stereoseq.R
       - name: Build Visium with fresh results
@@ -74,6 +81,8 @@ jobs:
         run: Rscript --vanilla scripts/build-bridge-annotation.R
       - name: Build Getting Started with fresh results
         run: Rscript --vanilla scripts/build-getting-started.R
+      - name: Build CITE-seq from verified cached results
+        run: Rscript --vanilla scripts/build-cite-seq.R
       - name: Upload website for review
         uses: actions/upload-artifact@v4
         with:

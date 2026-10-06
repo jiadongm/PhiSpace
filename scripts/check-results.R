@@ -129,6 +129,36 @@ result_metrics$getting_started <- function(output_dir) {
   m
 }
 
+result_metrics[["CITE-seq"]] <- function(output_dir) {
+  m <- list()
+  top <- list()
+  files <- c(adt = "doublePhenoADTPhiRes.rds", rna = "doublePhenoRNAPhiRes.rds")
+  for (name in names(files)) {
+    res <- readRDS(file.path(output_dir, files[[name]]))
+    for (part in c("PhiSpaceScore", "YrefHat")) {
+      score <- res[[part]]
+      key <- paste0(name, if (part == "YrefHat") "_ref" else "_query")
+      m[[paste0(key, "_n_cells")]] <- nrow(score)
+      m[[paste0(key, "_n_phenotypes")]] <- ncol(score)
+      m[[paste0(key, "_phenotypes_sha256")]] <- digest::digest(colnames(score), algo = "sha256")
+      m[[paste0(key, "_cells_sha256")]] <- digest::digest(rownames(score), algo = "sha256")
+      m[[paste0(key, "_score_mean")]] <- mean(score)
+      m[[paste0(key, "_score_sd")]] <- sd(as.vector(score))
+    }
+    m[[paste0(name, "_ncomp")]] <- res$ncomp
+    m[[paste0(name, "_n_selected_features")]] <- length(res$selectedFeat)
+  }
+  # UMAP coordinates depend on floating-point details, so only their cells are checked.
+  umaps <- c(umap_adt = "doublePhenoADTPhiUMAPquery.rds", umap_rna = "doublePhenoRNAPhiUMAPquery.rds",
+             umap_combo = "doublePhenoComboPhiUMAPquery.rds")
+  for (name in names(umaps)) {
+    layout <- readRDS(file.path(output_dir, umaps[[name]]))$layout
+    m[[paste0(name, "_n_cells")]] <- nrow(layout)
+    m[[paste0(name, "_cells_sha256")]] <- digest::digest(rownames(layout), algo = "sha256")
+  }
+  m
+}
+
 format_metrics <- function(metrics) {
   vapply(metrics, function(x) {
     if (length(x) != 1) stop("Each result metric must be a single value.")
