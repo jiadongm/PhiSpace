@@ -345,7 +345,7 @@ if(!file.exists(PhiResPath)){
   querySC <- logTransf(querySC, targetAssay = "log1p", use_log1p = T)
   PhiRes <- PhiSpaceR_1ref(
     querySC, query, response = reducedDim(querySC, "PhiSpace"), 
-    PhiSpaceAssay = "log1p", nfeat = 500, regMethod = "PLS", scale = FALSE
+    refAssay = "log1p", nfeat = 500, regMethod = "PLS", scale = FALSE
   )
   qsave(PhiRes, PhiResPath)
 } else {
