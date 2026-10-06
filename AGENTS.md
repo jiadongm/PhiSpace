@@ -209,14 +209,17 @@ keep runtime and memory bounded.
   error, because it stores ggplot objects saved before ggplot2 4.0. Replacement
   `PhiRes.qs2`, `PhiClustRes.qs2` and `cloneKDEres.qs2`, computed with the
   vignette code, are in `PkgOverhaul/data/StereoSeq/replacement-2026-10-06/`
-  with hashes and a README. With them, a cached build passes all 49 result
-  checks and reproduces 21 of 22 fresh-build figures byte for byte. Pending:
-  the user uploads them to the Dropbox `output/` folder.
-- Stereo-seq DWD figure: `cv.kerndwd()` assigns random folds and the vignette
-  sets no seed before it. Fresh builds are reproducible only through earlier
-  `set.seed()` calls inside compute branches; cached builds skip those, so the
-  selected lambda and loadings change (top loadings and their scale differ by
-  about 2-fold between the two builds). Adding a seed is a pending user decision.
+  with hashes and a README. With them and the DWD seed below, a cached build
+  passes all 49 result checks and reproduces all 23 shared fresh-build figures
+  byte for byte. Pending: the user uploads them to the Dropbox `output/` folder.
+- Stereo-seq DWD figure: `cv.kerndwd()` assigns random folds. Without a seed,
+  fresh builds depended on earlier `set.seed()` calls inside compute branches,
+  which cached builds skip; the selected lambda and loadings then changed (top
+  loadings and their scale differed about 2-fold). The vignette now calls
+  `set.seed(94871)` before `cv.kerndwd()`. This changed the published DWD
+  loading figure once; its top positive loadings are HPC(BM) and
+  Neutro(Spleen). The loadings are sensitive to the fold assignment, so the
+  figure should be read as illustrative.
 - Visium fresh results match the established `combo_PhiRes.qs2` within 1.1e-6
   relative difference on all checked metrics.
 

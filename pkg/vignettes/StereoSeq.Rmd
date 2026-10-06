@@ -439,6 +439,7 @@ X_cent <- reducedDim(query, "PhiSpace") %>% as.matrix()
 X_cent <- scale(X_cent, center = T, scale = F) 
 lambda = 10^(seq(-2, -5, length.out=50))
 kern = vanilladot()
+set.seed(94871) # cv.kerndwd assigns cross-validation folds at random
 cv_res = cv.kerndwd(X_cent, barcodeVec, kern, qval=1, lambda=lambda, eps=1e-5, maxit=1e5)
 da_res = kerndwd(X_cent, barcodeVec, kern, qval=1, lambda=cv_res$lambda.min, eps=1e-5, maxit=1e5)
 dwdLoad <- da_res$alpha[-1,,drop=F] %>% `dimnames<-`(list(colnames(X_cent),"comp1")) # worked out by looking at predict.dwd
