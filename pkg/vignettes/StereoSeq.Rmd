@@ -10,7 +10,7 @@ vignette: >
 ---
 
 ```{r setup, include=FALSE}
-# knitr::opts_chunk$set(eval = FALSE)
+knitr::opts_chunk$set(error = FALSE)
 ```
 
 ## Highlights
@@ -38,6 +38,11 @@ In addition, we also make use of a 'bridge' dataset as an intermediate between t
 
 For this case study, utility functions and processed data can all be found in [this folder](https://www.dropbox.com/scl/fo/4w5vweo2ky2vuf7g591fe/AMDVr2OAUL5W1wO7ATzM754?rlkey=aggfds07sjymsd2aomyepbylv&st=a0e2g675&dl=0).
 
+Extract the folder and set `PHISPACE_STEREOSEQ_DATA` to its location before running
+this vignette, for example `Sys.setenv(PHISPACE_STEREOSEQ_DATA = "/path/to/StereoSeq")`.
+Alternatively, edit the default data directory below. Additional packages used by
+the helper functions are `ks` and `clue`.
+
 ```{r}
 # Name of the game
 suppressPackageStartupMessages(library(PhiSpace))
@@ -51,9 +56,14 @@ suppressPackageStartupMessages(library(tidyr))
 # Other utils
 suppressPackageStartupMessages(library(qs)) # Fast read and write of large R objects
 
-dat_dir <- "~/Dropbox/Research_projects/PhiSpace/VignetteData/StereoSeq/" # replace this by your own directory
+dat_dir <- Sys.getenv("PHISPACE_STEREOSEQ_DATA", unset = "data/StereoSeq")
+if (!file.exists(file.path(dat_dir, "StereoSeq_utils.R"))) {
+  stop("Set PHISPACE_STEREOSEQ_DATA to the extracted StereoSeq folder containing StereoSeq_utils.R and data/.")
+}
+dat_dir <- paste0(normalizePath(dat_dir, winslash = "/"), "/")
+dir.create(file.path(dat_dir, "output"), showWarnings = FALSE, recursive = TRUE)
 
-source(paste0(dat_dir, "StereoSeq_utils.R"))
+source(paste0(dat_dir, "StereoSeq_utils.R"), local = TRUE)
 ```
 
 Following [Holze et al.](https://www.cell.com/cell-reports-methods/fulltext/S2667-2375(24)00094-8?_returnURL=https%3A%2F%2Flinkinghub.elsevier.com%2Fretrieve%2Fpii%2FS2667237524000948%3Fshowall%3Dtrue) (2024), we binned the tissue domain into so-called 'bin50' size, resulting in transcript bins with side lengths \~25μm. These bins are larger than typical single cells and hence each bin may contain more than one cell. These bins will be our cell-like objects.
