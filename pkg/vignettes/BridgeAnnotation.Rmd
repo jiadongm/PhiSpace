@@ -10,7 +10,7 @@ vignette: >
 ---
 
 ```{r setup, include=FALSE}
-# knitr::opts_chunk$set(eval = FALSE)
+knitr::opts_chunk$set(error = FALSE)
 ```
 
 ## Highlights
@@ -42,7 +42,9 @@ We use
 In our [paper](https://www.biorxiv.org/content/10.1101/2024.06.19.599787v1.full) we used a cross-validation (CV) scheme as follows. Each time we use one of the 13 batches of multiome data as the bridge dataset to facilitate the transfer of cell type annotations from the scRNA-seq reference to the remaining 12 batches of query scATAC-seq data (with their RNA part and ground truth cell type labels hidden). This allowed us to benchmark PhiSpace cross-modality annotation with Seurat V5. Here we simply show how PhiSpace bridge annotation can be done using one bridge and one query datasets.
 
 
-All data related to this case study can be downloaded [here](https://www.dropbox.com/scl/fo/jeuqzjfyyr2j7doa922ve/AI-2U_wtZBpPGOswxMzReGQ?rlkey=n328yyr2llf81gz3chynjg0r6&st=nb1svufg&dl=0).
+All data related to this case study can be downloaded [here](https://www.dropbox.com/scl/fo/jeuqzjfyyr2j7doa922ve/AI-2U_wtZBpPGOswxMzReGQ?rlkey=n328yyr2llf81gz3chynjg0r6&st=nb1svufg&dl=0). Preserve the directory layout of the shared folder. It includes `utils.R`, the input data in `data/` and cached annotation results in `output/`.
+
+Set `PHISPACE_BRIDGE_ANNOTATION_DATA` to your data folder before running this vignette, for example `Sys.setenv(PHISPACE_BRIDGE_ANNOTATION_DATA = "/path/to/ATAC")`.
 ```{r}
 suppressPackageStartupMessages(library(PhiSpace))
 suppressPackageStartupMessages(library(vizOmics))
@@ -53,8 +55,14 @@ suppressPackageStartupMessages(library(ggpubr))
 suppressPackageStartupMessages(library(tidyr))
 suppressPackageStartupMessages(library(RColorBrewer))
 
-dat_dir <- "~/Dropbox/Research_projects/PhiSpace/VignetteData/ATAC/" # Replace this by your own directory 
-source("~/Dropbox/Research_projects/PhiSpace/VignetteData/ATAC/utils.R")
+dat_dir <- Sys.getenv("PHISPACE_BRIDGE_ANNOTATION_DATA", unset = "data/ATAC")
+if (!file.exists(file.path(dat_dir, "utils.R"))) {
+  stop("Set PHISPACE_BRIDGE_ANNOTATION_DATA to the data folder containing utils.R.")
+}
+dat_dir <- paste0(normalizePath(dat_dir, winslash = "/"), "/")
+dir.create(file.path(dat_dir, "output"), recursive = TRUE, showWarnings = FALSE)
+
+source(paste0(dat_dir, "utils.R"), local = TRUE)
 ```
 
 # Peaks or aggregated peaks?
@@ -159,7 +167,7 @@ refTypes_l1 <- sapply(
 )
 ref_lookup <- data.frame(l2 = refTypes_l2, l1 = refTypes_l1)
 # Query original annotations (ILC is hard to classify)
-cellTypeTable <- readRDS(paste0(dat_dir, "data/CellTypeTable.rds"))
+cellTypeTable <- readRDS(paste0(dat_dir, "data/cellTypeTable.rds"))
 queryTypes_l2 <- rownames(cellTypeTable) %>% sort
 queryTypes_l1 <- c(
   "B cell", "Mono/DC", "Mono/DC", "T cell", "T cell",

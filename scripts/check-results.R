@@ -73,6 +73,30 @@ result_metrics$Visium <- function(output_dir) {
   m
 }
 
+result_metrics$BridgeAnnotation <- function(output_dir) {
+  m <- list()
+  top <- list()
+  files <- c(rna = "PhiResRNA.rds", peaks = "PhiResATACpeaks.rds", ga = "PhiResATAC_GA.rds")
+  for (name in names(files)) {
+    res <- readRDS(file.path(output_dir, files[[name]]))
+    score <- res$PhiSpaceScore
+    m[[paste0(name, "_n_cells")]] <- nrow(score)
+    m[[paste0(name, "_n_celltypes")]] <- ncol(score)
+    m[[paste0(name, "_celltypes_sha256")]] <- digest::digest(colnames(score), algo = "sha256")
+    m[[paste0(name, "_cells_sha256")]] <- digest::digest(rownames(score), algo = "sha256")
+    m[[paste0(name, "_ncomp")]] <- res$ncomp
+    m[[paste0(name, "_n_selected_features")]] <- length(res$selectedFeat)
+    m[[paste0(name, "_score_mean")]] <- mean(score)
+    m[[paste0(name, "_score_sd")]] <- sd(as.vector(score))
+    norm <- normPhiScores(score)
+    m[[paste0(name, "_norm_rowmax_mean")]] <- mean(apply(norm, 1, max))
+    top[[name]] <- colnames(norm)[max.col(norm, ties.method = "first")]
+  }
+  # Agreement of the top labels from peaks and gene activity, the two query annotations.
+  m$peaks_ga_top_label_agreement <- mean(top$peaks == top$ga)
+  m
+}
+
 format_metrics <- function(metrics) {
   vapply(metrics, function(x) {
     if (length(x) != 1) stop("Each result metric must be a single value.")
@@ -80,14 +104,15 @@ format_metrics <- function(metrics) {
   }, character(1))
 }
 
-check_results <- function(vignette, output_dir) {
+check_results <- function(vignette, output_dir,
+                          slug = gsub("_", "-", tolower(vignette))) {
   observed <- format_metrics(result_metrics[[vignette]](output_dir))
   out <- Sys.getenv("PHISPACE_RESULTS_OUT")
   if (nzchar(out)) {
     write.table(data.frame(metric = names(observed), value = observed), out,
                 sep = "\t", quote = FALSE, row.names = FALSE)
   }
-  expected_file <- file.path("scripts", paste0(gsub("_", "-", tolower(vignette)), "-results.tsv"))
+  expected_file <- file.path("scripts", paste0(slug, "-results.tsv"))
   expected <- read.delim(expected_file, colClasses = "character", na.strings = "")
   missing <- setdiff(expected$metric, names(observed))
   extra <- setdiff(names(observed), expected$metric)

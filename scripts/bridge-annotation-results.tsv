@@ -1,0 +1,29 @@
+metric	value	tolerance
+rna_n_cells	9876	0
+rna_n_celltypes	27	0
+rna_celltypes_sha256	344b684b465868479dd3b78c8ad9952ec8e88eeb53087c241b8b07b1b46a0845	
+rna_cells_sha256	d0425feb6a335a0e323d7dfec7526493374bc612c8d73a11305ae171456caad7	
+rna_ncomp	27	0
+rna_n_selected_features	11438	0
+rna_score_mean	-0.925925925925926	9.3e-06
+rna_score_sd	0.180426351999241	1.8e-06
+rna_norm_rowmax_mean	0.48594514369464	4.9e-06
+peaks_n_cells	6224	0
+peaks_n_celltypes	27	0
+peaks_celltypes_sha256	344b684b465868479dd3b78c8ad9952ec8e88eeb53087c241b8b07b1b46a0845	
+peaks_cells_sha256	1d423098b0f158cc43cab2670ac50af80c64dfba96f7126c9c7d777eceb8b38e	
+peaks_ncomp	27	0
+peaks_n_selected_features	116468	0
+peaks_score_mean	0.00729128665544701	1.0e-07
+peaks_score_sd	0.0930573839199831	9.3e-07
+peaks_norm_rowmax_mean	0.312898451241825	3.1e-06
+ga_n_cells	6224	0
+ga_n_celltypes	27	0
+ga_celltypes_sha256	344b684b465868479dd3b78c8ad9952ec8e88eeb53087c241b8b07b1b46a0845	
+ga_cells_sha256	1d423098b0f158cc43cab2670ac50af80c64dfba96f7126c9c7d777eceb8b38e	
+ga_ncomp	27	0
+ga_n_selected_features	11461	0
+ga_score_mean	0.0190935887014328	1.9e-07
+ga_score_sd	0.107948341090414	1.1e-06
+ga_norm_rowmax_mean	0.545923909200219	5.5e-06
+peaks_ga_top_label_agreement	0.373875321336761	0.001
