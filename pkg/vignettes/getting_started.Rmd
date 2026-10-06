@@ -10,7 +10,7 @@ vignette: >
 ---
 
 ```{r setup, include=FALSE}
-# knitr::opts_chunk$set(eval = FALSE)
+knitr::opts_chunk$set(error = FALSE)
 ```
 
 ## Highlights
@@ -50,7 +50,7 @@ suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(magrittr))
 suppressPackageStartupMessages(library(ggpubr))
 suppressPackageStartupMessages(library(tidyr))
-suppressPackageStartupMessages(library(qs)) # For fast saving and writing R objects
+suppressPackageStartupMessages(library(qs2)) # Fast read and write of large R objects
 # Other utils
 suppressPackageStartupMessages(library(ComplexHeatmap)) # plot heatmap
 suppressPackageStartupMessages(library(zeallot)) # use operator %<-%
@@ -60,7 +60,9 @@ suppressPackageStartupMessages(library(plotly)) # plot 3d interative plots
 
 # Data preparation
 
-Download the processed reference dataset [ref_dc.qs](https://www.dropbox.com/scl/fi/w5j9h6ty0zym8buo07qt8/ref_dc.qs?rlkey=pijs0db60vzdr12fevxk5s86h&st=jinploi0&dl=0) and the processed and query dataset [query_Rosa_sub.qs](https://www.dropbox.com/scl/fi/dm0wr4bvd5lgus7yogl0f/query_Rosa.qs?rlkey=17he2c5v8k5mijrcnmm7v8vak&st=2biiokdc&dl=0).
+Download the processed reference dataset `ref_dc.qs2`, the processed query dataset `query_Rosa.qs2` and the gene list `ref_dc_feat.qs2` from the [shared folder](https://www.dropbox.com/scl/fo/vgwzp8jwmc7gu3c92je2i/ANWpygVEh0R2iygu_bT7nDI?rlkey=ouiefbmtoy8i9zettv7whxuwe&dl=0).
+
+Set `PHISPACE_GETTING_STARTED_DATA` to the folder that contains these files before running this vignette, for example `Sys.setenv(PHISPACE_GETTING_STARTED_DATA = "/path/to/getting_started")`. This vignette uses `qs2::qs_read()` and `qs2::qs_save()` with migrated `.qs2` files. The old `.qs` files cannot be converted by renaming them.
 
 We first donwsample query data to ensure that we can run this example on a local machine, otherwise a larger RAM is needed. The function we use for subsampling is `PhiSpace::subsample`, which has the following features
 
@@ -70,9 +72,14 @@ We first donwsample query data to ensure that we can run this example on a local
 
 The second feature above is to prevent rare cell types from being underrepresented after subsampling. The third feature comes handy as we sometime forget to set seed, but setting random seed is absolutely essential for reproducibility.
 ```{r}
-dat_dir <- "~/Dropbox/Research_projects/PhiSpace/VignetteData/DC/" # replace this by your own directory where you store ref_dc.qs and query_dc.qs
-query <- qread(paste0(dat_dir, "query_Rosa.qs"))
-reference <- qread(paste0(dat_dir,"ref_dc.qs"))
+dat_dir <- Sys.getenv("PHISPACE_GETTING_STARTED_DATA", unset = "data/getting_started")
+if (!file.exists(file.path(dat_dir, "ref_dc.qs2"))) {
+  stop("Set PHISPACE_GETTING_STARTED_DATA to the data folder containing ref_dc.qs2.")
+}
+dat_dir <- paste0(normalizePath(dat_dir, winslash = "/"), "/")
+dir.create(file.path(dat_dir, "output"), recursive = TRUE, showWarnings = FALSE)
+query <- qs_read(paste0(dat_dir, "query_Rosa.qs2"))
+reference <- qs_read(paste0(dat_dir,"ref_dc.qs2"))
 query <- subsample(query, key = "celltype", proportion = 0.2, minCellNum = 50, seed = 5202056)
 ```
 
@@ -80,14 +87,14 @@ To preprocess the data, we apply rank transform to both reference and query, whi
 
 ```{r}
 # We create a folder called output to store intermediate results to save time
-if(!file.exists(paste0(dat_dir, "output/refRanked.qs"))){
+if(!file.exists(paste0(dat_dir, "output/refRanked.qs2"))){
   query <- RankTransf(query, "counts")
   reference <- RankTransf(reference, "data", sparse = F)
-  qsave(query, paste0(dat_dir, "output/quRanked.qs"))
-  qsave(reference, paste0(dat_dir, "output/refRanked.qs"))
+  qs_save(query, paste0(dat_dir, "output/quRanked.qs2"))
+  qs_save(reference, paste0(dat_dir, "output/refRanked.qs2"))
 } else {
-  query <- qread(paste0(dat_dir, "output/quRanked.qs"))
-  reference <- qread(paste0(dat_dir, "output/refRanked.qs"))
+  query <- qs_read(paste0(dat_dir, "output/quRanked.qs2"))
+  reference <- qs_read(paste0(dat_dir, "output/refRanked.qs2"))
 }
 ```
 
@@ -100,16 +107,16 @@ PhiSpaceAssay <- "rank"
 PhiMethod <- "PLS"
 ```
 
-There are two key parameters to select for running PhiSpace annotation: `ncomp` and `nfeat`, which controls the complexity of regression model. We will discuss their selection towards the end of this article. For now, we use `ncomp=30` and load a pre-computed [gene list](https://www.dropbox.com/scl/fi/njybb0s03vzykjmish8yo/ref_dc_feat.qs?rlkey=2trmplmamwqzhnprwe3zkqzy1&st=aihnt2ry&dl=0), containing genes that are most useful for predicting phenotypes of interest. In our [manuscript](https://www.biorxiv.org/content/10.1101/2024.06.19.599787v1) why this gene list was well selected.
+There are two key parameters to select for running PhiSpace annotation: `ncomp` and `nfeat`, which controls the complexity of regression model. We will discuss their selection towards the end of this article. For now, we use `ncomp=30` and load a pre-computed gene list (`ref_dc_feat.qs2`), containing genes that are most useful for predicting phenotypes of interest. In our [manuscript](https://www.biorxiv.org/content/10.1101/2024.06.19.599787v1) why this gene list was well selected.
 ```{r}
 ncomp <- 30
-selectedFeat <- qread(paste0(dat_dir, "ref_dc_feat.qs"))
+selectedFeat <- qs_read(paste0(dat_dir, "ref_dc_feat.qs2"))
 ```
 
 
 Now we are ready to apply PhiSpace to continuously annotate the query cells based on bulk reference.
 ```{r}
-if(!file.exists(paste0(dat_dir, "output/refPhi.qs"))){
+if(!file.exists(paste0(dat_dir, "output/refPhi.qs2"))){
   c(reference, query) %<-% PhiSpace(
       reference, 
       query,
@@ -121,11 +128,11 @@ if(!file.exists(paste0(dat_dir, "output/refPhi.qs"))){
       scale = FALSE,
       updateRef = TRUE
   )
-  qsave(reference, paste0(dat_dir, "output/refPhi.qs"))
-  qsave(query, paste0(dat_dir, "output/quPhi.qs"))
+  qs_save(reference, paste0(dat_dir, "output/refPhi.qs2"))
+  qs_save(query, paste0(dat_dir, "output/quPhi.qs2"))
 } else {
-  reference <- qread(paste0(dat_dir, "output/refPhi.qs"))
-  query <- qread(paste0(dat_dir, "output/quPhi.qs"))
+  reference <- qs_read(paste0(dat_dir, "output/refPhi.qs2"))
+  query <- qs_read(paste0(dat_dir, "output/quPhi.qs2"))
 }
 ```
 
@@ -291,14 +298,14 @@ After running CV tunning, `tuneRes$selectedFeat` will return the selected featur
 
 As we mentioned, a serious drawback of CV parameter tuning is its high computational cost. Fortunately PhiSpace is quite robust against the value of `ncomp` and a good rule-of-thumb is to set `ncomp` to be the number of biologically interesting groups in the data (ie total number of cell types). In the DC case, setting `ncomp = 11` will lead to a model that is good enough already. To select `nfeat`, we can try this simplified approach:
 ```{r}
-if(!file.exists(paste0(dat_dir, "output/tuneRes.rds"))){
+if(!file.exists(paste0(dat_dir, "output/tuneRes.qs2"))){
   tuneRes <- tunePhiSpace(
     reference, assayName = "rank", phenotypes = phenotypes, 
     tune_ncomp = F, tune_nfeat = F, ncomp = 11
   )
-  qsave(tuneRes, paste0(dat_dir, "output/tuneRes.rds"))
+  qs_save(tuneRes, paste0(dat_dir, "output/tuneRes.qs2"))
 } else {
-  tuneRes <- qread(paste0(dat_dir, "output/tuneRes.rds"))
+  tuneRes <- qs_read(paste0(dat_dir, "output/tuneRes.qs2"))
 }
 ```
 

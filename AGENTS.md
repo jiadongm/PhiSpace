@@ -85,11 +85,11 @@ working explicit vignette is the oracle for evaluating a wrapper.
 | --- | --- | --- | --- |
 | done | `StereoSeq.Rmd` | Compatibility-complete; automated and live | qs2 migration and current APIs; fresh and cached builds pass |
 | done | `Visium.Rmd` | Compatibility-complete; automated and live | qs2 migration; fresh and cached builds pass |
+| done | `getting_started.Rmd` | Compatibility-complete; automated | qs2 migration; fresh and cached builds pass |
 | done | `BridgeAnnotation.Rmd` | Compatibility-complete; automated from cached results | Private paths, file-name case; fresh build needs 17-24 GB RAM |
-| 1 | `getting_started.Rmd` | Done locally on branch `getting-started-qs2`; blocked on upload | Core tutorial; hard-coded paths, disabled evaluation, qs caches |
-| 2 | `PerturbSeq.Rmd` | Pending; needs the private `utils.R` (defines `tempPvals()`) from the user | Hard-coded paths, disabled evaluation, qs caches; reference downloaded with celldex |
-| 3 | `CITE-seq.Rmd` | Pending | Hard-coded paths, disabled evaluation, multimodal RDS results |
-| 4 | `CosMx.Rmd` | Pending | Largest remainder; multiple references, qs caches, spatial and multi-sample analysis |
+| 1 | `PerturbSeq.Rmd` | Pending; `utils.R` (defines `tempPvals()`) is in the private Dropbox folder, which needs qs2 files and a public link | Hard-coded paths, disabled evaluation, qs caches; reference downloaded with celldex |
+| 2 | `CITE-seq.Rmd` | Pending | Hard-coded paths, disabled evaluation, multimodal RDS results |
+| 3 | `CosMx.Rmd` | Pending | Largest remainder; multiple references, qs caches, spatial and multi-sample analysis |
 
 The order may change for scientific priority, but `getting_started` should
 normally be next because it exercises the public `PhiSpace()` interface and
@@ -97,23 +97,31 @@ parameter tuning. Complete and publish one vignette-sized change at a time.
 
 ### Pending User Actions (TODO)
 
-Recorded 2026-10-06. The user will do the uploads later with a faster connection.
-
-1. **Upload Stereo-seq replacements.** Copy the three files in
-   `PkgOverhaul/data/StereoSeq/replacement-2026-10-06/output/` (`PhiRes.qs2`,
-   `PhiClustRes.qs2`, `cloneKDEres.qs2`) over the files with the same names in
-   the `output/` subfolder of the Stereo-seq Dropbox shared folder. Actions
-   does not download them, so no code change follows. Afterwards, check the
-   Dropbox hashes against `replacement-manifest.csv`.
-2. **Upload Getting Started inputs.** Put `ref_dc.qs2`, `query_Rosa.qs2` and
-   `ref_dc_feat.qs2` from `PkgOverhaul/data/getting_started/` at the root of
-   a new Dropbox shared folder and give the agent its link. Then, on local
-   branch `getting-started-qs2` (commit `cfd3009`, not pushed): replace
-   `SHARED_FOLDER_URL` in `getting_started.Rmd` (`dl=0` link) and in
-   `scripts/prepare-getting-started.R` (`dl=1` link), download the folder ZIP
-   and verify hashes, run the full workflow-order build, and merge into `main`.
-3. **Push `main`.** Local `main` is ahead of `origin/main`; the user pushes
+1. **Push `main`.** Local `main` is ahead of `origin/main`; the user pushes
    when ready. After a push, check both Actions jobs and the live pages.
+
+### Dropbox Access
+
+The user configured an rclone remote named `Dropbox` (capital D) on Spartan on
+2026-10-07. Vignette data are under
+`Dropbox:Research_projects/PhiSpace/VignetteData/<Folder>/`. Writing to Dropbox
+publishes data: confirm each upload with the user, back up replaced files to
+`Dropbox:Research_projects/PhiSpace/VignetteData_backups/` (outside the shared
+folders), compare `rclone hashsum dropbox` of remote and local files, and then
+download through the public link and check the SHA-256 manifest.
+
+Done on 2026-10-07 with this procedure:
+
+- Stereo-seq: `output/PhiRes.qs2`, `PhiClustRes.qs2` and `cloneKDEres.qs2`
+  replaced by the files in `PkgOverhaul/data/StereoSeq/replacement-2026-10-06/`;
+  the old files are in `VignetteData_backups/StereoSeq-2026-10-06/output/`.
+  The existing shared link still serves the folder, the replacements match
+  `replacement-manifest.csv`, and the five CI inputs still match
+  `scripts/stereoseq-inputs.tsv`.
+- Getting Started: new folder `VignetteData/getting_started/` with the three
+  qs2 inputs and a new public link; the public download matches
+  `scripts/getting-started-inputs.tsv`. The old `VignetteData/DC/` folder and
+  its individual file links are unchanged.
 
 ### Future Work
 
@@ -203,10 +211,12 @@ Recorded 2026-10-06. The user will do the uploads later with a faster connection
 export PHISPACE_SITE_DIR=../Test/site-vignettes-next
 export PHISPACE_STEREOSEQ_INPUTS=../Test/stereoseq-inputs
 export PHISPACE_VISIUM_INPUTS=../Test/visium-inputs
+export PHISPACE_GETTING_STARTED_INPUTS=../Test/getting-started-inputs
+export PHISPACE_BRIDGE_ANNOTATION_INPUTS=../Test/bridge-annotation-inputs
 Rscript --vanilla scripts/build-stereoseq.R
 Rscript --vanilla scripts/build-visium.R
-PHISPACE_BRIDGE_ANNOTATION_INPUTS=../Test/bridge-annotation-inputs \
-  Rscript --vanilla scripts/build-bridge-annotation.R
+Rscript --vanilla scripts/build-bridge-annotation.R
+Rscript --vanilla scripts/build-getting-started.R
 ```
 
 See `WEBSITE.md` for variables and deployment details. As the suite grows,
@@ -274,6 +284,16 @@ keep runtime and memory bounded.
   the predictor matrix to dense (since at least `afcf7c8`, 2025-01), so
   `center = F` does not keep the peak matrix sparse; with Matrix 1.7.5 the
   fresh page shows 2.6, 8.6 and 5.4 GiB coercion warnings.
+- Getting Started: the three Dropbox `.qs` inputs were converted to `.qs2`
+  (restored objects `identical()` to the originals) and republished in one
+  shared folder; hashes are in `scripts/getting-started-inputs.tsv`. All chunks
+  passed fresh (1 minute 10 seconds, 11.7 GB peak RAM) and cached (12 seconds)
+  without loading `qs`. All five printed result blocks, including the 1782
+  selected genes, match the previously published page. The CV tuning chunk
+  remains disabled with `if(F)`, so builds do not test it. A Matrix
+  sparse-to-dense coercion warning now appears in the rendered page.
+  The old `tuneRes.rds` file was a qs file with an `.rds` name; it is now
+  `tuneRes.qs2`.
 
 Relevant commits:
 

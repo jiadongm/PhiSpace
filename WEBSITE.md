@@ -2,8 +2,8 @@
 
 The root workflow `.github/workflows/vignettes-pages.yaml` checks pull requests
 and builds and publishes pushes to `main`. It also supports a manual run from
-the Actions tab. Stereo-seq and Visium are rebuilt from fresh results, and BridgeAnnotation is
-rebuilt from verified cached results; the other pages and shared assets
+the Actions tab. Stereo-seq, Visium and Getting Started are rebuilt from fresh results, and
+BridgeAnnotation is rebuilt from verified cached results; the other pages and shared assets
 are copied from the committed `docs/` website. Changes to other vignette sources
 will not be published until those vignettes are added to this workflow.
 
@@ -32,6 +32,7 @@ export PHISPACE_SITE_DIR=Test/site-vignettes
 Rscript --vanilla scripts/build-stereoseq.R
 Rscript --vanilla scripts/build-visium.R
 Rscript --vanilla scripts/build-bridge-annotation.R
+Rscript --vanilla scripts/build-getting-started.R
 ```
 
 The Stereo-seq script downloads the public archive, extracts only five required
@@ -45,8 +46,8 @@ Each article includes a session information file in the website artifact.
 After rendering, each build script checks summaries of the fresh outputs
 against `scripts/<slug>-results.tsv` with `scripts/check-results.R`, and fails if
 they differ. Set `PHISPACE_RESULTS_OUT` to a file path to save the observed values.
-Stereo-seq requires a new site directory; Visium appends to it without replacing
-the Stereo-seq page. Separate R processes release memory between articles.
+Stereo-seq requires a new site directory; Visium and Getting Started append to it
+without replacing earlier pages. Separate R processes release memory between articles.
 For another full build, choose a new destination:
 
 ```bash
@@ -54,6 +55,7 @@ export PHISPACE_SITE_DIR=Test/site-vignettes-next
 Rscript --vanilla scripts/build-stereoseq.R
 Rscript --vanilla scripts/build-visium.R
 Rscript --vanilla scripts/build-bridge-annotation.R
+Rscript --vanilla scripts/build-getting-started.R
 ```
 
 Optional variables:
@@ -75,6 +77,9 @@ Optional variables:
   directly. The automation sets this to a fresh temporary analysis directory.
 - `PHISPACE_VISIUM_DATA`: the data folder when running Visium directly.
   The Visium build script also uses a fresh temporary analysis directory.
+- `PHISPACE_GETTING_STARTED_INPUTS`, `PHISPACE_GETTING_STARTED_ARCHIVE` and
+  `PHISPACE_GETTING_STARTED_DATA`: the same roles for Getting Started. Its three
+  inputs are about 210 MB; the input cache is `Test/getting-started-inputs`.
 
 For a Visium-only build, run `Rscript --vanilla scripts/build-visium.R`; without
 `PHISPACE_SITE_DIR`, it stages the committed website in `Test/site-visium`.
@@ -85,8 +90,8 @@ changes the Actions data-cache key. Computed analysis outputs are never cached.
 
 ## Check deployment
 
-In Actions, confirm both `build` and `deploy` succeed. Open the live Stereo-seq
-and Visium articles and verify that both use `qs2` and `.qs2` data files. Download
+In Actions, confirm both `build` and `deploy` succeed. Open the live Stereo-seq,
+Visium and Getting Started articles and verify that they use `qs2` and `.qs2` data files. Download
 the `vignette-website` artifact to inspect the complete staged website if needed.
 
 Dependency installation and resource limits still need validation on the first

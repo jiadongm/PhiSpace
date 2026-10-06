@@ -97,6 +97,38 @@ result_metrics$BridgeAnnotation <- function(output_dir) {
   m
 }
 
+result_metrics$getting_started <- function(output_dir) {
+  read <- function(name) qs2::qs_read(file.path(output_dir, name), validate_checksum = TRUE)
+  m <- list()
+
+  # Subsampled and annotated query.
+  query <- read("quPhi.qs2")
+  m$query_n_cells <- ncol(query)
+  m$query_n_genes <- nrow(query)
+  types <- table(query$mainTypes)
+  for (ct in names(types)) m[[paste0("query_n_", ct)]] <- types[[ct]]
+  score <- SingleCellExperiment::reducedDim(query, "PhiSpace")
+  m$query_phenotypes <- paste(colnames(score), collapse = ",")
+  m$query_cells_sha256 <- digest::digest(rownames(score), algo = "sha256")
+  m$query_score_mean <- mean(score)
+  m$query_score_sd <- sd(as.vector(score))
+  for (ph in colnames(score)) m[[paste0("query_mean_", ph)]] <- mean(score[, ph])
+
+  # Reference predictions used for the phenotype-space PCA.
+  ref_score <- SingleCellExperiment::reducedDim(read("refPhi.qs2"), "PhiSpace")
+  m$reference_n_samples <- nrow(ref_score)
+  m$reference_score_sd <- sd(as.vector(ref_score))
+
+  # Feature importance; the vignette reports the number of genes for nfeat = 300.
+  imp <- read("tuneRes.qs2")$impScores
+  m$imp_n_genes <- nrow(imp)
+  m$imp_n_phenotypes <- ncol(imp)
+  m$imp_abs_sum <- sum(abs(imp))
+  ordered <- selectFeat(imp)$orderedFeatMat
+  m$n_genes_top300 <- length(unique(as.character(ordered[1:300, ])))
+  m
+}
+
 format_metrics <- function(metrics) {
   vapply(metrics, function(x) {
     if (length(x) != 1) stop("Each result metric must be a single value.")

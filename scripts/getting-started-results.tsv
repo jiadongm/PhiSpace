@@ -1,0 +1,32 @@
+metric	value	tolerance
+query_n_cells	6809	0
+query_n_genes	29880	0
+query_n_Day3	1328	0
+query_n_Day6	2379	0
+query_n_Day9_DP	572	0
+query_n_Day9_SP	183	0
+query_n_DC1	152	0
+query_n_DC2	912	0
+query_n_HEF	817	0
+query_n_pDC	466	0
+query_phenotypes	pDC,mono,DC1,DC2,DC_prec,DC,MoDC,in_vivo,in_vitro,ex_vivo,in_vivo_HuMouse	
+query_cells_sha256	ebd1a32cbdcf7ab71f97ec5dd1d6a7a8a10056c56a5713dfaac822f2904234f5	
+query_score_mean	-1.24153419829734e-06	1.0e-07
+query_score_sd	0.219937627282498	2.2e-06
+query_mean_pDC	0.031622446640593	3.2e-07
+query_mean_mono	-0.0997037787473025	1.0e-06
+query_mean_DC1	0.0790194291514111	7.9e-07
+query_mean_DC2	0.0255102614463309	2.6e-07
+query_mean_DC_prec	-0.0584412987395551	5.8e-07
+query_mean_DC	-0.0132813390796705	1.3e-07
+query_mean_MoDC	0.0288098856637584	2.9e-07
+query_mean_in_vivo	-0.103816165441958	1.0e-06
+query_mean_in_vitro	0.0606771817470845	6.1e-07
+query_mean_ex_vivo	0.0262840803534017	2.6e-07
+query_mean_in_vivo_HuMouse	0.0233056401297253	2.3e-07
+reference_n_samples	341	0
+reference_score_sd	0.357504088241036	3.6e-06
+imp_n_genes	16562	0
+imp_n_phenotypes	11	0
+imp_abs_sum	192.489822545288	1.9e-03
+n_genes_top300	1782	0

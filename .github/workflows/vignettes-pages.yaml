@@ -44,6 +44,8 @@ jobs:
             any::clue
             any::stringr
             any::RColorBrewer
+            any::zeallot
+            any::plotly
       - name: Cache verified Stereo-seq inputs
         uses: actions/cache@v4
         with:
@@ -59,12 +61,19 @@ jobs:
         with:
           path: Test/bridge-annotation-inputs
           key: bridge-annotation-inputs-${{ hashFiles('scripts/bridge-annotation-inputs.tsv') }}
+      - name: Cache verified Getting Started inputs
+        uses: actions/cache@v4
+        with:
+          path: Test/getting-started-inputs
+          key: getting-started-inputs-${{ hashFiles('scripts/getting-started-inputs.tsv') }}
       - name: Build Stereo-seq with fresh results
         run: Rscript --vanilla scripts/build-stereoseq.R
       - name: Build Visium with fresh results
         run: Rscript --vanilla scripts/build-visium.R
       - name: Build BridgeAnnotation from verified cached results
         run: Rscript --vanilla scripts/build-bridge-annotation.R
+      - name: Build Getting Started with fresh results
+        run: Rscript --vanilla scripts/build-getting-started.R
       - name: Upload website for review
         uses: actions/upload-artifact@v4
         with:
