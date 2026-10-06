@@ -183,6 +183,24 @@ keep runtime and memory bounded.
   used about 14.3 GB peak RAM and 1 minute 28 seconds; the cached build used
   about 7.0 GB and 34 seconds.
 - The combined workflow-order build passed locally without loading `qs`.
+- Each build script runs `scripts/check-results.R` on the fresh outputs. It
+  compares dimensions, names, score summaries, sorted k-means cluster sizes and
+  enrichment scores with `scripts/<slug>-results.tsv` (absolute tolerances of
+  about 1e-5 relative to each value; counts and names must match exactly). Set
+  `PHISPACE_RESULTS_OUT` to write the observed values. Update an expected value
+  only after reviewing why it changed.
+- Stereo-seq difference from the established Dropbox results: the vignette
+  removes the 1% of bins with the lowest total counts before annotation (15,611
+  to 15,454 bins), but the established `output/PhiRes.qs2` was computed on all
+  15,611 bins. Rerunning on all bins reproduces it (max absolute difference
+  3.3e-6). On the shared bins, fresh scores differ only by a per-column
+  constant (SD of differences <= 1.4e-6) from query centering, but the
+  max-absolute scaling in `normPhiScores()` changes. PhiSpace niche cluster
+  sizes therefore differ by up to 17 bins; barcode and gene-expression
+  clusterings and enrichment scores match. The expected values follow the
+  vignette code. The cached-result build still uses the older Dropbox files.
+- Visium fresh results match the established `combo_PhiRes.qs2` within 1.1e-6
+  relative difference on all checked metrics.
 
 Relevant commits:
 

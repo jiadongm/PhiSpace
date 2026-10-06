@@ -33,6 +33,8 @@ if (any(grepl("qread", html, fixed = TRUE)) ||
     !any(grepl(".qs2", html, fixed = TRUE))) {
   stop("Rendered Visium article did not contain the expected qs2 migration.")
 }
+source("scripts/check-results.R", local = TRUE)
+check_results("Visium", file.path(run_dir, "output"))
 writeLines(capture.output(sessionInfo()), file.path(site_dir, "Visium-sessionInfo.txt"))
 file.create(file.path(site_dir, ".nojekyll"))
 message("Built Visium with fresh results: ", article)

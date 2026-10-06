@@ -1,0 +1,112 @@
+# Result checks for vignette builds. Each metric function summarises the files a
+# vignette writes to output/. check_results() compares the summary with the
+# reviewed values in scripts/<slug>-results.tsv: a metric with a tolerance must
+# be within that absolute tolerance; a metric without one must match exactly.
+
+result_metrics <- list()
+
+result_metrics$StereoSeq <- function(output_dir) {
+  read <- function(name) qs2::qs_read(file.path(output_dir, name), validate_checksum = TRUE)
+  m <- list()
+
+  # Clone density estimates; the vignette uses their range for the colour scale.
+  clones <- read("cloneKDEres.qs2")
+  kde <- unlist(lapply(clones, function(x) x$kde_res$estimate))
+  m$kde_n_clones <- length(clones)
+  m$kde_estimate_min <- min(kde)
+  m$kde_estimate_max <- max(kde)
+  m$kde_estimate_sum <- sum(kde)
+
+  # Barcode k-means for k = 2, ..., 10.
+  bc <- read("barcode-seq_clustering.qs2")
+  for (i in seq_along(bc)) m[[sprintf("barcode_k%d_tot_withinss", length(bc[[i]]$size))]] <- bc[[i]]$tot.withinss
+
+  # Bridge annotation of the Stereo-seq bins.
+  phi <- read("PhiRes.qs2")
+  score <- phi$PhiSpaceScore
+  m$phi_n_bins <- nrow(score)
+  m$phi_n_celltypes <- ncol(score)
+  m$phi_celltypes_sha256 <- digest::digest(colnames(score), algo = "sha256")
+  m$phi_bins_sha256 <- digest::digest(rownames(score), algo = "sha256")
+  m$phi_n_selected_features <- length(phi$selectedFeat)
+  m$phi_score_mean <- mean(score)
+  m$phi_score_sd <- sd(as.vector(score))
+  for (ct in c("Neutro(Spleen)", "Granulo(BM)", "T2(Neutro)", "ErythBla(BM)", "Macro(Spleen)", "Naive B(BM)")) {
+    m[[paste0("phi_sd_", ct)]] <- sd(score[, ct])
+  }
+
+  # Niche clustering of PhiSpace scores and of gene expression. Cluster labels
+  # are arbitrary, so sizes are sorted.
+  cluster_files <- c(phi_cluster = "PhiClustRes.qs2", gex_cluster = "GexClustRes.qs2")
+  for (name in names(cluster_files)) {
+    km <- read(cluster_files[[name]])
+    sizes <- sort(km$size)
+    for (i in seq_along(sizes)) m[[sprintf("%s_size_rank%d", name, i)]] <- sizes[[i]]
+    m[[paste0(name, "_tot_withinss")]] <- km$tot.withinss
+  }
+
+  # Niche enrichment scores.
+  sig <- read("sigScores.qs2")
+  m$sig_n_celltypes <- nrow(sig)
+  m$sig_niches <- paste(colnames(sig), collapse = ",")
+  m$sig_min <- min(sig)
+  m$sig_max <- max(sig)
+  m$sig_abs_sum <- sum(abs(sig))
+  m
+}
+
+result_metrics$Visium <- function(output_dir) {
+  res <- qs2::qs_read(file.path(output_dir, "combo_PhiRes.qs2"), validate_checksum = TRUE)
+  m <- list()
+  m$samples <- paste(names(res), collapse = ",")
+  m$n_celltypes <- unique(vapply(res, ncol, integer(1)))
+  m$celltypes_sha256 <- digest::digest(colnames(res[[1]]), algo = "sha256")
+  if (!all(vapply(res, function(x) identical(colnames(x), colnames(res[[1]])), logical(1)))) {
+    stop("Visium samples have different cell type columns.")
+  }
+  for (s in names(res)) {
+    m[[paste0(s, "_n_spots")]] <- nrow(res[[s]])
+    m[[paste0(s, "_score_mean")]] <- mean(res[[s]])
+    m[[paste0(s, "_score_sd")]] <- sd(as.vector(res[[s]]))
+  }
+  m$P11_T3_sd_B_cells <- sd(res[["P11_T3"]][, "B cells"])
+  m
+}
+
+format_metrics <- function(metrics) {
+  vapply(metrics, function(x) {
+    if (length(x) != 1) stop("Each result metric must be a single value.")
+    if (is.numeric(x)) format(x, digits = 15) else as.character(x)
+  }, character(1))
+}
+
+check_results <- function(vignette, output_dir) {
+  observed <- format_metrics(result_metrics[[vignette]](output_dir))
+  out <- Sys.getenv("PHISPACE_RESULTS_OUT")
+  if (nzchar(out)) {
+    write.table(data.frame(metric = names(observed), value = observed), out,
+                sep = "\t", quote = FALSE, row.names = FALSE)
+  }
+  expected_file <- file.path("scripts", paste0(gsub("_", "-", tolower(vignette)), "-results.tsv"))
+  expected <- read.delim(expected_file, colClasses = "character", na.strings = "")
+  missing <- setdiff(expected$metric, names(observed))
+  extra <- setdiff(names(observed), expected$metric)
+  if (length(missing) || length(extra)) {
+    stop("Result metrics do not match ", expected_file, ". Missing: ",
+         paste(missing, collapse = ", "), ". Unexpected: ", paste(extra, collapse = ", "))
+  }
+  obs <- observed[expected$metric]
+  tol <- as.numeric(expected$tolerance)
+  ok <- obs == expected$value
+  num <- !is.na(tol)
+  ok[num] <- abs(as.numeric(obs[num]) - as.numeric(expected$value[num])) <= tol[num]
+  ok[is.na(ok)] <- FALSE
+  if (!all(ok)) {
+    stop("Results differ from ", expected_file, ":\n",
+         paste0("  ", expected$metric[!ok], ": expected ", expected$value[!ok],
+                ", observed ", obs[!ok], collapse = "\n"),
+         "\nReview the change before updating the expected values.")
+  }
+  message("Checked ", length(ok), " ", vignette, " result metrics against ", expected_file)
+  invisible(observed)
+}

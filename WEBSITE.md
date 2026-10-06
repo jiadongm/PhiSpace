@@ -40,6 +40,9 @@ Visium downloads its public folder archive, extracts four verified inputs (about
 shown in their vignettes. The input caches are `Test/stereoseq-inputs` and
 `Test/visium-inputs`; the combined website is written to `Test/site-vignettes`.
 Each article includes a session information file in the website artifact.
+After rendering, each build script checks summaries of the fresh outputs
+against `scripts/<slug>-results.tsv` with `scripts/check-results.R`, and fails if
+they differ. Set `PHISPACE_RESULTS_OUT` to a file path to save the observed values.
 Stereo-seq requires a new site directory; Visium appends to it without replacing
 the Stereo-seq page. Separate R processes release memory between articles.
 For another full build, choose a new destination:

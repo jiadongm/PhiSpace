@@ -25,6 +25,8 @@ article <- file.path(site_dir, "articles", "StereoSeq.html")
 html <- readLines(article, warn = FALSE)
 if (any(grepl("PhiSpaceAssay", html, fixed = TRUE)) ||
     !any(grepl("refAssay", html, fixed = TRUE))) stop("Rendered article did not contain the expected API fix.")
+source("scripts/check-results.R", local = TRUE)
+check_results("StereoSeq", file.path(run_dir, "output"))
 writeLines(capture.output(sessionInfo()), file.path(site_dir, "StereoSeq-sessionInfo.txt"))
 file.create(file.path(site_dir, ".nojekyll"))
 message("Built Stereo-seq with fresh results: ", article)

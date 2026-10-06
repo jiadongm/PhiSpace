@@ -1,0 +1,50 @@
+metric	value	tolerance
+kde_n_clones	16	0
+kde_estimate_min	0	1.0e-15
+kde_estimate_max	7.29609225839616e-08	7.3e-13
+kde_estimate_sum	0.00188705464979789	1.9e-08
+barcode_k2_tot_withinss	25451415.0908739	2.5e+02
+barcode_k3_tot_withinss	17464064.2416163	1.7e+02
+barcode_k4_tot_withinss	13659816.646123	1.4e+02
+barcode_k5_tot_withinss	11392994.8714716	1.1e+02
+barcode_k6_tot_withinss	9666476.48960648	9.7e+01
+barcode_k7_tot_withinss	8337616.48208793	8.3e+01
+barcode_k8_tot_withinss	7340703.32075673	7.3e+01
+barcode_k9_tot_withinss	6636118.31463362	6.6e+01
+barcode_k10_tot_withinss	6168431.61299178	6.2e+01
+phi_n_bins	15454	0
+phi_n_celltypes	70	0
+phi_celltypes_sha256	149a366f073c7fff17335a289e581f924421891b8d6f78c16339eeb4695768b6	
+phi_bins_sha256	32cf3a282186371a3a7867ef215f92f36bc2d84635c10a77d33470783c8a565c	
+phi_n_selected_features	3517	0
+phi_score_mean	0.00573553530088729	5.7e-08
+phi_score_sd	0.102319127300494	1.0e-06
+phi_sd_Neutro(Spleen)	0.0687953351030498	6.9e-07
+phi_sd_Granulo(BM)	0.0633786679727624	6.3e-07
+phi_sd_T2(Neutro)	0.098615083240385	9.9e-07
+phi_sd_ErythBla(BM)	0.245925408488335	2.5e-06
+phi_sd_Macro(Spleen)	0.0860921262450392	8.6e-07
+phi_sd_Naive B(BM)	0.0693043441970923	6.9e-07
+phi_cluster_size_rank1	1088	0
+phi_cluster_size_rank2	1196	0
+phi_cluster_size_rank3	1670	0
+phi_cluster_size_rank4	1806	0
+phi_cluster_size_rank5	2069	0
+phi_cluster_size_rank6	2082	0
+phi_cluster_size_rank7	2215	0
+phi_cluster_size_rank8	3328	0
+phi_cluster_tot_withinss	30868.4657743635	3.1e-01
+gex_cluster_size_rank1	1108	0
+gex_cluster_size_rank2	1427	0
+gex_cluster_size_rank3	1467	0
+gex_cluster_size_rank4	1762	0
+gex_cluster_size_rank5	1800	0
+gex_cluster_size_rank6	1877	0
+gex_cluster_size_rank7	2755	0
+gex_cluster_size_rank8	3258	0
+gex_cluster_tot_withinss	495277.146668832	5.0e+00
+sig_n_celltypes	70	0
+sig_niches	2,3,5,6,7,8,10	
+sig_min	-257.31520591868	2.6e-03
+sig_max	314.18815221336	3.1e-03
+sig_abs_sum	3818.32341278063	3.8e-02
