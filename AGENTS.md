@@ -133,9 +133,13 @@ parameter tuning. Complete and publish one vignette-sized change at a time.
   Actions or new vignette code; it has been removed from active CRAN.
 - Legacy manual tests outside this overhaul may still reference `.qs`. Do not
   migrate unrelated test data unless it is explicitly in scope.
-- Keep downloads, converted objects, logs, isolated R libraries, and staged
-  sites under git-ignored `Test/` or outside the clone under
-  `PkgOverhaul/data/<Vignette>/`.
+- Keep the `PhiSpace/` clone for the package and its repository files only.
+  Put local downloads, input caches, converted objects, logs, staged sites,
+  helper scripts and other working files outside the clone: under
+  `PkgOverhaul/Test/` or `PkgOverhaul/data/<Vignette>/`. Do not add files to
+  `PhiSpace/Test/`. The build scripts default to repository-relative `Test/`
+  paths because Actions uses them; locally, override them with the
+  `PHISPACE_SITE_DIR` and `PHISPACE_<SLUG>_INPUTS` variables.
 - Preparation scripts extract only manifest-listed files and verify every hash.
   Upstream changes must fail until reviewed and intentionally accepted.
 - Actions caches verified inputs, not computed results. Build scripts create a
@@ -159,7 +163,9 @@ parameter tuning. Complete and publish one vignette-sized change at a time.
 - Full local build:
 
 ```bash
-export PHISPACE_SITE_DIR=Test/site-vignettes-next
+export PHISPACE_SITE_DIR=../Test/site-vignettes-next
+export PHISPACE_STEREOSEQ_INPUTS=../Test/stereoseq-inputs
+export PHISPACE_VISIUM_INPUTS=../Test/visium-inputs
 Rscript --vanilla scripts/build-stereoseq.R
 Rscript --vanilla scripts/build-visium.R
 ```
