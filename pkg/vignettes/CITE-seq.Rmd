@@ -10,7 +10,7 @@ vignette: >
 ---
 
 ```{r setup, include=FALSE}
-# knitr::opts_chunk$set(eval = FALSE)
+knitr::opts_chunk$set(error = FALSE)
 ```
 
 ## Highlights
@@ -34,7 +34,9 @@ In this case study we will apply PhiSpace to integrate two CITE-seq datasets fro
 
 The reference dataset contained samples from COVID patients with different disease severity, ranging from asymptotic to critical; the query dataset contained samples from samples from severe COVID patients with different pre-existing autoimmune conditions, including multiple sclerosis (MS), psoriasis (Ps) and rheumatoid arthritis (RA). The question we ask is how different cell types are enriched in different disease condtions (COVID severity and COVID+autoimmune condition).
 
-Processed data and additional R code needed to run this vignette can be downloaded [here](https://www.dropbox.com/scl/fo/it8uwxd2v4k2lyoo936at/AKws5m_xeNjOOs8Vkho-wP8?rlkey=s4d5a7cfkl5sj9qiogc7mng5t&st=w2x40u3p&dl=0).
+Processed data and additional R code needed to run this vignette can be downloaded [here](https://www.dropbox.com/scl/fo/it8uwxd2v4k2lyoo936at/AKws5m_xeNjOOs8Vkho-wP8?rlkey=s4d5a7cfkl5sj9qiogc7mng5t&st=w2x40u3p&dl=0). Preserve the directory layout of the shared folder. It includes `utils.R`, `majorCellTypes.R`, the input data in `data/` and cached results in `output/`.
+
+Set `PHISPACE_CITE_SEQ_DATA` to your data folder before running this vignette, for example `Sys.setenv(PHISPACE_CITE_SEQ_DATA = "/path/to/CITE")`.
 
 ```{r}
 suppressPackageStartupMessages(library(PhiSpace))
@@ -46,8 +48,14 @@ suppressPackageStartupMessages(library(ggpubr))
 suppressPackageStartupMessages(library(tidyr))
 suppressPackageStartupMessages(library(RColorBrewer))
 
-dat_dir <- "~/Dropbox/Research_projects/PhiSpace/VignetteData/CITE/" # Replace this by your own directory 
-source("~/Dropbox/Research_projects/PhiSpace/VignetteData/CITE/utils.R")
+dat_dir <- Sys.getenv("PHISPACE_CITE_SEQ_DATA", unset = "data/CITE")
+if (!file.exists(file.path(dat_dir, "utils.R"))) {
+  stop("Set PHISPACE_CITE_SEQ_DATA to the data folder containing utils.R.")
+}
+dat_dir <- paste0(normalizePath(dat_dir, winslash = "/"), "/")
+dir.create(file.path(dat_dir, "output"), recursive = TRUE, showWarnings = FALSE)
+
+source(paste0(dat_dir, "utils.R"), local = TRUE)
 ```
 
 
@@ -100,14 +108,14 @@ if(!file.exists(PhiResPath)){
   
   PhiSpaceAssay <- "logcounts"
   YtrainName <- c("full_clustering", "Status_on_day_collection_summary")
-  PhiRes <- PhiSpaceR_1ref(
+  PhiResRNA <- PhiSpaceR_1ref(
     reference, 
     query = query, 
     phenotypes = YtrainName, 
     refAssay = PhiSpaceAssay,
     regMethod = "PLS"
   )
-  saveRDS(PhiRes, PhiResPath)
+  saveRDS(PhiResRNA, PhiResPath)
   
   gc()
 } else {
@@ -173,7 +181,7 @@ if(!file.exists(pathCombo)){
 
 For better visualisation, we define major cell types and corresponding colour code.
 ```{r}
-source(paste0(dat_dir, "majorCellTypes.R"))
+source(paste0(dat_dir, "majorCellTypes.R"), local = TRUE)
 ```
 
 
