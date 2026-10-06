@@ -14,9 +14,6 @@ PhiSpace/
 │   ├── vignettes/          # 7 vignettes (Rmd)
 │   ├── DESCRIPTION         # Package metadata
 │   └── NAMESPACE           # Exports/imports (auto-generated)
-├── Test/                   # Manual test scripts and data (git-ignored)
-│   ├── data/               # Test datasets (.qs, .rds)
-│   └── test_cellTypeThreshold.R
 ├── docs/                   # pkgdown website
 ├── figs/                   # README figures
 ├── sourceCode_PhiSpaceMultiomics/
@@ -137,7 +134,9 @@ parameter tuning. Complete and publish one vignette-sized change at a time.
   Put local downloads, input caches, converted objects, logs, staged sites,
   helper scripts and other working files outside the clone: under
   `PkgOverhaul/Test/` or `PkgOverhaul/data/<Vignette>/`. Do not add files to
-  `PhiSpace/Test/`. The build scripts default to repository-relative `Test/`
+  `PhiSpace/Test/`; its earlier contents were moved to `PkgOverhaul/Test/` on
+  2026-10-06, including the isolated qs2 0.3.1 library
+  (`PkgOverhaul/Test/qs2-library`). The build scripts default to repository-relative `Test/`
   paths because Actions uses them; locally, override them with the
   `PHISPACE_SITE_DIR` and `PHISPACE_<SLUG>_INPUTS` variables.
 - Preparation scripts extract only manifest-listed files and verify every hash.
@@ -238,9 +237,6 @@ Rscript -e 'devtools::install("pkg")'
 
 # Build pkgdown site
 Rscript -e 'pkgdown::build_site("pkg")'
-
-# Run manual integration test (requires Test/data/)
-Rscript Test/test_cellTypeThreshold.R
 ```
 
 ## Code Conventions
@@ -263,7 +259,10 @@ Rscript Test/test_cellTypeThreshold.R
 ## Testing
 
 - **Unit tests**: `testthat` (edition 3). Test files in `pkg/tests/`. Run with `devtools::test("pkg")`.
-- **Integration tests**: `Test/test_cellTypeThreshold.R` exercises `PhiSpaceR_1ref()` and `PhiSpace()` with CosMx lung data at multiple `cellTypeThreshold` values, then saves spatial heatmaps via `saveCellTypeMaps()`. Requires `Test/data/ref_list.qs` and `Test/data/Lung5_Rep1.rds`. The `Test/` directory is git-ignored.
+- **Integration tests**: none are currently available. Earlier notes described
+  `Test/test_cellTypeThreshold.R` with CosMx lung data, but on 2026-10-06 neither
+  the script nor its data existed. The vignette builds and their result checks
+  act as integration tests.
 
 ## Known Check Notes
 
