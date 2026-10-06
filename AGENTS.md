@@ -95,6 +95,26 @@ The order may change for scientific priority, but `getting_started` should
 normally be next because it exercises the public `PhiSpace()` interface and
 parameter tuning. Complete and publish one vignette-sized change at a time.
 
+### Pending User Actions (TODO)
+
+Recorded 2026-10-06. The user will do the uploads later with a faster connection.
+
+1. **Upload Stereo-seq replacements.** Copy the three files in
+   `PkgOverhaul/data/StereoSeq/replacement-2026-10-06/output/` (`PhiRes.qs2`,
+   `PhiClustRes.qs2`, `cloneKDEres.qs2`) over the files with the same names in
+   the `output/` subfolder of the Stereo-seq Dropbox shared folder. Actions
+   does not download them, so no code change follows. Afterwards, check the
+   Dropbox hashes against `replacement-manifest.csv`.
+2. **Upload Getting Started inputs.** Put `ref_dc.qs2`, `query_Rosa.qs2` and
+   `ref_dc_feat.qs2` from `PkgOverhaul/data/getting_started/` at the root of
+   a new Dropbox shared folder and give the agent its link. Then, on local
+   branch `getting-started-qs2` (commit `cfd3009`, not pushed): replace
+   `SHARED_FOLDER_URL` in `getting_started.Rmd` (`dl=0` link) and in
+   `scripts/prepare-getting-started.R` (`dl=1` link), download the folder ZIP
+   and verify hashes, run the full workflow-order build, and merge into `main`.
+3. **Push `main`.** Local `main` is ahead of `origin/main`; the user pushes
+   when ready. After a push, check both Actions jobs and the live pages.
+
 ### Standard Procedure for Each Vignette
 
 1. Record its scientific purpose, input objects, helper scripts, cached results,
