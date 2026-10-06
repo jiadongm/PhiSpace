@@ -130,7 +130,7 @@ if(!file.exists(PhiResPath)){
 PhiScPeaks <- normPhiScores(PhiRes$PhiSpaceScore)
 ```
 
-Note that we set `center = F` here since centring would turn a sparse peak matrix to dense, consuming a lot of RAM. If you have enough RAM, centring is still encouraged.
+Note that we set `center = F` here, following the original analysis. The current PhiSpace implementation converts the peak matrix to a dense matrix during model fitting whether or not it is centred, so this step needs a lot of RAM: computing this vignette from scratch peaked at about 24 GB in our test. The shared folder provides `output/PhiResATACpeaks.rds` for systems without enough RAM. If you have enough RAM, centring is still encouraged.
 
 
 Alternatively, we can transfer continuous annotation via aggregated peaks or gene activity (GA) score.
