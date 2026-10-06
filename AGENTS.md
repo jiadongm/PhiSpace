@@ -246,6 +246,12 @@ keep runtime and memory bounded.
   about 1e-5 relative to each value; counts and names must match exactly). Set
   `PHISPACE_RESULTS_OUT` to write the observed values. Update an expected value
   only after reviewing why it changed.
+- Sorted k-means cluster sizes use a tolerance of 1% of each size. The first
+  Actions run with result checks (run `37538262677`, 2026-10-07) failed on
+  Stereo-seq PhiSpace niche sizes: the runner's BLAS moved 1 to 13 of 15,454
+  bins between niches, while all continuous metrics, including the k-means
+  within-cluster sum of squares, passed at 1e-5. Exact tolerances on counts
+  are safe only for quantities that do not depend on floating-point ties.
 - Stereo-seq difference from the established Dropbox results: the vignette
   removes the 1% of bins with the lowest total counts before annotation (15,611
   to 15,454 bins), but the established `output/PhiRes.qs2` was computed on all
