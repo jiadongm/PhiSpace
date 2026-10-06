@@ -32,12 +32,12 @@ jobs:
         with:
           working-directory: pkg
           extra-packages: |
-            any::pkgdown@2.2.0
+            url::https://cran.r-project.org/src/contrib/Archive/pkgdown/pkgdown_2.2.0.tar.gz
             any::pkgload
             any::rmarkdown
             any::knitr
             any::digest
-            any::qs
+            any::qs2
             any::tidyr
             any::ks
             any::clue

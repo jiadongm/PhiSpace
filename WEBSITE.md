@@ -21,13 +21,17 @@ has been replaced by the root workflow.
 
 From the repository root, with R 4.5 or later and Pandoc available, install the
 package dependencies plus the R packages listed in the workflow. pkgdown 2.2.0
-is used to match the existing website's shared assets. Then run:
+is installed from its explicit CRAN archive URL to match the existing website's
+shared assets. Serialization uses `qs2` from CRAN, not the archived `qs` package.
+The vignette reads and writes `.qs2` files with `qs_read()` and `qs_save()`.
+Old `.qs` files must be replaced with the migrated files from Dropbox; renaming
+the old files does not convert their format. Then run:
 
 ```bash
 Rscript --vanilla scripts/build-stereoseq.R
 ```
 
-The script downloads the public Stereo-seq archive, extracts only five required
+The Stereo-seq script downloads the public archive, extracts only five required
 inputs, and checks their SHA-256 hashes. These include the helper R script and
 precomputed bridge annotations. It creates fresh analysis outputs on every run.
 The download cache is `Test/stereoseq-inputs`; rendered pages are written to
@@ -54,8 +58,9 @@ the Actions data-cache key. Computed analysis outputs are never cached by Action
 ## Check deployment
 
 In Actions, confirm both `build` and `deploy` succeed. Open the live Stereo-seq
-article and verify its annotation call uses `refAssay = "log1p"`. Download the
-`stereoseq-website` artifact to inspect the complete staged website if needed.
+article and verify it loads `qs2`, uses `.qs2` files, and calls annotation with
+`refAssay = "log1p"`. Download the `stereoseq-website` artifact to inspect the
+complete staged website if needed.
 
 Dependency installation and resource limits still need validation on the first
 GitHub-hosted run; local execution does not test GitHub's runner or permissions.

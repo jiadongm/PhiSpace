@@ -43,6 +43,10 @@ this vignette, for example `Sys.setenv(PHISPACE_STEREOSEQ_DATA = "/path/to/Stere
 Alternatively, edit the default data directory below. Additional packages used by
 the helper functions are `ks` and `clue`.
 
+This vignette uses `qs2::qs_read()` and `qs2::qs_save()` with the migrated `.qs2`
+files. Install `qs2` from CRAN and download the current data folder if you still
+have the old `.qs` files; the two file formats are not interchangeable.
+
 ```{r}
 # Name of the game
 suppressPackageStartupMessages(library(PhiSpace))
@@ -54,7 +58,7 @@ suppressPackageStartupMessages(library(magrittr))
 suppressPackageStartupMessages(library(ggpubr))
 suppressPackageStartupMessages(library(tidyr))
 # Other utils
-suppressPackageStartupMessages(library(qs)) # Fast read and write of large R objects
+suppressPackageStartupMessages(library(qs2)) # Fast read and write of large R objects
 
 dat_dir <- Sys.getenv("PHISPACE_STEREOSEQ_DATA", unset = "data/StereoSeq")
 if (!file.exists(file.path(dat_dir, "StereoSeq_utils.R"))) {
@@ -71,14 +75,14 @@ Following [Holze et al.](https://www.cell.com/cell-reports-methods/fulltext/S266
 **Note on cell segmentation.** For subcellular spatial RNA-seq, reliable cell segmentation is not always possible. This is because reliable cell segmentation relies on cell staining such as DAPI and advanced imaging machine learning algorithms (can be time-consuming). And the quality of cell segmentation varies from tissue to tissue, with some tissues such as spleen intrisically difficult to segment due to its complex morphological structures and croweded, overlapping immune cells. If additional cell staining is not included in experimental design (i.e. you unfortunately did pay for it), then cell segmentation cannot be very accurate. In this Stereo-seq case, cell segmentation was not possible due to a phenomenon called 'swapping' or 'bleeding', i.e. transcripts bleeding among neighbouring measurement units causing contamination. This phenomenon is actually [fairly common](https://www.nature.com/articles/s41467-022-30587-y) (no data is perfect!).
 
 ```{r}
-queryPath <- paste0(dat_dir, "data/mouse4_bin50_bc_sce.qs")
+queryPath <- paste0(dat_dir, "data/mouse4_bin50_bc_sce.qs2")
 if(F){ # The data has already been normalised, but if you want to try again, change F to T
-  query <- qread(queryPath)
+  query <- qs_read(queryPath)
   query <- RankTransf(query, "counts") # Rank transform
   query <- logTransf(query, targetAssay = "log1p", use_log1p = TRUE)
-  qsave(query, queryPath)
+  qs_save(query, queryPath)
 } else {
-  query <- qread(queryPath)
+  query <- qs_read(queryPath)
 }
 ```
 
@@ -165,7 +169,7 @@ Overall AML cells seemed to clustered in space. We then do KDE for the top 16 cl
 ```{r fig.asp=1}
 sortedBC <- table(bcRaw$barcode) %>% sort(decreasing = T)
 xx_eval <- bcRaw[, c(xCoordName, yCoordName)] %>% `colnames<-`(c("x", "y"))
-kdePath <- paste0(dat_dir, "output/cloneKDEres.qs")
+kdePath <- paste0(dat_dir, "output/cloneKDEres.qs2")
 if(!file.exists(kdePath)){
   out <- lapply(
     1:16,
@@ -178,9 +182,9 @@ if(!file.exists(kdePath)){
       return(kde_res)
     }
   )
-  qsave(out, kdePath)
+  qs_save(out, kdePath)
 } else {
-  out <- qread(kdePath)
+  out <- qs_read(kdePath)
 }
 estValues <- lapply(out, function(x) x$kde_res$estimate) %>% unlist
 estRange <- range(estValues)
@@ -238,7 +242,7 @@ Next we cluster the bins with smoothed out clonal composition using k-means. We 
 
 ```{r}
 plot_dat <- unique(bcFilt[,c("cell_id", xCoordName, yCoordName)]) %>% as.data.frame()
-clustPath <- paste0(dat_dir,"output/barcode-seq_clustering.qs")
+clustPath <- paste0(dat_dir,"output/barcode-seq_clustering.qs2")
 if(!file.exists(clustPath)){
   set.seed(523423)
   outClusts <- lapply(
@@ -248,9 +252,9 @@ if(!file.exists(clustPath)){
       return(clust_res)
     }
   )
-  qsave(outClusts, clustPath)
+  qs_save(outClusts, clustPath)
 } else {
-  outClusts <- qread(clustPath)
+  outClusts <- qs_read(clustPath)
 }
 ```
 
@@ -324,9 +328,9 @@ Since the same mouse spleen was subjected to both Stereo-seq and scRNA-seq, we u
 Annotation of the bridge dataset is tedious and requires larger memory to run (see our source code on GitHub for details). So here we only show how to use the annotated bridge scRNA-seq to annotate the query Stereo-seq from the same mouse spleen.
 
 ```{r}
-PhiResPath <- paste0(dat_dir, "output/PhiRes.qs")
+PhiResPath <- paste0(dat_dir, "output/PhiRes.qs2")
 if(!file.exists(PhiResPath)){
-  querySC <- qread(paste0(dat_dir, "data/mouse4_scRNAseq_sce.qs"))
+  querySC <- qs_read(paste0(dat_dir, "data/mouse4_scRNAseq_sce.qs2"))
   pathPhiSc <- paste0(dat_dir, "output/Mouse4_scRNA-seq_PhiSc_list.rds")
   impScPath <- paste0(dat_dir, "output/ImpScores_for_Mouse4_scRNA-seq.rds")
   scPhiSc_list <- readRDS(pathPhiSc)
@@ -357,9 +361,9 @@ if(!file.exists(PhiResPath)){
     querySC, query, response = reducedDim(querySC, "PhiSpace"), 
     refAssay = "log1p", nfeat = 500, regMethod = "PLS", scale = FALSE
   )
-  qsave(PhiRes, PhiResPath)
+  qs_save(PhiRes, PhiResPath)
 } else {
-  PhiRes <- qread(PhiResPath)
+  PhiRes <- qs_read(PhiResPath)
 }
 reducedDim(query, "PhiSpace") <- normPhiScores(PhiRes$PhiSpaceScore)[colnames(query),]
 ```
@@ -382,7 +386,7 @@ tempClustCols <- c(
   "1" = "#FF7F00", "2" = "#377EB8", "3" = "#F781BF", "4" = "#984EA3", 
   "5" = "#A65628", "6" = "#4DAF4A", "7" = "#FFFF33", "8" = "#E41A1C"  
 )
-pathPhiClustRes <- paste0(dat_dir, "output/PhiClustRes.qs")
+pathPhiClustRes <- paste0(dat_dir, "output/PhiClustRes.qs2")
 if(!file.exists(pathPhiClustRes)){
   PhiPCRes <- getPC(reducedDim(query, "PhiSpace"), ncomp = ncol(reducedDim(query, "PhiSpace")) - 1)
   PhiPCRes$accuProps
@@ -391,9 +395,9 @@ if(!file.exists(pathPhiClustRes)){
   names(tempClustCols) <- 1:8
   set.seed(94863)
   clust_res <- kmeans(mat2clust, centers = 8, iter.max = 200L, nstart = 50)
-  qsave(clust_res, pathPhiClustRes)
+  qs_save(clust_res, pathPhiClustRes)
 } else {
-  clust_res <- qread(pathPhiClustRes)
+  clust_res <- qs_read(pathPhiClustRes)
 }
 query$PhiClust <- as.character(clust_res$cluster)
 VizSpatial(query, colBy = "PhiClust", ptSize = 1, legend.symb.size = 2) + 
@@ -404,14 +408,14 @@ VizSpatial(query, colBy = "PhiClust", ptSize = 1, legend.symb.size = 2) +
 In contrast, we can cluster the Stereo-seq bins according to their gene expression to identify the same number of spatial niches as above. The features highlighted by PhiSpace niches, i.e. marginal zone, white pulp and largest clone, were lost.
 
 ```{r}
-pathGexClustRes <- paste0(dat_dir, "output/GexClustRes.qs")
+pathGexClustRes <- paste0(dat_dir, "output/GexClustRes.qs2")
 if(!file.exists(pathGexClustRes)){
   mat2clust <- getPC(t(assay(query, "log1p")), ncomp = 30)$scores
   set.seed(94858)
   clust_res <- kmeans(mat2clust, centers = 8, iter.max = 200L, nstart = 50)
-  qsave(clust_res, pathGexClustRes)
+  qs_save(clust_res, pathGexClustRes)
 } else {
-  clust_res <- qread(pathGexClustRes)
+  clust_res <- qs_read(pathGexClustRes)
 }
 query$GenClust <- align_clusters(as.character(clust_res$cluster), query$PhiClust)
 VizSpatial(query, colBy = "GenClust", ptSize = 1) +
@@ -490,7 +494,7 @@ We conduct statistical tests to see which clusters have differentially enriched 
 -   Erythrocyte-like: meta-clones 6.
 
 ```{r}
-pathSigScores <- paste0(dat_dir, "output/sigScores.qs")
+pathSigScores <- paste0(dat_dir, "output/sigScores.qs2")
 if(!file.exists(pathSigScores)){
   cTypes <- colnames(reducedDim(query, "PhiSpace"))
   pvals <- sapply(
@@ -514,9 +518,9 @@ if(!file.exists(pathSigScores)){
     }
   ) %>% t()
   sigScores <- fc * (-log10(pvals)) # feature significance score 
-  qsave(sigScores, pathSigScores)
+  qs_save(sigScores, pathSigScores)
 } else {
-  sigScores <- qread(pathSigScores)
+  sigScores <- qs_read(pathSigScores)
 }
 # most enriched
 tab <- selectFeat(sigScores, absVal = F)$orderedFeatMat[1:5, !(colnames(sigScores) %in% c("5","9"))]
