@@ -144,7 +144,7 @@ parameter tuning. Complete and publish one vignette-sized change at a time.
 
 ### Current Automation
 
-- Workflow: `.github/workflows/stereoseq-pages.yaml`, displayed in Actions as
+- Workflow: `.github/workflows/vignettes-pages.yaml`, displayed in Actions as
   **Build and publish vignettes**.
 - It runs on pushes to `main`, pull requests, and manual dispatch. Pull requests
   build an artifact but do not deploy. Main pushes deploy through GitHub Pages

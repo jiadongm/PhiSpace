@@ -1,6 +1,6 @@
 # Automatic vignette publishing
 
-The root workflow `.github/workflows/stereoseq-pages.yaml` checks pull requests
+The root workflow `.github/workflows/vignettes-pages.yaml` checks pull requests
 and builds and publishes pushes to `main`. It also supports a manual run from
 the Actions tab. Stereo-seq and Visium are rebuilt; the other pages and shared assets
 are copied from the committed `docs/` website. Changes to other vignette sources
