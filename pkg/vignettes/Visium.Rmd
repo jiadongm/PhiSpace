@@ -10,7 +10,7 @@ vignette: >
 ---
 
 ```{r setup, include=FALSE}
-# knitr::opts_chunk$set(eval = FALSE)
+knitr::opts_chunk$set(error = FALSE)
 ```
 
 ## Highlights
@@ -30,7 +30,13 @@ In this case study, we will apply PhiSpace to cell type deconvolution:
 
 10x Visium is a supercellular spatial transcriptomics (ST) platform. The minimal measurement unit for the Visium platform are 55μm spots, where each spot potentially contains multiple cells. In this context, cell type deconvolution refers to the statistical task of estimating the cell type abundance in each spot.
 
-For this case study, we have defined some util functions, which can be downloaded [here](https://www.dropbox.com/scl/fi/glsnt6cr95pxr6tgaff34/Visium_utils.R?rlkey=hp7m6we4algotq28vogngy0i2&st=r1o4p6lp&dl=0).
+Download the complete Visium dataset from the [shared folder](https://www.dropbox.com/scl/fo/gsaxu5jex7d8ftrwu3pf0/ANN2z_e4abgrON62BD2TEHk?rlkey=fg94wev8y6cn096khmauyaass&dl=0) and preserve its directory layout. It includes `Visium_utils.R`, the qs2 data objects, and cached annotation results.
+
+Set `PHISPACE_VISIUM_DATA` to your data folder before running this vignette, for
+example `Sys.setenv(PHISPACE_VISIUM_DATA = "/path/to/Visium")`. Place
+`Visium_utils.R` in that folder and the data files at the relative paths shown
+below. This vignette uses `qs2::qs_read()` and `qs2::qs_save()` with migrated
+`.qs2` files. The old `.qs` files cannot be converted by renaming them.
 ```{r}
 # Name of the game
 suppressPackageStartupMessages(library(PhiSpace))
@@ -42,24 +48,42 @@ suppressPackageStartupMessages(library(magrittr))
 suppressPackageStartupMessages(library(ggpubr))
 suppressPackageStartupMessages(library(tidyr))
 # Other utils
-suppressPackageStartupMessages(library(qs)) # Fast read and write of large R objects
+suppressPackageStartupMessages(library(qs2)) # Fast read and write of large R objects
 suppressPackageStartupMessages(library(ComplexHeatmap)) # plot heatmap
 
-dat_dir <- "~/Dropbox/Research_projects/PhiSpace/VignetteData/Visium/" # replace this by your own directory
+dat_dir <- Sys.getenv("PHISPACE_VISIUM_DATA", unset = "data/Visium")
+if (!file.exists(file.path(dat_dir, "Visium_utils.R"))) {
+  stop("Set PHISPACE_VISIUM_DATA to the data folder containing Visium_utils.R.")
+}
+dat_dir <- paste0(normalizePath(dat_dir, winslash = "/"), "/")
+dir.create(file.path(dat_dir, "output"), recursive = TRUE, showWarnings = FALSE)
 
-source(paste0(dat_dir, "Visium_utils.R"))
+source(paste0(dat_dir, "Visium_utils.R"), local = TRUE)
 ```
 
 # Data preparation 
-Download the following files: 
+The shared folder contains:
 
-- [Reference](https://www.dropbox.com/scl/fi/uwadtwn8quzp93tdzvveb/AzimuthLung2.0_sce_0.1sub.qs?rlkey=0129nrgzw538naou6n8zznubw&st=xmd3jo67&dl=0), which is a 10% subset of the HLCA.
-- [Query](https://www.dropbox.com/scl/fi/qzj0jpxscy1zlrc0hqv19/allTissues.qs?rlkey=qqckkewm5n2r8f4txj39tfeso&st=x6q83dkv&dl=0), which is a list of 40 Visium samples from healthy and cancerous lungs. As in our PhiSpace paper, we will only use 18 of them (1 background + 1 cancerous from each of 9 patients) which are of better data quality.
-- The PhiSpace [importance scores](https://www.dropbox.com/scl/fi/vylbs7axes169w6mhxbkq/refImpScores.qs?rlkey=xc6om57frg0q95soqjp5zg1ar&st=lljdmwoq&dl=0), which measures how important all the gene features are for predicting cell types in the reference. 
+- A 10% subset of the HLCA reference.
+- A list of 40 healthy and cancerous lung Visium samples. We use 18 samples: two healthy samples and one background and one cancerous sample from each of eight patients.
+- PhiSpace feature-importance scores and cached annotation results.
 ```{r}
-reference <- qread(paste0(dat_dir, "data/LungRef/AzimuthLung2.0_sce_0.1sub.qs"))
-impScores <- qread(paste0(dat_dir, "output/refImpScores.qs"))
-query_list <- qread(paste0(dat_dir, "data/Visium_NSCLC/allTissues.qs"))[1:18]
+impScores <- qs_read(paste0(dat_dir, "output/refImpScores.qs2"))
+selectedFeat <- selectFeat(impScores, 500)$selectedFeat
+reference <- qs_read(paste0(dat_dir, "data/LungRef/AzimuthLung2.0_sce_0.1sub.qs2"))
+# Retain only the reference assay and genes used by the model to reduce RAM use.
+assays(reference) <- assays(reference)["log1p"]
+reference <- reference[intersect(rownames(reference), selectedFeat), ]
+invisible(gc())
+query_list <- qs_read(paste0(dat_dir, "data/Visium_NSCLC/allTissues.qs2"))
+selectedTissues <- tissueNames_Visium[1:18]
+stopifnot(all(selectedTissues %in% names(query_list)))
+query_list <- lapply(query_list[selectedTissues], function(x) {
+  # Counts are needed for marker analysis; log1p is used for annotation.
+  assays(x) <- assays(x)[c("counts", "log1p")]
+  x
+})
+invisible(gc())
 ```
 
 Visualise a cancerous sample P11_T3. Here we look at two markers: KRT19 (also known as CYFRA21-1), a NSCLC marker and CD79A, a B cell marker.
@@ -72,12 +96,11 @@ VizSpatial(qu_vis, feature = "CD79A", assay2use = "log1p")
 
 
 # Run PhiSpace
-Run PhiSpace using all the genes can be RAM-demanding, hence we select 500 genes that are most useful for predicting each cell type. This gives us 4613 genes. However, if RAM is still not enough, simply download the annotation results from [here](https://www.dropbox.com/scl/fi/v2i62f229lbhtzofco430/combo_PhiRes.qs?rlkey=g1k0ubpx83gs83wjfg4h0psu2&st=hbi77arg&dl=0). 
+Run PhiSpace using all the genes can be RAM-demanding, hence we select 500 genes that are most useful for predicting each cell type. This gives us 4613 genes. The shared data folder also provides `output/combo_PhiRes.qs2` for systems without enough RAM to recompute the annotation.
 ```{r}
 YtrainName <- "ann_finest_level"
-selectedFeat <- selectFeat(impScores, 500)$selectedFeat
 length(selectedFeat)
-PhiResPath <- paste0(dat_dir, "output/combo_PhiRes.qs")
+PhiResPath <- paste0(dat_dir, "output/combo_PhiRes.qs2")
 if(!file.exists(PhiResPath)){
   PhiRes <- PhiSpaceR_1ref(
     reference, 
@@ -89,9 +112,10 @@ if(!file.exists(PhiResPath)){
     center = T,
     scale = F
   )
-  qsave(PhiRes$PhiSpaceScore, PhiResPath)
+  PhiRes <- PhiRes$PhiSpaceScore
+  qs_save(PhiRes, PhiResPath)
 } else {
-  PhiRes <- qread(PhiResPath)
+  PhiRes <- qs_read(PhiResPath)
 }
 ```
 
@@ -229,7 +253,6 @@ pcaImmune_res <- getPC(corMatVec_immune, ncomp = 2, center = T, scale = F)
 tempPCAplot(pcaImmune_res) + expand_limits(x = c(-4, 4))
 plotLoadings(pcaImmune_res$loadings, "comp1", nfeat = 20)
 ```
-
 
 
 

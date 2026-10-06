@@ -1,4 +1,4 @@
-name: Build and publish Stereo-seq
+name: Build and publish vignettes
 
 on:
   push:
@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: stereoseq-pages-${{ github.ref }}
+  group: vignette-pages-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -21,6 +21,7 @@ jobs:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       OPENBLAS_NUM_THREADS: 2
       OMP_NUM_THREADS: 2
+      PHISPACE_SITE_DIR: Test/site-vignettes
     steps:
       - uses: actions/checkout@v4
       - uses: r-lib/actions/setup-r@v2
@@ -41,24 +42,32 @@ jobs:
             any::tidyr
             any::ks
             any::clue
+            any::stringr
       - name: Cache verified Stereo-seq inputs
         uses: actions/cache@v4
         with:
           path: Test/stereoseq-inputs
           key: stereoseq-inputs-${{ hashFiles('scripts/stereoseq-inputs.tsv') }}
+      - name: Cache verified Visium inputs
+        uses: actions/cache@v4
+        with:
+          path: Test/visium-inputs
+          key: visium-inputs-${{ hashFiles('scripts/visium-inputs.tsv') }}
       - name: Build Stereo-seq with fresh results
         run: Rscript --vanilla scripts/build-stereoseq.R
+      - name: Build Visium with fresh results
+        run: Rscript --vanilla scripts/build-visium.R
       - name: Upload website for review
         uses: actions/upload-artifact@v4
         with:
-          name: stereoseq-website
-          path: Test/site-stereoseq
+          name: vignette-website
+          path: Test/site-vignettes
           retention-days: 7
       - name: Upload Pages artifact
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v3
         with:
-          path: Test/site-stereoseq
+          path: Test/site-vignettes
 
   deploy:
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
