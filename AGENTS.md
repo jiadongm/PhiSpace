@@ -85,11 +85,11 @@ working explicit vignette is the oracle for evaluating a wrapper.
 | --- | --- | --- | --- |
 | done | `StereoSeq.Rmd` | Compatibility-complete; automated and live | qs2 migration and current APIs; fresh and cached builds pass |
 | done | `Visium.Rmd` | Compatibility-complete; automated and live | qs2 migration; fresh and cached builds pass |
-| 1 | `getting_started.Rmd` | Pending | Core tutorial; hard-coded paths, disabled evaluation, qs caches |
-| 2 | `PerturbSeq.Rmd` | Pending | Hard-coded paths, disabled evaluation, qs caches |
-| 3 | `BridgeAnnotation.Rmd` | Pending | Hard-coded paths, disabled evaluation, multiple RDS results |
-| 4 | `CITE-seq.Rmd` | Pending | Hard-coded paths, disabled evaluation, multimodal RDS results |
-| 5 | `CosMx.Rmd` | Pending | Largest remainder; multiple references, qs caches, spatial and multi-sample analysis |
+| done | `BridgeAnnotation.Rmd` | Compatibility-complete; automated from cached results | Private paths, file-name case; fresh build needs 17-24 GB RAM |
+| 1 | `getting_started.Rmd` | Done locally on branch `getting-started-qs2`; blocked on upload | Core tutorial; hard-coded paths, disabled evaluation, qs caches |
+| 2 | `PerturbSeq.Rmd` | Pending; needs the private `utils.R` (defines `tempPvals()`) from the user | Hard-coded paths, disabled evaluation, qs caches; reference downloaded with celldex |
+| 3 | `CITE-seq.Rmd` | Pending | Hard-coded paths, disabled evaluation, multimodal RDS results |
+| 4 | `CosMx.Rmd` | Pending | Largest remainder; multiple references, qs caches, spatial and multi-sample analysis |
 
 The order may change for scientific priority, but `getting_started` should
 normally be next because it exercises the public `PhiSpace()` interface and
@@ -114,6 +114,16 @@ Recorded 2026-10-06. The user will do the uploads later with a faster connection
    and verify hashes, run the full workflow-order build, and merge into `main`.
 3. **Push `main`.** Local `main` is ahead of `origin/main`; the user pushes
    when ready. After a push, check both Actions jobs and the live pages.
+
+### Future Work
+
+- **Sparse-aware `mvr()`.** `mvr()` (and `phenotype()` through `scale()`)
+  converts sparse predictor matrices to dense. For BridgeAnnotation peaks this
+  allocates 8.6 GiB and fresh builds peaked at 17.3 and 24.4 GB RAM. A sparse-aware fit
+  (for example, uncentred cross-products on `dgCMatrix`) could let such
+  vignettes build fresh in Actions. This is a package change: validate it
+  against the BridgeAnnotation expected results before switching that vignette
+  back to fresh builds.
 
 ### Standard Procedure for Each Vignette
 
@@ -161,9 +171,17 @@ Recorded 2026-10-06. The user will do the uploads later with a faster connection
   `PHISPACE_SITE_DIR` and `PHISPACE_<SLUG>_INPUTS` variables.
 - Preparation scripts extract only manifest-listed files and verify every hash.
   Upstream changes must fail until reviewed and intentionally accepted.
-- Actions caches verified inputs, not computed results. Build scripts create a
-  fresh temporary analysis directory so result-loading branches cannot mask
-  failures.
+- By default, Actions caches verified inputs, not computed results, and build
+  scripts create a fresh temporary analysis directory so result-loading
+  branches cannot mask failures.
+- Exception: a vignette whose fresh build exceeds the GitHub runner (16 GB RAM
+  as of 2026-10; recheck) is published from verified cached results. Its
+  manifest gives each file a `role` (`input` or `cached`), and its build script
+  takes `PHISPACE_<SLUG>_MODE` (`cached` by default, `fresh` locally). A cached
+  build stages the hashed results, fails if the render rewrites any of them,
+  and still runs the result checks. Run a local fresh build and compare it with
+  the cached results before changing a cached file or an expected value.
+  Currently this applies to BridgeAnnotation.
 
 ### Current Automation
 
@@ -187,6 +205,8 @@ export PHISPACE_STEREOSEQ_INPUTS=../Test/stereoseq-inputs
 export PHISPACE_VISIUM_INPUTS=../Test/visium-inputs
 Rscript --vanilla scripts/build-stereoseq.R
 Rscript --vanilla scripts/build-visium.R
+PHISPACE_BRIDGE_ANNOTATION_INPUTS=../Test/bridge-annotation-inputs \
+  Rscript --vanilla scripts/build-bridge-annotation.R
 ```
 
 See `WEBSITE.md` for variables and deployment details. As the suite grows,
@@ -242,6 +262,18 @@ keep runtime and memory bounded.
   figure should be read as illustrative.
 - Visium fresh results match the established `combo_PhiRes.qs2` within 1.1e-6
   relative difference on all checked metrics.
+- BridgeAnnotation archive (RDS, no qs conversion):
+  `https://www.dropbox.com/scl/fo/jeuqzjfyyr2j7doa922ve/AI-2U_wtZBpPGOswxMzReGQ?rlkey=n328yyr2llf81gz3chynjg0r6&dl=1`
+  with 8 inputs and 3 cached results in `scripts/bridge-annotation-inputs.tsv`.
+  The vignette read `data/CellTypeTable.rds`, but the file is
+  `cellTypeTable.rds`; this only worked on case-insensitive file systems.
+  Fresh builds: about 5 minutes 18 seconds, 24.4 and 17.3 GB peak RAM in two runs, 28 result metrics within
+  1e-5 of the established results, and the printed classification errors
+  identical to the published page (GA 0.2291131/0.3536215, peaks
+  0.2892031/0.3978839). Cached build: 37 seconds, 5.4 GB. `mvr()` converts
+  the predictor matrix to dense (since at least `afcf7c8`, 2025-01), so
+  `center = F` does not keep the peak matrix sparse; with Matrix 1.7.5 the
+  fresh page shows 2.6, 8.6 and 5.4 GiB coercion warnings.
 
 Relevant commits:
 

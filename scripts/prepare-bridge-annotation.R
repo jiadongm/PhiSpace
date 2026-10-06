@@ -14,7 +14,7 @@ if (!all(file.exists(paths))) {
     )
   }
   entries <- unzip(archive, list = TRUE)$Name
-  if (!all(manifest$path %in% entries)) stop("BridgeAnnotation archive is missing required inputs.")
+  if (!all(manifest$path %in% entries)) stop("BridgeAnnotation archive is missing required files.")
   unzip(archive, files = manifest$path, exdir = input_dir)
 }
 hashes <- vapply(paths, digest::digest, character(1), algo = "sha256", file = TRUE)
@@ -22,4 +22,4 @@ if (any(hashes != manifest$sha256)) {
   stop("Input checksum mismatch: ", paste(manifest$path[hashes != manifest$sha256], collapse = ", "),
        ". Review the data changes before updating scripts/bridge-annotation-inputs.tsv.")
 }
-message("Verified ", length(paths), " BridgeAnnotation inputs in ", normalizePath(input_dir))
+message("Verified ", length(paths), " BridgeAnnotation files in ", normalizePath(input_dir))

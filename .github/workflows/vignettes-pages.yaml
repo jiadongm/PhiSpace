@@ -43,6 +43,7 @@ jobs:
             any::ks
             any::clue
             any::stringr
+            any::RColorBrewer
       - name: Cache verified Stereo-seq inputs
         uses: actions/cache@v4
         with:
@@ -53,10 +54,17 @@ jobs:
         with:
           path: Test/visium-inputs
           key: visium-inputs-${{ hashFiles('scripts/visium-inputs.tsv') }}
+      - name: Cache verified BridgeAnnotation inputs and results
+        uses: actions/cache@v4
+        with:
+          path: Test/bridge-annotation-inputs
+          key: bridge-annotation-inputs-${{ hashFiles('scripts/bridge-annotation-inputs.tsv') }}
       - name: Build Stereo-seq with fresh results
         run: Rscript --vanilla scripts/build-stereoseq.R
       - name: Build Visium with fresh results
         run: Rscript --vanilla scripts/build-visium.R
+      - name: Build BridgeAnnotation from verified cached results
+        run: Rscript --vanilla scripts/build-bridge-annotation.R
       - name: Upload website for review
         uses: actions/upload-artifact@v4
         with:

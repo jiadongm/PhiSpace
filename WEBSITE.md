@@ -2,7 +2,8 @@
 
 The root workflow `.github/workflows/vignettes-pages.yaml` checks pull requests
 and builds and publishes pushes to `main`. It also supports a manual run from
-the Actions tab. Stereo-seq and Visium are rebuilt; the other pages and shared assets
+the Actions tab. Stereo-seq and Visium are rebuilt from fresh results, and BridgeAnnotation is
+rebuilt from verified cached results; the other pages and shared assets
 are copied from the committed `docs/` website. Changes to other vignette sources
 will not be published until those vignettes are added to this workflow.
 
@@ -30,6 +31,7 @@ Then run:
 export PHISPACE_SITE_DIR=Test/site-vignettes
 Rscript --vanilla scripts/build-stereoseq.R
 Rscript --vanilla scripts/build-visium.R
+Rscript --vanilla scripts/build-bridge-annotation.R
 ```
 
 The Stereo-seq script downloads the public archive, extracts only five required
@@ -51,6 +53,7 @@ For another full build, choose a new destination:
 export PHISPACE_SITE_DIR=Test/site-vignettes-next
 Rscript --vanilla scripts/build-stereoseq.R
 Rscript --vanilla scripts/build-visium.R
+Rscript --vanilla scripts/build-bridge-annotation.R
 ```
 
 Optional variables:
@@ -60,6 +63,14 @@ Optional variables:
 - `PHISPACE_VISIUM_INPUTS`: an alternative verified Visium input-cache directory.
 - `PHISPACE_VISIUM_ARCHIVE`: an existing Visium ZIP file to use instead of downloading.
 - `PHISPACE_SITE_DIR`: a new directory for the staged website.
+- `PHISPACE_BRIDGE_ANNOTATION_INPUTS` and `PHISPACE_BRIDGE_ANNOTATION_ARCHIVE`:
+  the BridgeAnnotation input cache (8 inputs and 3 cached results, about
+  1.6 GB) and an existing ZIP file to use instead of downloading.
+- `PHISPACE_BRIDGE_ANNOTATION_MODE`: `cached` (default) renders BridgeAnnotation
+  from the verified results in its shared folder; `fresh` recomputes them. A
+  fresh build peaks at 17 to 24 GB RAM, above the GitHub runner limit, so
+  Actions uses `cached`. Run `fresh` locally before changing its cached files or
+  expected values.
 - `PHISPACE_STEREOSEQ_DATA`: the extracted data folder when running the vignette
   directly. The automation sets this to a fresh temporary analysis directory.
 - `PHISPACE_VISIUM_DATA`: the data folder when running Visium directly.
