@@ -59,6 +59,142 @@ PhiSpace()                          # User-facing wrapper
 
 `PhiSpace()` uses the pre-normalised scores from `PhiSpaceR_1ref()` and stores them in `reducedDim(query, "PhiSpace")`.
 
+## Vignette Overhaul: Active Project
+
+The active maintenance project is to make every vignette reproducible with the
+current package and publish it through GitHub Actions. Treat the explicit
+analysis currently shown in each vignette as the reference implementation.
+
+### Compatibility First, Wrappers Last
+
+Use two separate passes:
+
+1. **Compatibility pass**: make the existing analysis run with current data,
+   dependencies, and PhiSpace APIs. Preserve explicit calculations unless they
+   are actually broken.
+2. **Wrapper-modernisation pass**: only after all seven vignettes pass, compare
+   explicit blocks with current wrappers such as `PhiSpace()`,
+   `clusterPhiSpace()`, `findNiches()`, `spatialSmoother()`,
+   `saveCellTypeMaps()`, and `scoreCells()`. Establish numerical or structural
+   equivalence before replacing a block. Keep explicit code when it teaches the
+   scientific method rather than mere boilerplate.
+
+Do not mix compatibility fixes and wrapper refactors in the same commit. The
+working explicit vignette is the oracle for evaluating a wrapper.
+
+### Vignette Status and Recommended Order
+
+| Order | Vignette | Status | Main legacy issue |
+| --- | --- | --- | --- |
+| done | `StereoSeq.Rmd` | Compatibility-complete; automated and live | qs2 migration and current APIs; fresh and cached builds pass |
+| done | `Visium.Rmd` | Compatibility-complete; automated and live | qs2 migration; fresh and cached builds pass |
+| 1 | `getting_started.Rmd` | Pending | Core tutorial; hard-coded paths, disabled evaluation, qs caches |
+| 2 | `PerturbSeq.Rmd` | Pending | Hard-coded paths, disabled evaluation, qs caches |
+| 3 | `BridgeAnnotation.Rmd` | Pending | Hard-coded paths, disabled evaluation, multiple RDS results |
+| 4 | `CITE-seq.Rmd` | Pending | Hard-coded paths, disabled evaluation, multimodal RDS results |
+| 5 | `CosMx.Rmd` | Pending | Largest remainder; multiple references, qs caches, spatial and multi-sample analysis |
+
+The order may change for scientific priority, but `getting_started` should
+normally be next because it exercises the public `PhiSpace()` interface and
+parameter tuning. Complete and publish one vignette-sized change at a time.
+
+### Standard Procedure for Each Vignette
+
+1. Record its scientific purpose, input objects, helper scripts, cached results,
+   expected figures/tables, random seeds, and meaningful output invariants.
+2. Inventory every data path and download. Never depend on a developer home
+   directory or private Dropbox mount.
+3. For legacy `.qs` files, use old `qs` only for one-time local conversion.
+   Save with `qs2::qs_save()`, read back with checksum validation, and compare
+   the restored R object with the original. Renaming `.qs` to `.qs2` is invalid.
+4. Publish data in a stable shared folder, preserve relative paths, and record
+   SHA-256 hashes in `scripts/<slug>-inputs.tsv`.
+5. Add `PHISPACE_<SLUG>_DATA`, `PHISPACE_<SLUG>_INPUTS`, and, for a folder ZIP,
+   `PHISPACE_<SLUG>_ARCHIVE`. Source helpers with `local = TRUE`.
+6. Enable evaluation and fail on chunk errors. Use
+   `knitr::opts_chunk$set(error = FALSE)` and render with `lazy = FALSE`.
+7. Run a **fresh-analysis build** with cached results deliberately absent, so
+   computation errors cannot be hidden by old outputs.
+8. Run a separate **cached-result build** with all downloadable outputs present.
+   Confirm it renders without loading the retired `qs` namespace.
+9. Record runtime, peak RAM, package versions, dimensions/names, and meaningful
+   numerical differences from established results.
+10. Add `scripts/prepare-<slug>.R`, `scripts/build-<slug>.R`, its manifest, and
+    the vignette to Actions only after both local builds pass. Resolve the exact
+    workflow dependency set locally.
+11. Commit only that vignette source, scripts, manifest, workflow update, and
+    publishing notes. Never commit `Test/` caches or staged websites.
+12. After the user pushes, check both Actions jobs and inspect the live article.
+    Local success does not prove runner resources, permissions, or deployment.
+
+### Serialization and Data Rules
+
+- New vignette work uses `qs2`, tested with qs2 0.3.1. Do not add `qs` to
+  Actions or new vignette code; it has been removed from active CRAN.
+- Legacy manual tests outside this overhaul may still reference `.qs`. Do not
+  migrate unrelated test data unless it is explicitly in scope.
+- Keep downloads, converted objects, logs, isolated R libraries, and staged
+  sites under git-ignored `Test/` or outside the clone under
+  `PkgOverhaul/data/<Vignette>/`.
+- Preparation scripts extract only manifest-listed files and verify every hash.
+  Upstream changes must fail until reviewed and intentionally accepted.
+- Actions caches verified inputs, not computed results. Build scripts create a
+  fresh temporary analysis directory so result-loading branches cannot mask
+  failures.
+
+### Current Automation
+
+- Workflow: `.github/workflows/stereoseq-pages.yaml`, displayed in Actions as
+  **Build and publish vignettes**.
+- It runs on pushes to `main`, pull requests, and manual dispatch. Pull requests
+  build an artifact but do not deploy. Main pushes deploy through GitHub Pages
+  with the built-in token; no personal token is stored as a workflow secret.
+- It stages committed `docs/`, then rebuilds every vignette already automated.
+  This is important: omitting an automated article from a later deployment
+  would copy its old committed HTML and revert the live page.
+- Each vignette runs in a separate R process. pkgdown is pinned to the CRAN
+  archive URL for version 2.2.0; qs2 is resolved from active CRAN.
+- Do not edit or commit generated `docs/` pages for this workflow. Actions
+  deploys the staged artifact.
+- Full local build:
+
+```bash
+export PHISPACE_SITE_DIR=Test/site-vignettes-next
+Rscript --vanilla scripts/build-stereoseq.R
+Rscript --vanilla scripts/build-visium.R
+```
+
+See `WEBSITE.md` for variables and deployment details. As the suite grows,
+separate fresh validation from publication: validate changed vignettes from
+scratch, but eventually publish the full site from verified cached results to
+keep runtime and memory bounded.
+
+### Completed Data and Validation
+
+- Stereo-seq archive:
+  `https://www.dropbox.com/scl/fo/4w5vweo2ky2vuf7g591fe/AMDVr2OAUL5W1wO7ATzM754?rlkey=aggfds07sjymsd2aomyepbylv&dl=1`
+  with hashes in `scripts/stereoseq-inputs.tsv`.
+- Visium archive:
+  `https://www.dropbox.com/scl/fo/gsaxu5jex7d8ftrwu3pf0/ANN2z_e4abgrON62BD2TEHk?rlkey=fg94wev8y6cn096khmauyaass&dl=1`
+  with hashes in `scripts/visium-inputs.tsv`.
+- Stereo-seq: all 22 chunks passed fresh and cached with qs2 0.3.1. Fresh
+  execution used about 9.3 GiB peak RAM and 2 minutes 40 seconds locally.
+- Visium: all 11 chunks passed fresh and cached with qs2 0.3.1. Fresh execution
+  used about 14.3 GB peak RAM and 1 minute 28 seconds; the cached build used
+  about 7.0 GB and 34 seconds.
+- The combined workflow-order build passed locally without loading `qs`.
+
+Relevant commits:
+
+- `a1080bc` — fix the Stereo-seq assay argument.
+- `a2d20e6` — add Stereo-seq Actions publishing.
+- `d61c249` — migrate Stereo-seq to qs2.
+- `797648c` — migrate and automate Visium and combine publishing.
+
+Handoff checkpoint on 2026-10-06: commit `797648c` was pushed; Actions run
+`37424544829` completed successfully, and the live Visium page was verified to use
+`qs2` and `.qs2` files. Future sessions should still recheck current Actions state.
+
 ## Build & Development Commands
 
 All commands should be run from the repo root. The package source is in `pkg/`.
