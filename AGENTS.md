@@ -177,8 +177,8 @@ PerturbSeq wrapper record (2026-10-07):
   locally, so the difference comes from the build machine.
 - Uploaded `output/PhiSpaceScores.qs2` to `VignetteData/PerturbSeq/` on
   2026-10-07 (Dropbox hashes match); the public folder download passes the new
-  manifest. `output/PhiRes.qs2` stays on Dropbox until the new page is live,
-  then is to be deleted (user-approved plan).
+  manifest. The new page went live in run `37613768456`; `output/PhiRes.qs2`
+  was then already absent from Dropbox when the approved deletion ran.
 
 CosMx wrapper record (2026-10-07):
 
@@ -202,7 +202,11 @@ CosMx wrapper record (2026-10-07):
   the previous explicit vignette.
 - The multi-sample section stays explicit (saved all-lung results and a
   PLS-DA with `mvr()`).
-- Dropbox upload of the two new files pending.
+- Uploaded both new files to `VignetteData/CosMx/output/` on 2026-10-07
+  (Dropbox hashes match); the public folder download passes the new manifest
+  (16 files). After the new page is live, delete
+  `CosMxLung5Rep1PhiRes4Refs.qs2` and `Lung5_Rep1_PhiClusts4Refs.qs2` from
+  Dropbox (pending user approval).
 
 ### Dropbox Access
 
