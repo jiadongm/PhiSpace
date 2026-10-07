@@ -159,6 +159,31 @@ result_metrics[["CITE-seq"]] <- function(output_dir) {
   m
 }
 
+result_metrics$PerturbSeq <- function(output_dir) {
+  res <- qs2::qs_read(file.path(output_dir, "PhiRes.qs2"), validate_checksum = TRUE)
+  m <- list()
+  for (part in c("PhiSpaceScore", "YrefHat")) {
+    score <- res[[part]]
+    key <- if (part == "YrefHat") "ref" else "query"
+    m[[paste0(key, "_n_cells")]] <- nrow(score)
+    m[[paste0(key, "_n_celltypes")]] <- ncol(score)
+    m[[paste0(key, "_celltypes_sha256")]] <- digest::digest(colnames(score), algo = "sha256")
+    m[[paste0(key, "_cells_sha256")]] <- digest::digest(rownames(score), algo = "sha256")
+    m[[paste0(key, "_score_mean")]] <- mean(score)
+    m[[paste0(key, "_score_sd")]] <- sd(as.vector(score))
+  }
+  m$ncomp <- res$ncomp
+  m$n_selected_features <- length(res$selectedFeat)
+  # Scores behind the activation and Th1/Th2 analyses.
+  norm <- normPhiScores(res$PhiSpaceScore)
+  for (ct in c("T cells, CD4+, naive, stimulated", "T cells, CD8+, naive, stimulated",
+               "T cells, CD4+, Th1", "T cells, CD4+, Th2")) {
+    m[[paste0("norm_mean_", ct)]] <- mean(norm[, ct])
+    m[[paste0("norm_sd_", ct)]] <- sd(norm[, ct])
+  }
+  m
+}
+
 format_metrics <- function(metrics) {
   vapply(metrics, function(x) {
     if (length(x) != 1) stop("Each result metric must be a single value.")

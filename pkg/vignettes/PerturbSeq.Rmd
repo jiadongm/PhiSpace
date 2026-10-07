@@ -10,7 +10,7 @@ vignette: >
 ---
 
 ```{r setup, include=FALSE}
-# knitr::opts_chunk$set(eval = FALSE)
+knitr::opts_chunk$set(error = FALSE)
 ```
 
 ## Highlights
@@ -43,25 +43,32 @@ suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(tidyr))
 suppressPackageStartupMessages(library(magrittr))
 suppressPackageStartupMessages(library(ggpubr))
-suppressPackageStartupMessages(library(qs)) # quick read and write of R objects
+suppressPackageStartupMessages(library(qs2)) # quick read and write of R objects
 suppressPackageStartupMessages(library(ComplexHeatmap))
 suppressPackageStartupMessages(library(seriation))
 
-dat_dir <- "~/Dropbox/Research_projects/PhiSpace/VignetteData/Perturb-seq/"
-source("~/Dropbox/Research_projects/PhiSpace/VignetteData/Perturb-seq/utils.R")
+dat_dir <- Sys.getenv("PHISPACE_PERTURBSEQ_DATA", unset = "data/PerturbSeq")
+if (!file.exists(file.path(dat_dir, "utils.R"))) {
+  stop("Set PHISPACE_PERTURBSEQ_DATA to the data folder containing utils.R.")
+}
+dat_dir <- paste0(normalizePath(dat_dir, winslash = "/"), "/")
+dir.create(file.path(dat_dir, "output"), recursive = TRUE, showWarnings = FALSE)
+source(paste0(dat_dir, "utils.R"), local = TRUE)
 ```
 
 
 # Data preparation 
 
-Download the processed and query dataset [sceStim.qs](https://www.dropbox.com/scl/fi/dbryqvqyenxvosv7o9lyk/sceStim.qs?rlkey=zarwoa2gn7cb4g6dltbuk8ddj&st=2eryps2o&dl=0).
+Download the [shared folder](https://www.dropbox.com/scl/fo/4gm1ef27yl4wgb0f6zio7/AG0bvE9LXKgv61AAKmD5ho8?rlkey=bkd7nlwo6qlltkl21645xdw90&dl=0) and preserve its directory layout. It contains `utils.R`, the processed query dataset `data/sceStim.qs2`, the processed reference `data/ref_sce.qs2` and the cached annotation result `output/PhiRes.qs2`.
+
+Set `PHISPACE_PERTURBSEQ_DATA` to that folder before running this vignette, for example `Sys.setenv(PHISPACE_PERTURBSEQ_DATA = "/path/to/PerturbSeq")`. This vignette uses `qs2::qs_read()` and `qs2::qs_save()` with migrated `.qs2` files. The old `.qs` files cannot be converted by renaming them.
 ```{r}
-query <- qread(paste0(dat_dir, "data/sceStim.qs"))
+query <- qs_read(paste0(dat_dir, "data/sceStim.qs2"))
 ```
 
-The DICE bulk reference data can be downloaded via the `celldex` package. The sce object from `celldex` contains only one assay named `logcounts`, which contains log transformed TPM (transcript per million) normalised counts. As raw counts are not available, we transform `logcounts` back to TPM and apply scran normalisation to TPM.
+The DICE bulk reference data can be downloaded via the `celldex` package. The sce object from `celldex` contains only one assay named `logcounts`, which contains log transformed TPM (transcript per million) normalised counts. As raw counts are not available, we transform `logcounts` back to TPM and apply scran normalisation to TPM. The shared folder already contains the result (`data/ref_sce.qs2`), so the code below runs only if that file is missing.
 ```{r}
-refPath <- paste0(dat_dir, "data/ref_sce.qs")
+refPath <- paste0(dat_dir, "data/ref_sce.qs2")
 if(!file.exists(refPath)){
   # BiocManager::install("celldex")
   reference <- celldex::DatabaseImmuneCellExpressionData()
@@ -72,25 +79,25 @@ if(!file.exists(refPath)){
   assay(reference, "TPM") <- 2^(assay(reference, "logcounts")) - 1
   reference <- SingleCellExperiment(list(TPM = assay(reference, "TPM")), colData = colData(reference))
   reference <- scranTransf(reference, "TPM")
-  qsave(reference, refPath)
+  qs_save(reference, refPath)
 } else {
-  reference <- qread(refPath)
+  reference <- qs_read(refPath)
 }
 ```
 
 
 # Run PhiSpace
 ```{r}
-PhiResPath <- paste0(dat_dir, "output/PhiRes.qs")
+PhiResPath <- paste0(dat_dir, "output/PhiRes.qs2")
 if(!file.exists(PhiResPath)){
   PhiAssay <- "logcounts"
   PhiRes <- PhiSpaceR_1ref(
     reference, query, phenotypes = "label.fine", refAssay = PhiAssay, 
     regMethod = "PLS", nfeat = 500
   )
-  qsave(PhiRes, PhiResPath)
+  qs_save(PhiRes, PhiResPath)
 } else {
-  PhiRes <- qread(PhiResPath)
+  PhiRes <- qs_read(PhiResPath)
 }
 length(PhiRes$selectedFeat)
 reducedDim(query, "PhiSpace") <- normPhiScores(PhiRes$PhiSpaceScore)
