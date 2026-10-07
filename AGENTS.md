@@ -117,7 +117,7 @@ Decision column.
 
 | Order | Vignette | Explicit block | Wrapper | Decision |
 | --- | --- | --- | --- | --- |
-| 1 | PerturbSeq | `PhiSpaceR_1ref()` + `normPhiScores()`, one reference | `PhiSpace()` | Done 2026-10-07 (see the PerturbSeq wrapper record below); Dropbox upload pending. |
+| 1 | PerturbSeq | `PhiSpaceR_1ref()` + `normPhiScores()`, one reference | `PhiSpace()` | Done 2026-10-07 (see the PerturbSeq wrapper record below). |
 | 2 | CosMx | Loop over 4 lineage references with `PhiSpaceR_1ref()` + `normPhiScores()` and a `(lineage)` name suffix | `PhiSpace(reference = ref_list)` | Convert; the only multi-reference demonstration. |
 | 2 | CosMx | PCA of scores, `set.seed(94863)`, `kmeans(centers = 9, iter.max = 200, nstart = 50)` | `findNiches()` | Convert if equivalent. |
 | 3 | StereoSeq | Same PCA + k-means pattern (`centers = 8`) | `findNiches()` | Convert if equivalent. |
@@ -169,6 +169,10 @@ PerturbSeq wrapper record (2026-10-07):
   explicit vignette. Against the live page, 10 of 11 are identical; the
   heatmap differs in fine detail, as it does for the explicit vignette built
   locally, so the difference comes from the build machine.
+- Uploaded `output/PhiSpaceScores.qs2` to `VignetteData/PerturbSeq/` on
+  2026-10-07 (Dropbox hashes match); the public folder download passes the new
+  manifest. `output/PhiRes.qs2` stays on Dropbox until the new page is live,
+  then is to be deleted (user-approved plan).
 
 ### Dropbox Access
 
