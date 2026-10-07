@@ -69,7 +69,7 @@ Use two separate passes:
 1. **Compatibility pass**: make the existing analysis run with current data,
    dependencies, and PhiSpace APIs. Preserve explicit calculations unless they
    are actually broken.
-2. **Wrapper-modernisation pass**: only after all seven vignettes pass, compare
+2. **Wrapper-modernisation pass** (plan below, under "Wrapper-Modernisation Plan"): only after all seven vignettes pass, compare
    explicit blocks with current wrappers such as `PhiSpace()`,
    `clusterPhiSpace()`, `findNiches()`, `spatialSmoother()`,
    `saveCellTypeMaps()`, and `scoreCells()`. Establish numerical or structural
@@ -97,11 +97,52 @@ parameter tuning. Complete and publish one vignette-sized change at a time.
 
 ### Pending User Actions (TODO)
 
-1. **Push `main`.** Local `main` is ahead of `origin/main`; the user pushes
-   when ready. After a push, check both Actions jobs and the live pages.
-2. **Local clean-up.** List files in `PkgOverhaul/Test` and
-   `PkgOverhaul/data` that are safe to delete, keeping one verified input
-   cache per vignette, and confirm with the user before deleting.
+None. The user pushes each commit; after a push, check both Actions jobs and
+the live pages.
+
+Local clean-up was done on 2026-10-07: the user deleted all of
+`PkgOverhaul/Test/` (input caches, the qs2 library, logs and scripts) and the
+data files under `PkgOverhaul/data/`. Only READMEs, conversion manifests and
+sessionInfo files remain in `data/`. The `.qs` to `.qs2` conversion scripts and
+`make_stereoseq_replacements.R` were lost with `Test/`; the READMEs that name
+them are now out of date, but the manifests still record every hash. For a
+local build, download inputs again with `scripts/prepare-<slug>.R` and install
+qs2 from CRAN.
+
+### Wrapper-Modernisation Plan (agreed 2026-10-07)
+
+This is pass 2 of "Compatibility First, Wrappers Last". Scope, by expected
+value (checked by reading the vignettes and wrapper sources; nothing has been
+run yet):
+
+| Order | Vignette | Explicit block | Wrapper | Decision |
+| --- | --- | --- | --- | --- |
+| 1 | PerturbSeq | `PhiSpaceR_1ref()` + `normPhiScores()`, one reference | `PhiSpace()` | Convert; it sets up the method. The vignette prints `length(PhiRes$selectedFeat)`, which `PhiSpace()` does not return. |
+| 2 | CosMx | Loop over 4 lineage references with `PhiSpaceR_1ref()` + `normPhiScores()` and a `(lineage)` name suffix | `PhiSpace(reference = ref_list)` | Convert; the only multi-reference demonstration. |
+| 2 | CosMx | PCA of scores, `set.seed(94863)`, `kmeans(centers = 9, iter.max = 200, nstart = 50)` | `findNiches()` | Convert if equivalent. |
+| 3 | StereoSeq | Same PCA + k-means pattern (`centers = 8`) | `findNiches()` | Convert if equivalent. |
+| 3 | StereoSeq | Single-cell scores as `response` | `PhiSpace(response = ...)` | Low value; convert if equivalent. |
+| 4 | Visium | One reference, list of tissues as query | `PhiSpace(query = query_list)` | Low value; convert if equivalent. |
+| - | BridgeAnnotation, CITE-seq | Bridge transfer; CITE-seq uses `YrefHat` | - | Keep explicit. The code teaches the method, and new cached results need 17-24 GB and about 65 GB RAM. |
+| - | getting_started | Already uses `PhiSpace()` and `tunePhiSpace()` | - | No change. |
+
+`findNiches()` defaults differ from the vignettes: Lloyd algorithm, 20 starts and
+500 iterations, against the R default Hartigan-Wong algorithm, 50 starts and
+200 iterations. Its default seed (94863) matches. Check that its PCA matches the
+vignettes' `getPC()` call before using it.
+
+Procedure, one vignette per commit:
+
+1. Run the explicit block and the wrapper on the same inputs in a script
+   outside the clone. Compare scores with `all.equal()`, and clusters with an
+   adjusted Rand index of 1 (cluster numbers may be permuted).
+2. If a wrapper differs, fix the wrapper first, in a separate package commit.
+   Testing the wrappers against working code is the main gain of this pass.
+3. Replace the block, rebuild fresh, and require the existing
+   `scripts/<slug>-results.tsv` checks to pass unchanged.
+4. `PhiSpace()` returns the query object, not the `PhiSpaceR_1ref()` list, so
+   saved result files change. Regenerate them, update the manifests, and
+   confirm each Dropbox upload with the user.
 
 ### Dropbox Access
 
@@ -121,8 +162,8 @@ Done on 2026-10-07 with this procedure:
   `StereoSeq/.Rhistory` (about 3.5 GB). Old individual file links no longer
   work. `VignetteData/` now has one folder per vignette (`ATAC`, `CITE`,
   `CosMx`, `PerturbSeq`, `StereoSeq`, `Visium`, `getting_started`) and no `.qs`
-  files. Local copies of the deleted files remain under `PkgOverhaul/data/`
-  until the local clean-up.
+  files. The local copies were deleted in the local clean-up; the old `.qs`
+  originals are no longer kept anywhere.
 
 - Stereo-seq: `output/PhiRes.qs2`, `PhiClustRes.qs2` and `cloneKDEres.qs2`
   replaced by the files in `PkgOverhaul/data/StereoSeq/replacement-2026-10-06/`;
@@ -195,8 +236,8 @@ Done on 2026-10-07 with this procedure:
   helper scripts and other working files outside the clone: under
   `PkgOverhaul/Test/` or `PkgOverhaul/data/<Vignette>/`. Do not add files to
   `PhiSpace/Test/`; its earlier contents were moved to `PkgOverhaul/Test/` on
-  2026-10-06, including the isolated qs2 0.3.1 library
-  (`PkgOverhaul/Test/qs2-library`). The build scripts default to repository-relative `Test/`
+  2026-10-06, and `PkgOverhaul/Test/` was deleted on 2026-10-07 (see Pending
+  User Actions). The build scripts default to repository-relative `Test/`
   paths because Actions uses them; locally, override them with the
   `PHISPACE_SITE_DIR` and `PHISPACE_<SLUG>_INPUTS` variables.
 - Preparation scripts extract only manifest-listed files and verify every hash.
