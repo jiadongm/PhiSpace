@@ -118,8 +118,8 @@ Decision column.
 | Order | Vignette | Explicit block | Wrapper | Decision |
 | --- | --- | --- | --- | --- |
 | 1 | PerturbSeq | `PhiSpaceR_1ref()` + `normPhiScores()`, one reference | `PhiSpace()` | Done 2026-10-07 (see the PerturbSeq wrapper record below). |
-| 2 | CosMx | Loop over 4 lineage references with `PhiSpaceR_1ref()` + `normPhiScores()` and a `(lineage)` name suffix | `PhiSpace(reference = ref_list)` | Convert; the only multi-reference demonstration. |
-| 2 | CosMx | PCA of scores, `set.seed(94863)`, `kmeans(centers = 9, iter.max = 200, nstart = 50)` | `findNiches()` | Convert if equivalent. |
+| 2 | CosMx | Loop over 4 lineage references with `PhiSpaceR_1ref()` + `normPhiScores()` and a `(lineage)` name suffix | `PhiSpace(reference = ref_list)` | Done 2026-10-07 (see the CosMx wrapper record below). |
+| 2 | CosMx | PCA of scores, `set.seed(94863)`, `kmeans(centers = 9, iter.max = 200, nstart = 50)` | `findNiches()` | Done 2026-10-07, with the vignette's k-means arguments. |
 | 3 | StereoSeq | Same PCA + k-means pattern (`centers = 8`) | `findNiches()` | Convert if equivalent. |
 | 3 | StereoSeq | Single-cell scores as `response` | `PhiSpace(response = ...)` | Low value; convert if equivalent. |
 | 4 | Visium | One reference, list of tissues as query | `PhiSpace(query = query_list)` | Low value; convert if equivalent. |
@@ -128,8 +128,14 @@ Decision column.
 
 `findNiches()` defaults differ from the vignettes: Lloyd algorithm, 20 starts and
 500 iterations, against the R default Hartigan-Wong algorithm, 50 starts and
-200 iterations. Its default seed (94863) matches. Check that its PCA matches the
-vignettes' `getPC()` call before using it.
+200 iterations. Its default seed (94863) matches. Its PCA is the same `getPC()`
+call. With the vignette's arguments it reproduces the CosMx labels exactly; with
+its defaults the adjusted Rand index is 0.89. It reports progress with `cat()`,
+so the rendered page shows its messages and the niche-size table.
+
+`pls.fit()` calls `irlba::partial_eigen()`, which draws a random start vector,
+so PhiSpace scores vary between runs by about 1e-8 unless the seed is the same.
+Compare explicit and wrapper code from the same seed.
 
 Procedure, one vignette per commit:
 
@@ -173,6 +179,30 @@ PerturbSeq wrapper record (2026-10-07):
   2026-10-07 (Dropbox hashes match); the public folder download passes the new
   manifest. `output/PhiRes.qs2` stays on Dropbox until the new page is live,
   then is to be deleted (user-approved plan).
+
+CosMx wrapper record (2026-10-07):
+
+- `PhiSpace(ref_list, query, ...)`, after `logTransf()` of each reference,
+  gives bit-identical scores and names to the explicit four-reference loop
+  when both start from the same seed. No wrapper change was needed.
+- `findNiches(query, n_niches = 9, ncomp = 25, kmeans_algorithm =
+  "Hartigan-Wong", kmeans_nstart = 50L, kmeans_iter = 200L, seed = 94863)`
+  gives labels identical to `getPC()` + `kmeans()` and to the established
+  cached clustering. The irlba start of the PCA does not change the labels.
+- The vignette saves `output/Lung5_Rep1_PhiSpaceScores4Refs.qs2` (98,002 x 43
+  normalised scores, 29.7 MB) and `output/Lung5_Rep1_PhiNiches4Refs.qs2`
+  (niche labels, 0.15 MB), replacing `CosMxLung5Rep1PhiRes4Refs.qs2` and
+  `Lung5_Rep1_PhiClusts4Refs.qs2`. It no longer draws the PCA scree plot
+  (only fresh builds drew it) or runs the no-op lineage renaming.
+- All 35 checks in `scripts/cosmx-results.tsv` pass with unchanged expected
+  values: the check splits the score matrix by its `(lineage)` suffix and
+  recomputes the within-cluster sum of squares on 25 principal components.
+  Fresh: 111 s, 10.3 GB; cached: 69 s, 9.5 GB. All 14 figures are
+  byte-identical between fresh and cached builds and to a local render of
+  the previous explicit vignette.
+- The multi-sample section stays explicit (saved all-lung results and a
+  PLS-DA with `mvr()`).
+- Dropbox upload of the two new files pending.
 
 ### Dropbox Access
 

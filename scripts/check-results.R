@@ -181,11 +181,13 @@ result_metrics$PerturbSeq <- function(output_dir) {
 result_metrics$CosMx <- function(output_dir) {
   read <- function(name) qs2::qs_read(file.path(output_dir, name), validate_checksum = TRUE)
   m <- list()
-  # Lung5_Rep1 annotation by the four lineage references (normalised scores).
-  sc_list <- read("CosMxLung5Rep1PhiRes4Refs.qs2")
-  m$lineages <- paste(names(sc_list), collapse = ",")
-  for (lineage in names(sc_list)) {
-    sc <- sc_list[[lineage]]
+  # Lung5_Rep1 annotation by the four lineage references: PhiSpace() stores the
+  # normalised scores of all references in one matrix with "(lineage)" suffixes.
+  scores <- read("Lung5_Rep1_PhiSpaceScores4Refs.qs2")
+  suffix <- sub("^.*\\(([^()]+)\\)$", "\\1", colnames(scores))
+  m$lineages <- paste(unique(suffix), collapse = ",")
+  for (lineage in unique(suffix)) {
+    sc <- scores[, suffix == lineage, drop = FALSE]
     key <- paste0("lung5rep1_", lineage)
     m[[paste0(key, "_n_cells")]] <- nrow(sc)
     m[[paste0(key, "_n_celltypes")]] <- ncol(sc)
@@ -194,12 +196,17 @@ result_metrics$CosMx <- function(output_dir) {
     m[[paste0(key, "_score_mean")]] <- mean(sc)
     m[[paste0(key, "_score_sd")]] <- sd(as.vector(sc))
   }
-  # PhiSpace niches of Lung5_Rep1. Labels are arbitrary, so sizes are sorted;
-  # sizes allow 1% because k-means assignments of borderline cells depend on BLAS.
-  km <- read("Lung5_Rep1_PhiClusts4Refs.qs2")
-  sizes <- sort(km$size)
+  # PhiSpace niches of Lung5_Rep1 from findNiches(). Labels are arbitrary, so sizes
+  # are sorted; sizes allow 1% because k-means assignments of borderline cells
+  # depend on BLAS. The within-cluster sum of squares is recomputed on the same
+  # 25 principal components that findNiches() clusters.
+  niches <- read("Lung5_Rep1_PhiNiches4Refs.qs2")
+  sizes <- sort(as.vector(table(niches)))
   for (i in seq_along(sizes)) m[[sprintf("niche_size_rank%d", i)]] <- sizes[[i]]
-  m$niche_tot_withinss <- km$tot.withinss
+  pcs <- getPC(scores, ncomp = 25)$scores
+  m$niche_tot_withinss <- sum(vapply(split(seq_len(nrow(pcs)), niches), function(i) {
+    sum(sweep(pcs[i, , drop = FALSE], 2, colMeans(pcs[i, , drop = FALSE]))^2)
+  }, numeric(1)))
   m
 }
 

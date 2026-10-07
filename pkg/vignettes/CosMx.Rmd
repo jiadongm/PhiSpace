@@ -84,47 +84,26 @@ query <- logTransf(query, use_log1p = TRUE, targetAssay = "log1p")
 
 
 ## Run PhiSpace
-Run PhiSpace using 4 references.
+Run PhiSpace using 4 references. `PhiSpace()` annotates the query with each reference in turn and appends the reference name to each cell type, for example `AT2(epi)`. The scores from the four references are stored together in `reducedDim(query, "PhiSpace")`.
 ```{r}
 PhiAssay <- "log1p"
-PhiResPath <- paste0(dat_dir, "output/CosMxLung5Rep1PhiRes4Refs.qs2")
-if(!file.exists(PhiResPath)){
-  sc_list <- vector("list", length(ref_list))
-  names(sc_list) <- names(ref_list)
-  for(ii in 1:length(ref_list)){
-    # Define reference dataset and normalise
-    lineage <- names(ref_list)[ii]
-    reference <- ref_list[[lineage]]
-    reference <- logTransf(reference, targetAssay = PhiAssay, use_log1p = T)
-    # Run PhiSpace
-    PhiRes <- PhiSpaceR_1ref(
-      reference, query, 
-      phenotypes = YtrainName, refAssay = "log1p",
-      regMethod = "PLS", center = T, scale = F
-    )
-    # Extract cell type scores and rename cell types by adding lineage info
-    sc <- PhiRes$PhiSpaceScore
-    sc <- normPhiScores(sc)
-    colnames(sc) <- paste0(colnames(sc), "(", lineage, ")")
-    sc_list[[lineage]] <- sc
-  }
-  qs_save(sc_list, PhiResPath)
+PhiScPath <- paste0(dat_dir, "output/Lung5_Rep1_PhiSpaceScores4Refs.qs2")
+if(!file.exists(PhiScPath)){
+  ref_list <- lapply(ref_list, logTransf, targetAssay = PhiAssay, use_log1p = TRUE)
+  query <- PhiSpace(
+    ref_list, query,
+    phenotypes = YtrainName, refAssay = PhiAssay,
+    regMethod = "PLS", center = TRUE, scale = FALSE
+  )
+  qs_save(reducedDim(query, "PhiSpace"), PhiScPath)
 } else {
-  sc_list <- qs_read(PhiResPath)
+  reducedDim(query, "PhiSpace") <- qs_read(PhiScPath)
 }
 ```
 
 
-Concatenate annotations from 4 references into one and simplify cell type names.
+Simplify cell type names.
 ```{r}
-cbindSc <- Reduce(cbind, sc_list)
-scNames <- colnames(cbindSc)
-scNames <- gsub("immune", "immu", scNames)
-scNames <- gsub("epithelial", "epi", scNames)
-scNames <- gsub("endothelial", "endo", scNames)
-scNames <- gsub("mesenchymal", "mesen", scNames)
-colnames(cbindSc) <- scNames
-reducedDim(query, "PhiSpace") <- cbindSc 
 originalNames <- simpleNames <- colnames(reducedDim(query, "PhiSpace"))
 simpleNames[c(2, 4, 9, 10, 12, 18, 21, 23, 24, 25, 26, 43)] <- c(
   "MoMacroph(immu)", "InflamMono(immu)",  "AlveolarMacroph(immu)",
@@ -157,24 +136,20 @@ VizSpatial(query, "sdimx", "sdimy", ptSize = 1, reducedDim = "B cells(immu)", ce
 
 
 
-It is very encouraging to see how a simple spatial heatmap can alreay be so informative. Since the distribution of different cell types show such diverse spatial distributions, why can't we use them to define spatial niches? Here we simply cluster the PhiSpace cell type scores into 9 clusters to match the number of spatial domains defined by He et al. (2022). As we see below, these clusters correspond well to the domains defined by He et al. (2022), but with more subtlety. In particular, our PhiSpace clustering seemed to idnetify two niches within the 'tumour interior' domain of He et al. (2022).
+It is very encouraging to see how a simple spatial heatmap can alreay be so informative. Since the distribution of different cell types show such diverse spatial distributions, why can't we use them to define spatial niches? Here we simply cluster the PhiSpace cell type scores into 9 clusters to match the number of spatial domains defined by He et al. (2022). `findNiches()` computes the first 25 principal components of the scores and clusters them with k-means. As we see below, these clusters correspond well to the domains defined by He et al. (2022), but with more subtlety. In particular, our PhiSpace clustering seemed to idnetify two niches within the 'tumour interior' domain of He et al. (2022).
 ```{r  fig.asp=1}
-clustResPath <- paste0(dat_dir, "output/Lung5_Rep1_PhiClusts4Refs.qs2")
-if(!file.exists(clustResPath)){
-  PhiPCRes <- getPC(
-    reducedDim(query, "PhiSpace"), ncomp = ncol(reducedDim(query, "PhiSpace")) - 1
+nichePath <- paste0(dat_dir, "output/Lung5_Rep1_PhiNiches4Refs.qs2")
+if(!file.exists(nichePath)){
+  query <- findNiches(
+    query, n_niches = 9, ncomp = 25,
+    kmeans_algorithm = "Hartigan-Wong", kmeans_nstart = 50L, kmeans_iter = 200L,
+    seed = 94863
   )
-  plot(1-PhiPCRes$accuProps)
-  mat2clust <- PhiPCRes$scores[,1:25]
-  set.seed(94863)
-  clust_res <- kmeans(
-    mat2clust, centers = 9, iter.max = 200L, nstart = 50
-  )
-  qs_save(clust_res, clustResPath)
+  qs_save(query$spatial_niches, nichePath)
 } else {
-  clust_res <- qs_read(clustResPath)
+  query$spatial_niches <- qs_read(nichePath)
 }
-query$PhiClust <- as.character(clust_res$cluster)
+query$PhiClust <- sub("Niche_", "", query$spatial_niches)
 tempClustCols <- c(
   "1" = "#FF7F00", "2" = "#33A02C", "3" = "#B15928", "4" = "#1F78B4", 
   "5" = "gray50", "6" = "#A6CEE3" , "7" =  "#6A3D9A", "8" =  "#FFFF99", "9" = "black"
