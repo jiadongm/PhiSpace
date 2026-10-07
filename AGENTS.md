@@ -230,12 +230,16 @@ StereoSeq wrapper record (2026-10-07):
   rewrote no saved file.
 - All 23 figures are byte-identical to the old explicit render; its 24th
   figure was the scree plot. The saved-results render gives the same 23.
-- Dropbox upload of the two new files pending.
+- Uploaded both new files to `VignetteData/StereoSeq/output/` on 2026-10-07
+  (Dropbox hashes match; the public folder ZIP serves the same SHA-256).
+  After the new page is live, delete `PhiRes.qs2` and `PhiClustRes.qs2` from
+  Dropbox (approved in principle; confirm before deleting).
 - Uploaded both new files to `VignetteData/CosMx/output/` on 2026-10-07
   (Dropbox hashes match); the public folder download passes the new manifest
-  (16 files). After the new page is live, delete
-  `CosMxLung5Rep1PhiRes4Refs.qs2` and `Lung5_Rep1_PhiClusts4Refs.qs2` from
-  Dropbox (pending user approval).
+  (16 files). The new page went live in run `37616620258`; the superseded
+  `CosMxLung5Rep1PhiRes4Refs.qs2` and `Lung5_Rep1_PhiClusts4Refs.qs2` were
+  then deleted from Dropbox (user-approved), and the public download still
+  passes the manifest.
 
 ### Dropbox Access
 
