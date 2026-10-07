@@ -87,9 +87,9 @@ working explicit vignette is the oracle for evaluating a wrapper.
 | done | `Visium.Rmd` | Compatibility-complete; automated and live | qs2 migration; fresh and cached builds pass |
 | done | `getting_started.Rmd` | Compatibility-complete; automated and live | qs2 migration; fresh and cached builds pass |
 | done | `BridgeAnnotation.Rmd` | Compatibility-complete; automated from cached results; live | Private paths, file-name case; fresh build needs 17-24 GB RAM |
-| done | `PerturbSeq.Rmd` | Compatibility-complete; automated | qs2 migration and new public folder; private `utils.R`; celldex reference shipped as an input |
+| done | `PerturbSeq.Rmd` | Compatibility-complete; automated and live | qs2 migration and new public folder; private `utils.R`; celldex reference shipped as an input |
 | done | `CITE-seq.Rmd` | Compatibility-complete; automated from cached results; live | Private paths; fresh RNA branch saved the wrong object name; fresh build needs about 65 GB RAM |
-| done | `CosMx.Rmd` | Compatibility-complete; automated | qs2 migration in the existing Dropbox folder; five download links replaced by one folder link |
+| done | `CosMx.Rmd` | Compatibility-complete; automated and live | qs2 migration in the existing Dropbox folder; five download links replaced by one folder link |
 
 The order may change for scientific priority, but `getting_started` should
 normally be next because it exercises the public `PhiSpace()` interface and
@@ -375,13 +375,13 @@ Relevant commits:
 - `d61c249` — migrate Stereo-seq to qs2.
 - `797648c` — migrate and automate Visium and combine publishing.
 
-Handoff checkpoint on 2026-10-07: commit `76a4fd7` was pushed; Actions run
-`37548317204` built Stereo-seq, Visium and Getting Started fresh and
-BridgeAnnotation and CITE-seq from cached results, all with result checks, in
-about 10 minutes, and deployed. The five live articles were checked for their
-new content and contain no private Dropbox paths. Job logs need repository
-admin rights; the public API gives run and step status. Future sessions should
-still recheck current Actions state.
+Handoff checkpoint on 2026-10-07: commit `c77f1f1` was pushed; Actions run
+`37580149580` built all seven vignettes (Stereo-seq, Visium, Getting Started,
+PerturbSeq and CosMx fresh; BridgeAnnotation and CITE-seq from cached results)
+with result checks in about 10 minutes, and deployed. The live CosMx article
+was checked for its new content and contains no private Dropbox paths. Job
+logs need repository admin rights; the public API gives run and step status.
+Future sessions should still recheck current Actions state.
 
 ## Build & Development Commands
 
