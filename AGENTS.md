@@ -99,13 +99,9 @@ parameter tuning. Complete and publish one vignette-sized change at a time.
 
 1. **Push `main`.** Local `main` is ahead of `origin/main`; the user pushes
    when ready. After a push, check both Actions jobs and the live pages.
-2. **Dropbox clean-up after the new CosMx page is live** (agreed 2026-10-07;
-   confirm each deletion): the 15 old `.qs` files in `VignetteData/CosMx/`,
-   the superseded `VignetteData/DC/` and `VignetteData/Perturb-seq/` folders,
-   `VignetteData_backups/`, `Visium/data/LungRef/AzimuthLungMarkers.qs` (not
-   read) and `StereoSeq/.Rhistory`. Old individual file links then stop
-   working. Then list local files in `PkgOverhaul/Test` and `PkgOverhaul/data`
-   that are safe to delete, keeping one verified input cache per vignette.
+2. **Local clean-up.** List files in `PkgOverhaul/Test` and
+   `PkgOverhaul/data` that are safe to delete, keeping one verified input
+   cache per vignette, and confirm with the user before deleting.
 
 ### Dropbox Access
 
@@ -118,6 +114,15 @@ folders), compare `rclone hashsum dropbox` of remote and local files, and then
 download through the public link and check the SHA-256 manifest.
 
 Done on 2026-10-07 with this procedure:
+
+- Clean-up after all seven vignettes were live (user-approved): deleted the 15
+  old `.qs` files in `CosMx/`, the superseded `DC/` and `Perturb-seq/` folders,
+  `VignetteData_backups/`, `Visium/data/LungRef/AzimuthLungMarkers.qs` and
+  `StereoSeq/.Rhistory` (about 3.5 GB). Old individual file links no longer
+  work. `VignetteData/` now has one folder per vignette (`ATAC`, `CITE`,
+  `CosMx`, `PerturbSeq`, `StereoSeq`, `Visium`, `getting_started`) and no `.qs`
+  files. Local copies of the deleted files remain under `PkgOverhaul/data/`
+  until the local clean-up.
 
 - Stereo-seq: `output/PhiRes.qs2`, `PhiClustRes.qs2` and `cloneKDEres.qs2`
   replaced by the files in `PkgOverhaul/data/StereoSeq/replacement-2026-10-06/`;
