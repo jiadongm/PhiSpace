@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
@@ -23,7 +23,7 @@ jobs:
       OMP_NUM_THREADS: 2
       PHISPACE_SITE_DIR: Test/site-vignettes
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: r-lib/actions/setup-r@v2
         with:
           r-version: '4.5.0'
@@ -49,37 +49,37 @@ jobs:
             any::seriation
             any::ggdendro
       - name: Cache verified Stereo-seq inputs
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: Test/stereoseq-inputs
           key: stereoseq-inputs-${{ hashFiles('scripts/stereoseq-inputs.tsv') }}
       - name: Cache verified Visium inputs
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: Test/visium-inputs
           key: visium-inputs-${{ hashFiles('scripts/visium-inputs.tsv') }}
       - name: Cache verified BridgeAnnotation inputs and results
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: Test/bridge-annotation-inputs
           key: bridge-annotation-inputs-${{ hashFiles('scripts/bridge-annotation-inputs.tsv') }}
       - name: Cache verified Getting Started inputs
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: Test/getting-started-inputs
           key: getting-started-inputs-${{ hashFiles('scripts/getting-started-inputs.tsv') }}
       - name: Cache verified CITE-seq inputs and results
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: Test/cite-seq-inputs
           key: cite-seq-inputs-${{ hashFiles('scripts/cite-seq-inputs.tsv') }}
       - name: Cache verified PerturbSeq inputs
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: Test/perturbseq-inputs
           key: perturbseq-inputs-${{ hashFiles('scripts/perturbseq-inputs.tsv') }}
       - name: Cache verified CosMx inputs
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: Test/cosmx-inputs
           key: cosmx-inputs-${{ hashFiles('scripts/cosmx-inputs.tsv') }}
@@ -98,21 +98,21 @@ jobs:
       - name: Build CosMx with fresh results
         run: Rscript --vanilla scripts/build-cosmx.R
       - name: Upload website for review
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: vignette-website
           path: Test/site-vignettes
           retention-days: 7
       - name: Upload Pages artifact
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: Test/site-vignettes
 
   deploy:
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       pages: write
       id-token: write
@@ -122,4 +122,4 @@ jobs:
     steps:
       - name: Deploy website
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

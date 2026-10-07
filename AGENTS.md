@@ -218,6 +218,12 @@ Done on 2026-10-07 with this procedure:
 - It stages committed `docs/`, then rebuilds every vignette already automated.
   This is important: omitting an automated article from a later deployment
   would copy its old committed HTML and revert the live page.
+- The runner is pinned to `ubuntu-24.04`, because `ubuntu-latest` moves to
+  Ubuntu 26 from 2026-10-19 and could change binary packages and numerical
+  results. Actions run on Node.js 24: `checkout@v5`, `cache@v5`,
+  `upload-artifact@v6`, `upload-pages-artifact@v5` (excludes hidden files such
+  as `.nojekyll`, which Actions-deployed Pages do not need) and
+  `deploy-pages@v5`.
 - Each vignette runs in a separate R process. pkgdown is pinned to the CRAN
   archive URL for version 2.2.0; qs2 is resolved from active CRAN.
 - Do not edit or commit generated `docs/` pages for this workflow. Actions
