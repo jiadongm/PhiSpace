@@ -2,7 +2,7 @@
 
 The root workflow `.github/workflows/vignettes-pages.yaml` checks pull requests
 and builds and publishes pushes to `main`. It also supports a manual run from
-the Actions tab. Stereo-seq, Visium and Getting Started are rebuilt from fresh results, and
+the Actions tab. Stereo-seq, Visium, Getting Started and PerturbSeq are rebuilt from fresh results, and
 BridgeAnnotation and CITE-seq are rebuilt from verified cached results; the other pages and shared assets
 are copied from the committed `docs/` website. Changes to other vignette sources
 will not be published until those vignettes are added to this workflow.
@@ -34,6 +34,7 @@ Rscript --vanilla scripts/build-visium.R
 Rscript --vanilla scripts/build-bridge-annotation.R
 Rscript --vanilla scripts/build-getting-started.R
 Rscript --vanilla scripts/build-cite-seq.R
+Rscript --vanilla scripts/build-perturbseq.R
 ```
 
 The Stereo-seq script downloads the public archive, extracts only five required
@@ -58,6 +59,7 @@ Rscript --vanilla scripts/build-visium.R
 Rscript --vanilla scripts/build-bridge-annotation.R
 Rscript --vanilla scripts/build-getting-started.R
 Rscript --vanilla scripts/build-cite-seq.R
+Rscript --vanilla scripts/build-perturbseq.R
 ```
 
 Optional variables:
@@ -78,6 +80,9 @@ Optional variables:
 - `PHISPACE_CITE_SEQ_INPUTS`, `PHISPACE_CITE_SEQ_ARCHIVE` and
   `PHISPACE_CITE_SEQ_MODE`: the same roles for CITE-seq (7 inputs and 5 cached
   results, about 2.1 GB). Its fresh build peaks at about 65 GB RAM.
+- `PHISPACE_PERTURBSEQ_INPUTS`, `PHISPACE_PERTURBSEQ_ARCHIVE` and
+  `PHISPACE_PERTURBSEQ_MODE`: the same roles for PerturbSeq (3 inputs and 1
+  cached result, about 1.16 GB). Its default mode is `fresh`.
 - `PHISPACE_STEREOSEQ_DATA`: the extracted data folder when running the vignette
   directly. The automation sets this to a fresh temporary analysis directory.
 - `PHISPACE_VISIUM_DATA`: the data folder when running Visium directly.

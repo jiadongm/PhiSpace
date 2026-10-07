@@ -87,9 +87,9 @@ working explicit vignette is the oracle for evaluating a wrapper.
 | done | `Visium.Rmd` | Compatibility-complete; automated and live | qs2 migration; fresh and cached builds pass |
 | done | `getting_started.Rmd` | Compatibility-complete; automated and live | qs2 migration; fresh and cached builds pass |
 | done | `BridgeAnnotation.Rmd` | Compatibility-complete; automated from cached results; live | Private paths, file-name case; fresh build needs 17-24 GB RAM |
-| 1 | `PerturbSeq.Rmd` | Pending; `utils.R` (defines `tempPvals()`) is in the private Dropbox folder, which needs qs2 files and a public link | Hard-coded paths, disabled evaluation, qs caches; reference downloaded with celldex |
+| done | `PerturbSeq.Rmd` | Compatibility-complete; automated | qs2 migration and new public folder; private `utils.R`; celldex reference shipped as an input |
 | done | `CITE-seq.Rmd` | Compatibility-complete; automated from cached results; live | Private paths; fresh RNA branch saved the wrong object name; fresh build needs about 65 GB RAM |
-| 2 | `CosMx.Rmd` | Pending | Largest remainder; multiple references, qs caches, spatial and multi-sample analysis |
+| 1 | `CosMx.Rmd` | Pending | Largest remainder; multiple references, qs caches, spatial and multi-sample analysis |
 
 The order may change for scientific priority, but `getting_started` should
 normally be next because it exercises the public `PhiSpace()` interface and
@@ -122,6 +122,11 @@ Done on 2026-10-07 with this procedure:
   qs2 inputs and a new public link; the public download matches
   `scripts/getting-started-inputs.tsv`. The old `VignetteData/DC/` folder and
   its individual file links are unchanged.
+- PerturbSeq: new folder `VignetteData/PerturbSeq/` with `utils.R`,
+  `data/sceStim.qs2`, `data/ref_sce.qs2` and `output/PhiRes.qs2` (1.16 GB) and
+  a new public link; the public download matches
+  `scripts/perturbseq-inputs.tsv`. The old `VignetteData/Perturb-seq/` folder
+  and its public `sceStim.qs` file link are unchanged.
 
 ### Future Work
 
@@ -214,11 +219,13 @@ export PHISPACE_VISIUM_INPUTS=../Test/visium-inputs
 export PHISPACE_GETTING_STARTED_INPUTS=../Test/getting-started-inputs
 export PHISPACE_BRIDGE_ANNOTATION_INPUTS=../Test/bridge-annotation-inputs
 export PHISPACE_CITE_SEQ_INPUTS=../Test/cite-seq-inputs
+export PHISPACE_PERTURBSEQ_INPUTS=../Test/perturbseq-inputs
 Rscript --vanilla scripts/build-stereoseq.R
 Rscript --vanilla scripts/build-visium.R
 Rscript --vanilla scripts/build-bridge-annotation.R
 Rscript --vanilla scripts/build-getting-started.R
 Rscript --vanilla scripts/build-cite-seq.R
+Rscript --vanilla scripts/build-perturbseq.R
 ```
 
 See `WEBSITE.md` for variables and deployment details. As the suite grows,
@@ -292,6 +299,20 @@ keep runtime and memory bounded.
   the predictor matrix to dense (since at least `afcf7c8`, 2025-01), so
   `center = F` does not keep the peak matrix sparse; with Matrix 1.7.5 the
   fresh page shows 2.6, 8.6 and 5.4 GiB coercion warnings.
+- PerturbSeq folder:
+  `https://www.dropbox.com/scl/fo/4gm1ef27yl4wgb0f6zio7/AG0bvE9LXKgv61AAKmD5ho8?rlkey=bkd7nlwo6qlltkl21645xdw90&dl=1`
+  with 3 inputs and 1 cached result in `scripts/perturbseq-inputs.tsv`. The
+  three `.qs` objects were converted to qs2 (restored objects identical). The
+  public `sceStim.qs` link served the same file as the private Dropbox copy.
+  `utils.R` (defines `tempPvals()`, which uses the vignette's `query` and
+  `ctrlReg`) existed only in the private folder. Rebuilding the DICE reference
+  with celldex 1.20.0 and the vignette code reproduces `ref_sce` (assays within
+  4e-12, identical labels), so `ref_sce.qs2` is shipped as an input and Actions
+  needs no celldex or ExperimentHub download; the celldex code runs only when
+  the file is missing. Fresh build: 59 seconds, 13.4 GB; cached: 41 seconds,
+  6.5 GB; 22 result metrics pass in both. Printed results match the published
+  page; all 11 figures are byte-identical between fresh and cached builds, and
+  differ from the published page only in fonts.
 - CITE-seq archive (RDS, no qs conversion):
   `https://www.dropbox.com/scl/fo/it8uwxd2v4k2lyoo936at/AKws5m_xeNjOOs8Vkho-wP8?rlkey=s4d5a7cfkl5sj9qiogc7mng5t&dl=1`
   with 7 inputs and 5 cached results in `scripts/cite-seq-inputs.tsv`. The

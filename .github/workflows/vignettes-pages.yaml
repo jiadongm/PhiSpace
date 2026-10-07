@@ -73,6 +73,11 @@ jobs:
         with:
           path: Test/cite-seq-inputs
           key: cite-seq-inputs-${{ hashFiles('scripts/cite-seq-inputs.tsv') }}
+      - name: Cache verified PerturbSeq inputs
+        uses: actions/cache@v4
+        with:
+          path: Test/perturbseq-inputs
+          key: perturbseq-inputs-${{ hashFiles('scripts/perturbseq-inputs.tsv') }}
       - name: Build Stereo-seq with fresh results
         run: Rscript --vanilla scripts/build-stereoseq.R
       - name: Build Visium with fresh results
@@ -83,6 +88,8 @@ jobs:
         run: Rscript --vanilla scripts/build-getting-started.R
       - name: Build CITE-seq from verified cached results
         run: Rscript --vanilla scripts/build-cite-seq.R
+      - name: Build PerturbSeq with fresh results
+        run: Rscript --vanilla scripts/build-perturbseq.R
       - name: Upload website for review
         uses: actions/upload-artifact@v4
         with:
