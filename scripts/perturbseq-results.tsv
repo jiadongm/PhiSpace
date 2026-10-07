@@ -3,13 +3,13 @@ query_n_cells	28453	0
 query_n_celltypes	15	0
 query_celltypes_sha256	8d52d52c0c373fd0eeb0f2fa2f6a02fbef1e36b958f0014b2611ff94e825ae38	
 query_cells_sha256	e3ae64c5638df4d6aa71407b6f10c4cd2424c90acf871f82c94e01927486438b	
-norm_score_mean	0.000243406420778995	1.0e-07
+norm_score_mean	0.000243406420778995	2.0e-06
 norm_score_sd	0.195123021663109	2.0e-06
-norm_mean_T cells, CD4+, naive, stimulated	0.0114877778036892	1.1e-07
+norm_mean_T cells, CD4+, naive, stimulated	0.0114877778036892	1.7e-06
 norm_sd_T cells, CD4+, naive, stimulated	0.168082467185111	1.7e-06
-norm_mean_T cells, CD8+, naive, stimulated	0.00166203145101288	1.0e-07
+norm_mean_T cells, CD8+, naive, stimulated	0.00166203145101288	1.7e-06
 norm_sd_T cells, CD8+, naive, stimulated	0.170987042464452	1.7e-06
-norm_mean_T cells, CD4+, Th1	0.00876430975737581	1.0e-07
+norm_mean_T cells, CD4+, Th1	0.00876430975737581	2.1e-06
 norm_sd_T cells, CD4+, Th1	0.211351310670729	2.1e-06
-norm_mean_T cells, CD4+, Th2	0.00177983705230117	1.0e-07
+norm_mean_T cells, CD4+, Th2	0.00177983705230117	2.3e-06
 norm_sd_T cells, CD4+, Th2	0.227001547886441	2.3e-06

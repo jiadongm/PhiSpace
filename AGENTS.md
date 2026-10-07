@@ -202,6 +202,12 @@ CosMx wrapper record (2026-10-07):
   the previous explicit vignette.
 - The multi-sample section stays explicit (saved all-lung results and a
   PLS-DA with `mvr()`).
+- Uploaded both new files to `VignetteData/CosMx/output/` on 2026-10-07
+  (Dropbox hashes match); the public folder download passes the new manifest
+  (16 files). The new page went live in run `37616620258`; the superseded
+  `CosMxLung5Rep1PhiRes4Refs.qs2` and `Lung5_Rep1_PhiClusts4Refs.qs2` were
+  then deleted from Dropbox (user-approved), and the public download still
+  passes the manifest.
 
 StereoSeq wrapper record (2026-10-07):
 
@@ -232,9 +238,9 @@ StereoSeq wrapper record (2026-10-07):
   figure was the scree plot. The saved-results render gives the same 23.
 - Uploaded both new files to `VignetteData/StereoSeq/output/` on 2026-10-07
   (Dropbox hashes match; the public folder ZIP serves the same SHA-256).
-  After the new page is live, delete `PhiRes.qs2` and `PhiClustRes.qs2` from
-  Dropbox (approved in principle; confirm before deleting). The new page went
-  live in run `37618603280`.
+  The new page went live in run `37618603280`; `PhiRes.qs2` and
+  `PhiClustRes.qs2` were then deleted from Dropbox (user-approved,
+  2026-10-07).
 
 Visium wrapper record (2026-10-07):
 
@@ -254,13 +260,17 @@ Visium wrapper record (2026-10-07):
   (37 metrics); the other 21 keep their expected values. 58 checks pass in a
   fresh build (94 s, 14.4 GB) and in a render from the saved scores (36 s,
   7.0 GB) that rewrote no saved file and gave the same 8 figures.
-- Dropbox upload of the new file pending.
-- Uploaded both new files to `VignetteData/CosMx/output/` on 2026-10-07
-  (Dropbox hashes match); the public folder download passes the new manifest
-  (16 files). The new page went live in run `37616620258`; the superseded
-  `CosMxLung5Rep1PhiRes4Refs.qs2` and `Lung5_Rep1_PhiClusts4Refs.qs2` were
-  then deleted from Dropbox (user-approved), and the public download still
-  passes the manifest.
+- Uploaded `PhiSpaceScores.qs2` to `VignetteData/Visium/output/` on
+  2026-10-07 (Dropbox hash matches). `combo_PhiRes.qs2` stays on Dropbox until
+  the new page is live and the user approves its deletion.
+- The first Actions run (`37620847488`, commit `9b17582`) failed in the
+  Visium build: 4 of 18 per-sample normalised means differed from the local
+  values by 1.0e-7 to 1.7e-7, just over their 1e-7 tolerance floor. A
+  normalised mean (about -0.001 to 0.01) is small relative to the spread of
+  the scores, so a tolerance relative to the mean is too tight. Every
+  normalised-mean tolerance (Visium, Stereo-seq, PerturbSeq) now equals the
+  tolerance of the matching SD (1e-5 x SD, 1.6e-6 to 2.5e-6). The local runs
+  still pass 58, 48 and 14 checks.
 
 ### Dropbox Access
 
