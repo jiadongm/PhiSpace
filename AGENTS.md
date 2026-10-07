@@ -261,8 +261,10 @@ Visium wrapper record (2026-10-07):
   fresh build (94 s, 14.4 GB) and in a render from the saved scores (36 s,
   7.0 GB) that rewrote no saved file and gave the same 8 figures.
 - Uploaded `PhiSpaceScores.qs2` to `VignetteData/Visium/output/` on
-  2026-10-07 (Dropbox hash matches). `combo_PhiRes.qs2` stays on Dropbox until
-  the new page is live and the user approves its deletion.
+  2026-10-07 (Dropbox hash matches). The new page went live in run
+  `37685636487` (commit `4026b0e`); `combo_PhiRes.qs2` was then deleted from
+  Dropbox (user-approved, 2026-10-08). `output/` now holds
+  `PhiSpaceScores.qs2` and `refImpScores.qs2`.
 - The first Actions run (`37620847488`, commit `9b17582`) failed in the
   Visium build: 4 of 18 per-sample normalised means differed from the local
   values by 1.0e-7 to 1.7e-7, just over their 1e-7 tolerance floor. A
