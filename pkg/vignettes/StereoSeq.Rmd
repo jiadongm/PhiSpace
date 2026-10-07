@@ -328,8 +328,8 @@ Since the same mouse spleen was subjected to both Stereo-seq and scRNA-seq, we u
 Annotation of the bridge dataset is tedious and requires larger memory to run (see our source code on GitHub for details). So here we only show how to use the annotated bridge scRNA-seq to annotate the query Stereo-seq from the same mouse spleen.
 
 ```{r}
-PhiResPath <- paste0(dat_dir, "output/PhiRes.qs2")
-if(!file.exists(PhiResPath)){
+PhiScPath <- paste0(dat_dir, "output/PhiSpaceScores.qs2")
+if(!file.exists(PhiScPath)){
   querySC <- qs_read(paste0(dat_dir, "data/mouse4_scRNAseq_sce.qs2"))
   pathPhiSc <- paste0(dat_dir, "output/Mouse4_scRNA-seq_PhiSc_list.rds")
   impScPath <- paste0(dat_dir, "output/ImpScores_for_Mouse4_scRNA-seq.rds")
@@ -357,15 +357,14 @@ if(!file.exists(PhiResPath)){
   )
   colnames(reducedDim(querySC, "PhiSpace")) <- newNames
   querySC <- logTransf(querySC, targetAssay = "log1p", use_log1p = T)
-  PhiRes <- PhiSpaceR_1ref(
-    querySC, query, response = reducedDim(querySC, "PhiSpace"), 
+  query <- PhiSpace(
+    querySC, query, response = reducedDim(querySC, "PhiSpace"),
     refAssay = "log1p", nfeat = 500, regMethod = "PLS", scale = FALSE
   )
-  qs_save(PhiRes, PhiResPath)
+  qs_save(reducedDim(query, "PhiSpace"), PhiScPath)
 } else {
-  PhiRes <- qs_read(PhiResPath)
+  reducedDim(query, "PhiSpace") <- qs_read(PhiScPath)
 }
-reducedDim(query, "PhiSpace") <- normPhiScores(PhiRes$PhiSpaceScore)[colnames(query),]
 ```
 
 Next we visualise some cell types. First we observed a strong neutrophil identity, represented by Neutro(Spleen), Granulo(BM) and T2(Neutro) cell types in different references (neutrophil in spleen, granulocytes (including neutrophil) in bone marrow and a cancer-associated neutrophil labelled T2). And the strong neutrophil identity coincides with the biggest clone (see above). What is also interesting is the distribution of erythrocytes. Several references confirmed that there is a strong erythrocyte identity towards the right boundary of spleen (e.g. erythroblast visualised below). Moreover, we observed that the macrophage identity delineates ring-like structures, which potentially correspond to the right-like marginal zones in spleen. Naive B cell, on the other hand, delineates what are potentially the white pulps.
@@ -379,27 +378,25 @@ VizSpatial(query, ptSize = 1, reducedDim = "Macro(Spleen)", censor = T, fsize = 
 VizSpatial(query, ptSize = 1, reducedDim = "Naive B(BM)", censor = T, fsize = 12)
 ```
 
-Next we cluster the PhiSpace cell type scores to identify spatial niches. Note how niche 4 (red) seems to represent the marginal zone and niche 7 (blue) seems to represent the white pulps. Niche 8 (green) represents the location of the largest AML clone (see above).
+Next we cluster the PhiSpace cell type scores to identify spatial niches. `findNiches()` computes the first 30 principal components of the scores and clusters them with k-means. Note how niche 4 (red) seems to represent the marginal zone and niche 7 (blue) seems to represent the white pulps. Niche 8 (green) represents the location of the largest AML clone (see above).
 
 ```{r}
 tempClustCols <- c(
   "1" = "#FF7F00", "2" = "#377EB8", "3" = "#F781BF", "4" = "#984EA3", 
   "5" = "#A65628", "6" = "#4DAF4A", "7" = "#FFFF33", "8" = "#E41A1C"  
 )
-pathPhiClustRes <- paste0(dat_dir, "output/PhiClustRes.qs2")
-if(!file.exists(pathPhiClustRes)){
-  PhiPCRes <- getPC(reducedDim(query, "PhiSpace"), ncomp = ncol(reducedDim(query, "PhiSpace")) - 1)
-  PhiPCRes$accuProps
-  plot(1-PhiPCRes$accuProps)
-  mat2clust <- PhiPCRes$scores[,1:30]
-  names(tempClustCols) <- 1:8
-  set.seed(94863)
-  clust_res <- kmeans(mat2clust, centers = 8, iter.max = 200L, nstart = 50)
-  qs_save(clust_res, pathPhiClustRes)
+nichePath <- paste0(dat_dir, "output/PhiNiches.qs2")
+if(!file.exists(nichePath)){
+  query <- findNiches(
+    query, n_niches = 8, ncomp = 30,
+    kmeans_algorithm = "Hartigan-Wong", kmeans_nstart = 50L, kmeans_iter = 200L,
+    seed = 94863
+  )
+  qs_save(query$spatial_niches, nichePath)
 } else {
-  clust_res <- qs_read(pathPhiClustRes)
+  query$spatial_niches <- qs_read(nichePath)
 }
-query$PhiClust <- as.character(clust_res$cluster)
+query$PhiClust <- sub("Niche_", "", query$spatial_niches)
 VizSpatial(query, colBy = "PhiClust", ptSize = 1, legend.symb.size = 2) + 
   scale_colour_manual(values = tempClustCols) +
   theme(legend.title = element_text(face = "bold"), legend.key.spacing = unit(0, "pt"))

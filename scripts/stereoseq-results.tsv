@@ -16,15 +16,14 @@ phi_n_bins	15454	0
 phi_n_celltypes	70	0
 phi_celltypes_sha256	149a366f073c7fff17335a289e581f924421891b8d6f78c16339eeb4695768b6	
 phi_bins_sha256	32cf3a282186371a3a7867ef215f92f36bc2d84635c10a77d33470783c8a565c	
-phi_n_selected_features	3517	0
-phi_score_mean	0.00573553530088729	5.7e-08
-phi_score_sd	0.102319127300494	1.0e-06
-phi_sd_Neutro(Spleen)	0.0687953351030498	6.9e-07
-phi_sd_Granulo(BM)	0.0633786679727624	6.3e-07
-phi_sd_T2(Neutro)	0.098615083240385	9.9e-07
-phi_sd_ErythBla(BM)	0.245925408488335	2.5e-06
-phi_sd_Macro(Spleen)	0.0860921262450392	8.6e-07
-phi_sd_Naive B(BM)	0.0693043441970923	6.9e-07
+phi_norm_mean	0.00611590544522134	1.0e-07
+phi_norm_sd	0.220692836802198	2.2e-06
+phi_norm_sd_Neutro(Spleen)	0.214097933197722	2.1e-06
+phi_norm_sd_Granulo(BM)	0.206870892199883	2.1e-06
+phi_norm_sd_T2(Neutro)	0.246642289917477	2.5e-06
+phi_norm_sd_ErythBla(BM)	0.199194234099224	2.0e-06
+phi_norm_sd_Macro(Spleen)	0.187062850866801	1.9e-06
+phi_norm_sd_Naive B(BM)	0.16153362916104	1.6e-06
 phi_cluster_size_rank1	1088	11
 phi_cluster_size_rank2	1196	12
 phi_cluster_size_rank3	1670	17

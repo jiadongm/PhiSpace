@@ -21,29 +21,33 @@ result_metrics$StereoSeq <- function(output_dir) {
   bc <- read("barcode-seq_clustering.qs2")
   for (i in seq_along(bc)) m[[sprintf("barcode_k%d_tot_withinss", length(bc[[i]]$size))]] <- bc[[i]]$tot.withinss
 
-  # Bridge annotation of the Stereo-seq bins.
-  phi <- read("PhiRes.qs2")
-  score <- phi$PhiSpaceScore
+  # Bridge annotation of the Stereo-seq bins: normalised scores from PhiSpace().
+  score <- read("PhiSpaceScores.qs2")
   m$phi_n_bins <- nrow(score)
   m$phi_n_celltypes <- ncol(score)
   m$phi_celltypes_sha256 <- digest::digest(colnames(score), algo = "sha256")
   m$phi_bins_sha256 <- digest::digest(rownames(score), algo = "sha256")
-  m$phi_n_selected_features <- length(phi$selectedFeat)
-  m$phi_score_mean <- mean(score)
-  m$phi_score_sd <- sd(as.vector(score))
+  m$phi_norm_mean <- mean(score)
+  m$phi_norm_sd <- sd(as.vector(score))
   for (ct in c("Neutro(Spleen)", "Granulo(BM)", "T2(Neutro)", "ErythBla(BM)", "Macro(Spleen)", "Naive B(BM)")) {
-    m[[paste0("phi_sd_", ct)]] <- sd(score[, ct])
+    m[[paste0("phi_norm_sd_", ct)]] <- sd(score[, ct])
   }
 
-  # Niche clustering of PhiSpace scores and of gene expression. Cluster labels
-  # are arbitrary, so sizes are sorted.
-  cluster_files <- c(phi_cluster = "PhiClustRes.qs2", gex_cluster = "GexClustRes.qs2")
-  for (name in names(cluster_files)) {
-    km <- read(cluster_files[[name]])
-    sizes <- sort(km$size)
-    for (i in seq_along(sizes)) m[[sprintf("%s_size_rank%d", name, i)]] <- sizes[[i]]
-    m[[paste0(name, "_tot_withinss")]] <- km$tot.withinss
-  }
+  # Niche clustering of PhiSpace scores (findNiches(), 30 principal components)
+  # and of gene expression (kmeans). Cluster labels are arbitrary, so sizes are
+  # sorted. For the PhiSpace niches, the within-cluster sum of squares is
+  # recomputed on the principal components that findNiches() clusters.
+  niches <- read("PhiNiches.qs2")
+  sizes <- sort(as.vector(table(niches)))
+  for (i in seq_along(sizes)) m[[sprintf("phi_cluster_size_rank%d", i)]] <- sizes[[i]]
+  pcs <- PhiSpace::getPC(score, ncomp = 30)$scores
+  m$phi_cluster_tot_withinss <- sum(vapply(split(seq_len(nrow(pcs)), niches), function(i) {
+    sum(sweep(pcs[i, , drop = FALSE], 2, colMeans(pcs[i, , drop = FALSE]))^2)
+  }, numeric(1)))
+  km <- read("GexClustRes.qs2")
+  sizes <- sort(km$size)
+  for (i in seq_along(sizes)) m[[sprintf("gex_cluster_size_rank%d", i)]] <- sizes[[i]]
+  m$gex_cluster_tot_withinss <- km$tot.withinss
 
   # Niche enrichment scores.
   sig <- read("sigScores.qs2")
@@ -203,7 +207,7 @@ result_metrics$CosMx <- function(output_dir) {
   niches <- read("Lung5_Rep1_PhiNiches4Refs.qs2")
   sizes <- sort(as.vector(table(niches)))
   for (i in seq_along(sizes)) m[[sprintf("niche_size_rank%d", i)]] <- sizes[[i]]
-  pcs <- getPC(scores, ncomp = 25)$scores
+  pcs <- PhiSpace::getPC(scores, ncomp = 25)$scores
   m$niche_tot_withinss <- sum(vapply(split(seq_len(nrow(pcs)), niches), function(i) {
     sum(sweep(pcs[i, , drop = FALSE], 2, colMeans(pcs[i, , drop = FALSE]))^2)
   }, numeric(1)))

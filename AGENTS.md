@@ -120,8 +120,8 @@ Decision column.
 | 1 | PerturbSeq | `PhiSpaceR_1ref()` + `normPhiScores()`, one reference | `PhiSpace()` | Done 2026-10-07 (see the PerturbSeq wrapper record below). |
 | 2 | CosMx | Loop over 4 lineage references with `PhiSpaceR_1ref()` + `normPhiScores()` and a `(lineage)` name suffix | `PhiSpace(reference = ref_list)` | Done 2026-10-07 (see the CosMx wrapper record below). |
 | 2 | CosMx | PCA of scores, `set.seed(94863)`, `kmeans(centers = 9, iter.max = 200, nstart = 50)` | `findNiches()` | Done 2026-10-07, with the vignette's k-means arguments. |
-| 3 | StereoSeq | Same PCA + k-means pattern (`centers = 8`) | `findNiches()` | Convert if equivalent. |
-| 3 | StereoSeq | Single-cell scores as `response` | `PhiSpace(response = ...)` | Low value; convert if equivalent. |
+| 3 | StereoSeq | Same PCA + k-means pattern (`centers = 8`) | `findNiches()` | Done 2026-10-07 (see the StereoSeq wrapper record below). |
+| 3 | StereoSeq | Single-cell scores as `response` | `PhiSpace(response = ...)` | Done 2026-10-07. |
 | 4 | Visium | One reference, list of tissues as query | `PhiSpace(query = query_list)` | Low value; convert if equivalent. |
 | - | BridgeAnnotation, CITE-seq | Bridge transfer; CITE-seq uses `YrefHat` | - | Keep explicit. The code teaches the method, and new cached results need 17-24 GB and about 65 GB RAM. |
 | - | getting_started | Already uses `PhiSpace()` and `tunePhiSpace()` | - | No change. |
@@ -202,6 +202,35 @@ CosMx wrapper record (2026-10-07):
   the previous explicit vignette.
 - The multi-sample section stays explicit (saved all-lung results and a
   PLS-DA with `mvr()`).
+
+StereoSeq wrapper record (2026-10-07):
+
+- The bridge annotation uses `PhiSpace(querySC, query, response = ...,
+  refAssay = "log1p", nfeat = 500, regMethod = "PLS", scale = FALSE)`, and the
+  PhiSpace niches use `findNiches(query, n_niches = 8, ncomp = 30,
+  kmeans_algorithm = "Hartigan-Wong", kmeans_nstart = 50L, kmeans_iter = 200L,
+  seed = 94863)`. Rendered fresh from the same inputs, the old explicit
+  vignette and the new one give bit-identical normalised scores, identical
+  niche labels, and identical barcode clusters, gene-expression clusters and
+  niche enrichment scores. No wrapper change was needed.
+- The barcode k-means (k = 2 to 10) and the gene-expression k-means stay
+  explicit: they do not cluster PhiSpace scores, and the barcode chunk
+  explains the k-means settings.
+- The vignette saves `output/PhiSpaceScores.qs2` (15,454 x 70 normalised
+  scores, 7.7 MB) and `output/PhiNiches.qs2` (niche labels, 65 KB), replacing
+  `PhiRes.qs2` (151 MB) and `PhiClustRes.qs2`. The Stereo-seq manifest lists
+  inputs only, so Actions does not need these files; they serve readers.
+  The PCA scree plot and the printed explained-variance vector (fresh builds
+  only) are gone.
+- `scripts/stereoseq-results.tsv`: the raw-score checks (mean, SD, six
+  per-cell-type SDs) and the selected-feature count (3,517) were replaced by
+  the same summaries of the normalised scores (8 metrics). The other 40 checks
+  keep their expected values. 48 checks pass in a fresh build (167 s,
+  9.8 GB) and in a render from all saved results (68 s, 3.5 GB) that
+  rewrote no saved file.
+- All 23 figures are byte-identical to the old explicit render; its 24th
+  figure was the scree plot. The saved-results render gives the same 23.
+- Dropbox upload of the two new files pending.
 - Uploaded both new files to `VignetteData/CosMx/output/` on 2026-10-07
   (Dropbox hashes match); the public folder download passes the new manifest
   (16 files). After the new page is live, delete
