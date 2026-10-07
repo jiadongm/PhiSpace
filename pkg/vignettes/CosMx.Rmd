@@ -10,7 +10,7 @@ vignette: >
 ---
 
 ```{r setup, include=FALSE}
-# knitr::opts_chunk$set(eval = FALSE)
+knitr::opts_chunk$set(error = FALSE)
 ```
 
 ## Highlights
@@ -30,7 +30,9 @@ In this case study, we will apply PhiSpace to drive cell state discovery in lung
 
 Nanotring CosMx is a subcellular spatial transcriptomics (ST) platform. It's imaging-based and reaches single-molecule resolution, i.e. it produces a long list of mRNA molecules, their corresponding genes and spatial coordinates. Since single-molecules are difficult to analyse directly, we need some level of aggregation. Here since the cell segmentation was available, we aggregated transcripts within each segmented cell. PhiSpace doens't require cell segmentation to be accurate -- it just treats the segmented cells as some form of mini-bulk.
 
-For this case study, we have defined some util functions, which can be downloaded [here](https://www.dropbox.com/scl/fi/zi12ovivk9ys0b8pk4t0t/CosMx_utils.R?rlkey=s902bst1wz3pkuwhsi7v6gqdq&st=82q6h5pc&dl=0).
+All data for this case study, and some util functions (`CosMx_utils.R`), are in this [shared folder](https://www.dropbox.com/scl/fo/z01qvst71kzxqog4bf5po/AKZzi-PgkZCDYZdUwLqfBWg?rlkey=65kg8zqatk2zdk5mnirgn1vmc&dl=0). Download it and preserve its directory layout. It contains the four reference datasets in `data/LungFibrosis/`, the eight CosMx lung samples in `data/CosMx_lung/` and precomputed PhiSpace results in `output/`.
+
+Set `PHISPACE_COSMX_DATA` to that folder before running this vignette, for example `Sys.setenv(PHISPACE_COSMX_DATA = "/path/to/CosMx")`. This vignette uses `qs2::qs_read()` and `qs2::qs_save()` with migrated `.qs2` files. The old `.qs` files cannot be converted by renaming them.
 ```{r}
 # Name of the game
 suppressPackageStartupMessages(library(PhiSpace))
@@ -42,13 +44,18 @@ suppressPackageStartupMessages(library(magrittr))
 suppressPackageStartupMessages(library(ggpubr))
 suppressPackageStartupMessages(library(tidyr))
 # Other utils
-suppressPackageStartupMessages(library(qs)) # Fast read and write of large R objects
+suppressPackageStartupMessages(library(qs2)) # Fast read and write of large R objects
 suppressPackageStartupMessages(library(ComplexHeatmap)) # Heatmap
 suppressPackageStartupMessages(library(seriation)) # Seriation method for clustering rows and columns of heatmap
 
-dat_dir <- "~/Dropbox/Research_projects/PhiSpace/VignetteData/CosMx/" # replace this by your own directory
+dat_dir <- Sys.getenv("PHISPACE_COSMX_DATA", unset = "data/CosMx")
+if (!file.exists(file.path(dat_dir, "CosMx_utils.R"))) {
+  stop("Set PHISPACE_COSMX_DATA to the data folder containing CosMx_utils.R.")
+}
+dat_dir <- paste0(normalizePath(dat_dir, winslash = "/"), "/")
+dir.create(file.path(dat_dir, "output"), recursive = TRUE, showWarnings = FALSE)
 
-source(paste0(dat_dir, "CosMx_utils.R"))
+source(paste0(dat_dir, "CosMx_utils.R"), local = TRUE)
 ```
 
 
@@ -56,21 +63,21 @@ source(paste0(dat_dir, "CosMx_utils.R"))
 
 
 ## Data prepration
-Load the four reference datasets, which have already been processed and downsampled into sce objects, each contain cells from a lineage (immune, epithelilal, endothelial or mesenchymal). Download thse sce objects from [here](https://www.dropbox.com/scl/fo/7wvz9y8871sgx8u9rxtan/ALd0xPKl3jLgc4-aXJKUSS4?rlkey=vn7s0iqp7n4ni0qi1e73dhoen&st=a8gx9sp5&dl=0).
+Load the four reference datasets, which have already been processed and downsampled into sce objects, each contain cells from a lineage (immune, epithelilal, endothelial or mesenchymal). These sce objects are in `data/LungFibrosis/` of the shared folder.
 ```{r}
 ref_list <- lapply(
   c("immune", "epithelial", "endothelial", "mesenchymal"),
-  function(lineage) qread(paste0(dat_dir, "data/LungFibrosis/", lineage, "_sce.qs"))
+  function(lineage) qs_read(paste0(dat_dir, "data/LungFibrosis/", lineage, "_sce.qs2"))
 )
 names(ref_list) <- c("immu", "epi", "endo", "mesen")
 ```
 
-Lung samples in the query dataset are named Lungx_Repx, denoting lung (patient) and biological replicate. We first showcase the annotation performance of PhiSpace using one particular lung sample Lung5_Rep1, which can be downloaded [here](https://www.dropbox.com/scl/fi/nzs9kynj4wj3a096ojx4a/Lung5_Rep1_SCE.qs?rlkey=adiyctqb8onbk1s1ubhxp04ua&st=a04p03rf&dl=0).
+Lung samples in the query dataset are named Lungx_Repx, denoting lung (patient) and biological replicate. We first showcase the annotation performance of PhiSpace using one particular lung sample Lung5_Rep1.
 ```{r}
 YtrainName <- "manual_annotation_1"
 tissueName <- "Lung5_Rep1"
-qs_dir <- paste0(dat_dir, "data/CosMx_lung/", tissueName, "_SCE.qs")
-query <- qread(qs_dir)
+qs_dir <- paste0(dat_dir, "data/CosMx_lung/", tissueName, "_SCE.qs2")
+query <- qs_read(qs_dir)
 query <- zeroFeatQC(query)
 query <- logTransf(query, use_log1p = TRUE, targetAssay = "log1p")
 ```
@@ -80,7 +87,7 @@ query <- logTransf(query, use_log1p = TRUE, targetAssay = "log1p")
 Run PhiSpace using 4 references.
 ```{r}
 PhiAssay <- "log1p"
-PhiResPath <- paste0(dat_dir, "output/CosMxLung5Rep1PhiRes4Refs.qs")
+PhiResPath <- paste0(dat_dir, "output/CosMxLung5Rep1PhiRes4Refs.qs2")
 if(!file.exists(PhiResPath)){
   sc_list <- vector("list", length(ref_list))
   names(sc_list) <- names(ref_list)
@@ -101,9 +108,9 @@ if(!file.exists(PhiResPath)){
     colnames(sc) <- paste0(colnames(sc), "(", lineage, ")")
     sc_list[[lineage]] <- sc
   }
-  qsave(sc_list, PhiResPath)
+  qs_save(sc_list, PhiResPath)
 } else {
-  sc_list <- qread(PhiResPath)
+  sc_list <- qs_read(PhiResPath)
 }
 ```
 
@@ -152,7 +159,7 @@ VizSpatial(query, "sdimx", "sdimy", ptSize = 1, reducedDim = "B cells(immu)", ce
 
 It is very encouraging to see how a simple spatial heatmap can alreay be so informative. Since the distribution of different cell types show such diverse spatial distributions, why can't we use them to define spatial niches? Here we simply cluster the PhiSpace cell type scores into 9 clusters to match the number of spatial domains defined by He et al. (2022). As we see below, these clusters correspond well to the domains defined by He et al. (2022), but with more subtlety. In particular, our PhiSpace clustering seemed to idnetify two niches within the 'tumour interior' domain of He et al. (2022).
 ```{r  fig.asp=1}
-clustResPath <- paste0(dat_dir, "output/Lung5_Rep1_PhiClusts4Refs.qs")
+clustResPath <- paste0(dat_dir, "output/Lung5_Rep1_PhiClusts4Refs.qs2")
 if(!file.exists(clustResPath)){
   PhiPCRes <- getPC(
     reducedDim(query, "PhiSpace"), ncomp = ncol(reducedDim(query, "PhiSpace")) - 1
@@ -163,9 +170,9 @@ if(!file.exists(clustResPath)){
   clust_res <- kmeans(
     mat2clust, centers = 9, iter.max = 200L, nstart = 50
   )
-  qsave(clust_res, clustResPath)
+  qs_save(clust_res, clustResPath)
 } else {
-  clust_res <- qread(clustResPath)
+  clust_res <- qs_read(clustResPath)
 }
 query$PhiClust <- as.character(clust_res$cluster)
 tempClustCols <- c(
@@ -232,16 +239,16 @@ query@colData %>% ggplot(aes(y = PhiClust, x = divergence)) +
 
 After focusing on a particular lung cancer sample, now we use PhiSpace to do a multi-sample analysis, using all lung cancer samples in the CosMx dataset.
 
-Load all query lung samples, which can be downloaded [here](https://www.dropbox.com/scl/fo/p8zg76jdysuqtx4t2lm0e/AERmTZE4wLD9Uyg_AEMDNLQ?rlkey=o8hcksuvhs6ymv1zt3jvu8xnn&st=bl89z34f&dl=0). Also load the precomputed [PhiSpace annotation results](https://www.dropbox.com/scl/fi/qy3m2co5npmucm2tj406k/CosMxAllLungsPhiRes4Refs.qs?rlkey=hefck049m8isu9utpzcp630ot&st=y0p4kvhk&dl=0) to save RAM.
+Load all query lung samples (`data/CosMx_lung/` in the shared folder). Also load the precomputed PhiSpace annotation results (`output/CosMxAllLungsPhiRes4Refs.qs2`) to save RAM.
 ```{r}
 tissueNames <- tissueNames_CosMx
 query_list <- vector("list", length(tissueNames)) %>% `names<-`(tissueNames)
-PhiResPath <- paste0(dat_dir, "output/CosMxAllLungsPhiRes4Refs.qs")
-sc_list <- qread(PhiResPath)
+PhiResPath <- paste0(dat_dir, "output/CosMxAllLungsPhiRes4Refs.qs2")
+sc_list <- qs_read(PhiResPath)
 for(ii in 1:length(tissueNames)){
   tissueName <- tissueNames[ii]
-  qs_dir <- paste0(dat_dir, "data/CosMx_lung/", tissueName, "_SCE.qs")
-  query <- qread(qs_dir)
+  qs_dir <- paste0(dat_dir, "data/CosMx_lung/", tissueName, "_SCE.qs2")
+  query <- qs_read(qs_dir)
   query <- zeroFeatQC(query)
   query <- logTransf(query, use_log1p = TRUE, targetAssay = "log1p")
   sc4Refs <- lapply(sc_list, function(x) x[[tissueName]])

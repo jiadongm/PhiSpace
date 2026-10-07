@@ -184,6 +184,31 @@ result_metrics$PerturbSeq <- function(output_dir) {
   m
 }
 
+result_metrics$CosMx <- function(output_dir) {
+  read <- function(name) qs2::qs_read(file.path(output_dir, name), validate_checksum = TRUE)
+  m <- list()
+  # Lung5_Rep1 annotation by the four lineage references (normalised scores).
+  sc_list <- read("CosMxLung5Rep1PhiRes4Refs.qs2")
+  m$lineages <- paste(names(sc_list), collapse = ",")
+  for (lineage in names(sc_list)) {
+    sc <- sc_list[[lineage]]
+    key <- paste0("lung5rep1_", lineage)
+    m[[paste0(key, "_n_cells")]] <- nrow(sc)
+    m[[paste0(key, "_n_celltypes")]] <- ncol(sc)
+    m[[paste0(key, "_celltypes_sha256")]] <- digest::digest(colnames(sc), algo = "sha256")
+    m[[paste0(key, "_cells_sha256")]] <- digest::digest(rownames(sc), algo = "sha256")
+    m[[paste0(key, "_score_mean")]] <- mean(sc)
+    m[[paste0(key, "_score_sd")]] <- sd(as.vector(sc))
+  }
+  # PhiSpace niches of Lung5_Rep1. Labels are arbitrary, so sizes are sorted;
+  # sizes allow 1% because k-means assignments of borderline cells depend on BLAS.
+  km <- read("Lung5_Rep1_PhiClusts4Refs.qs2")
+  sizes <- sort(km$size)
+  for (i in seq_along(sizes)) m[[sprintf("niche_size_rank%d", i)]] <- sizes[[i]]
+  m$niche_tot_withinss <- km$tot.withinss
+  m
+}
+
 format_metrics <- function(metrics) {
   vapply(metrics, function(x) {
     if (length(x) != 1) stop("Each result metric must be a single value.")

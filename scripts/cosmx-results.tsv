@@ -1,0 +1,36 @@
+metric	value	tolerance
+lineages	immu,epi,endo,mesen	
+lung5rep1_immu_n_cells	98002	0
+lung5rep1_immu_n_celltypes	16	0
+lung5rep1_immu_celltypes_sha256	f883f9bd6407b726562384e6f2bfc8d5f28c2d62bc04b3b9cfdc440f73917e6e	
+lung5rep1_immu_cells_sha256	fa5143936d73e34fc441862e9660aec33311c50e74e8c2412f70ad9726e3a447	
+lung5rep1_immu_score_mean	0.0114138417460265	1.1e-07
+lung5rep1_immu_score_sd	0.124438477766537	1.2e-06
+lung5rep1_epi_n_cells	98002	0
+lung5rep1_epi_n_celltypes	12	0
+lung5rep1_epi_celltypes_sha256	e335225b007cf3906a1c666161199e1a3a305213af5d440222db84f4cf657923	
+lung5rep1_epi_cells_sha256	fa5143936d73e34fc441862e9660aec33311c50e74e8c2412f70ad9726e3a447	
+lung5rep1_epi_score_mean	0.00861378637189449	1.0e-07
+lung5rep1_epi_score_sd	0.15297271245023	1.5e-06
+lung5rep1_endo_n_cells	98002	0
+lung5rep1_endo_n_celltypes	7	0
+lung5rep1_endo_celltypes_sha256	9e0c76b1fd616d75080dde15f15dadb71d56cfa68234551704f359baf2550a75	
+lung5rep1_endo_cells_sha256	fa5143936d73e34fc441862e9660aec33311c50e74e8c2412f70ad9726e3a447	
+lung5rep1_endo_score_mean	0.00275098603864189	1.0e-07
+lung5rep1_endo_score_sd	0.1525422208022	1.5e-06
+lung5rep1_mesen_n_cells	98002	0
+lung5rep1_mesen_n_celltypes	8	0
+lung5rep1_mesen_celltypes_sha256	c982976a6c76b8459674aa98914e404c637cdbd8bedb0ca78615a2c705ea9f6b	
+lung5rep1_mesen_cells_sha256	fa5143936d73e34fc441862e9660aec33311c50e74e8c2412f70ad9726e3a447	
+lung5rep1_mesen_score_mean	0.00301064826269455	1.0e-07
+lung5rep1_mesen_score_sd	0.150258989038936	1.5e-06
+niche_size_rank1	2214	23
+niche_size_rank2	5800	58
+niche_size_rank3	7721	78
+niche_size_rank4	9236	93
+niche_size_rank5	10302	104
+niche_size_rank6	10412	105
+niche_size_rank7	11325	114
+niche_size_rank8	11718	118
+niche_size_rank9	29274	293
+niche_tot_withinss	45176.1749389698	4.5e-01
