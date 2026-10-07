@@ -122,7 +122,7 @@ Decision column.
 | 2 | CosMx | PCA of scores, `set.seed(94863)`, `kmeans(centers = 9, iter.max = 200, nstart = 50)` | `findNiches()` | Done 2026-10-07, with the vignette's k-means arguments. |
 | 3 | StereoSeq | Same PCA + k-means pattern (`centers = 8`) | `findNiches()` | Done 2026-10-07 (see the StereoSeq wrapper record below). |
 | 3 | StereoSeq | Single-cell scores as `response` | `PhiSpace(response = ...)` | Done 2026-10-07. |
-| 4 | Visium | One reference, list of tissues as query | `PhiSpace(query = query_list)` | Low value; convert if equivalent. |
+| 4 | Visium | One reference, list of tissues as query | `PhiSpace(query = query_list)` | Done 2026-10-07 (see the Visium wrapper record below). |
 | - | BridgeAnnotation, CITE-seq | Bridge transfer; CITE-seq uses `YrefHat` | - | Keep explicit. The code teaches the method, and new cached results need 17-24 GB and about 65 GB RAM. |
 | - | getting_started | Already uses `PhiSpace()` and `tunePhiSpace()` | - | No change. |
 
@@ -233,7 +233,28 @@ StereoSeq wrapper record (2026-10-07):
 - Uploaded both new files to `VignetteData/StereoSeq/output/` on 2026-10-07
   (Dropbox hashes match; the public folder ZIP serves the same SHA-256).
   After the new page is live, delete `PhiRes.qs2` and `PhiClustRes.qs2` from
-  Dropbox (approved in principle; confirm before deleting).
+  Dropbox (approved in principle; confirm before deleting). The new page went
+  live in run `37618603280`.
+
+Visium wrapper record (2026-10-07):
+
+- `PhiSpace(reference, query_list, phenotypes = "ann_finest_level",
+  refAssay = "log1p", selectedFeat = selectedFeat, regMethod = "PLS")`
+  normalises each sample separately, as the explicit code did. Rendered fresh
+  from the same inputs, the old and new vignettes give bit-identical
+  normalised scores and correlation matrices. No wrapper change was needed.
+- The vignette saves `output/PhiSpaceScores.qs2` (list of 18 normalised score
+  matrices, 18.9 MB), replacing `combo_PhiRes.qs2` (raw scores, 17.2 MB). The
+  Visium manifest lists inputs only, so Actions does not need the file.
+- The P11_T3 B-cell map now shows normalised scores (legend 0 to 1 instead of
+  raw -1 to 0; same spatial pattern). The other 7 figures are byte-identical
+  to the old render.
+- `scripts/visium-results.tsv`: the 36 per-sample raw-score checks and the
+  raw B-cell SD were replaced by the same summaries of the normalised scores
+  (37 metrics); the other 21 keep their expected values. 58 checks pass in a
+  fresh build (94 s, 14.4 GB) and in a render from the saved scores (36 s,
+  7.0 GB) that rewrote no saved file and gave the same 8 figures.
+- Dropbox upload of the new file pending.
 - Uploaded both new files to `VignetteData/CosMx/output/` on 2026-10-07
   (Dropbox hashes match); the public folder download passes the new manifest
   (16 files). The new page went live in run `37616620258`; the superseded

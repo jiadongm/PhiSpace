@@ -60,7 +60,8 @@ result_metrics$StereoSeq <- function(output_dir) {
 }
 
 result_metrics$Visium <- function(output_dir) {
-  res <- qs2::qs_read(file.path(output_dir, "combo_PhiRes.qs2"), validate_checksum = TRUE)
+  # Normalised PhiSpace scores of each sample, as stored by PhiSpace().
+  res <- qs2::qs_read(file.path(output_dir, "PhiSpaceScores.qs2"), validate_checksum = TRUE)
   m <- list()
   m$samples <- paste(names(res), collapse = ",")
   m$n_celltypes <- unique(vapply(res, ncol, integer(1)))
@@ -70,10 +71,10 @@ result_metrics$Visium <- function(output_dir) {
   }
   for (s in names(res)) {
     m[[paste0(s, "_n_spots")]] <- nrow(res[[s]])
-    m[[paste0(s, "_score_mean")]] <- mean(res[[s]])
-    m[[paste0(s, "_score_sd")]] <- sd(as.vector(res[[s]]))
+    m[[paste0(s, "_norm_mean")]] <- mean(res[[s]])
+    m[[paste0(s, "_norm_sd")]] <- sd(as.vector(res[[s]]))
   }
-  m$P11_T3_sd_B_cells <- sd(res[["P11_T3"]][, "B cells"])
+  m$P11_T3_norm_sd_B_cells <- sd(res[["P11_T3"]][, "B cells"])
   m
 }
 

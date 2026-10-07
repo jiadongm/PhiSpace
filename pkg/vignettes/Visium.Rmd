@@ -96,32 +96,34 @@ VizSpatial(qu_vis, feature = "CD79A", assay2use = "log1p")
 
 
 # Run PhiSpace
-Run PhiSpace using all the genes can be RAM-demanding, hence we select 500 genes that are most useful for predicting each cell type. This gives us 4613 genes. The shared data folder also provides `output/combo_PhiRes.qs2` for systems without enough RAM to recompute the annotation.
+Run PhiSpace using all the genes can be RAM-demanding, hence we select 500 genes that are most useful for predicting each cell type. This gives us 4613 genes. `PhiSpace()` annotates all 18 samples with one model and stores the normalised scores of each sample in `reducedDim(query_list[[sample]], "PhiSpace")`. The shared data folder also provides these scores (`output/PhiSpaceScores.qs2`) for systems without enough RAM to recompute the annotation.
 ```{r}
 YtrainName <- "ann_finest_level"
 length(selectedFeat)
-PhiResPath <- paste0(dat_dir, "output/combo_PhiRes.qs2")
-if(!file.exists(PhiResPath)){
-  PhiRes <- PhiSpaceR_1ref(
-    reference, 
-    query_list, 
-    phenotypes = YtrainName, 
+PhiScPath <- paste0(dat_dir, "output/PhiSpaceScores.qs2")
+if(!file.exists(PhiScPath)){
+  query_list <- PhiSpace(
+    reference,
+    query_list,
+    phenotypes = YtrainName,
     refAssay = "log1p",
     selectedFeat = selectedFeat,
-    regMethod = "PLS", 
-    center = T,
-    scale = F
+    regMethod = "PLS",
+    center = TRUE,
+    scale = FALSE
   )
-  PhiRes <- PhiRes$PhiSpaceScore
-  qs_save(PhiRes, PhiResPath)
+  qs_save(lapply(query_list, reducedDim, "PhiSpace"), PhiScPath)
 } else {
-  PhiRes <- qs_read(PhiResPath)
+  PhiScores <- qs_read(PhiScPath)
+  for(tissue in names(query_list)){
+    reducedDim(query_list[[tissue]], "PhiSpace") <- PhiScores[[tissue]]
+  }
 }
 ```
 
 As an example, we visualise the predicted B cell abundance in sample P11_T3.
 ```{r fig.asp=0.8}
-reducedDim(qu_vis, "PhiSpace") <- PhiRes[["P11_T3"]]
+qu_vis <- query_list[["P11_T3"]]
 VizSpatial(qu_vis, reducedDim = "B cells", reducedDim2use = "PhiSpace", censor = T)
 ```
 
@@ -138,8 +140,7 @@ VisTissueNames <- names(query_list)
 corMat_list <- vector("list", length(VisTissueNames)) %>% `names<-`(VisTissueNames)
 for(ii in 1:length(VisTissueNames)){
   VisTissueName <- VisTissueNames[ii]
-  PhiScores_norm <- normPhiScores(PhiRes[[VisTissueName]])
-  corMat <- cor(PhiScores_norm)
+  corMat <- cor(reducedDim(query_list[[VisTissueName]], "PhiSpace"))
   corMat_list[[ii]] <- corMat
 }
 cTypeCombo <- outer(
