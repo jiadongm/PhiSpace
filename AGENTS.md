@@ -315,6 +315,11 @@ Done on 2026-10-07 with this procedure:
   already identical), and a public folder link was created; the public download
   matches `scripts/cosmx-inputs.tsv`. The user chose one folder per vignette:
   remove the old `.qs` files once the new page is live.
+- 2026-10-08 (user-approved): replaced the public `Visium/README.md` and
+  `StereoSeq/README.md` with the rewritten records from `PkgOverhaul/data/`
+  (Dropbox hashes match the local files). The old versions, which still gave
+  upload instructions and listed `combo_PhiRes.qs2`, are in
+  `VignetteData_backups/<Folder>-2026-10-08/README.md`.
 
 ### Future Work
 
