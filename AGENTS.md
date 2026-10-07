@@ -89,7 +89,7 @@ working explicit vignette is the oracle for evaluating a wrapper.
 | done | `BridgeAnnotation.Rmd` | Compatibility-complete; automated from cached results; live | Private paths, file-name case; fresh build needs 17-24 GB RAM |
 | done | `PerturbSeq.Rmd` | Compatibility-complete; automated | qs2 migration and new public folder; private `utils.R`; celldex reference shipped as an input |
 | done | `CITE-seq.Rmd` | Compatibility-complete; automated from cached results; live | Private paths; fresh RNA branch saved the wrong object name; fresh build needs about 65 GB RAM |
-| 1 | `CosMx.Rmd` | Pending | Largest remainder; multiple references, qs caches, spatial and multi-sample analysis |
+| done | `CosMx.Rmd` | Compatibility-complete; automated | qs2 migration in the existing Dropbox folder; five download links replaced by one folder link |
 
 The order may change for scientific priority, but `getting_started` should
 normally be next because it exercises the public `PhiSpace()` interface and
@@ -99,6 +99,13 @@ parameter tuning. Complete and publish one vignette-sized change at a time.
 
 1. **Push `main`.** Local `main` is ahead of `origin/main`; the user pushes
    when ready. After a push, check both Actions jobs and the live pages.
+2. **Dropbox clean-up after the new CosMx page is live** (agreed 2026-10-07;
+   confirm each deletion): the 15 old `.qs` files in `VignetteData/CosMx/`,
+   the superseded `VignetteData/DC/` and `VignetteData/Perturb-seq/` folders,
+   `VignetteData_backups/`, `Visium/data/LungRef/AzimuthLungMarkers.qs` (not
+   read) and `StereoSeq/.Rhistory`. Old individual file links then stop
+   working. Then list local files in `PkgOverhaul/Test` and `PkgOverhaul/data`
+   that are safe to delete, keeping one verified input cache per vignette.
 
 ### Dropbox Access
 
@@ -127,6 +134,11 @@ Done on 2026-10-07 with this procedure:
   a new public link; the public download matches
   `scripts/perturbseq-inputs.tsv`. The old `VignetteData/Perturb-seq/` folder
   and its public `sceStim.qs` file link are unchanged.
+- CosMx: the 15 qs2 files were added next to the old `.qs` files in the
+  existing `VignetteData/CosMx/` folder (same layout; `CosMx_utils.R` was
+  already identical), and a public folder link was created; the public download
+  matches `scripts/cosmx-inputs.tsv`. The user chose one folder per vignette:
+  remove the old `.qs` files once the new page is live.
 
 ### Future Work
 
@@ -220,12 +232,14 @@ export PHISPACE_GETTING_STARTED_INPUTS=../Test/getting-started-inputs
 export PHISPACE_BRIDGE_ANNOTATION_INPUTS=../Test/bridge-annotation-inputs
 export PHISPACE_CITE_SEQ_INPUTS=../Test/cite-seq-inputs
 export PHISPACE_PERTURBSEQ_INPUTS=../Test/perturbseq-inputs
+export PHISPACE_COSMX_INPUTS=../Test/cosmx-inputs
 Rscript --vanilla scripts/build-stereoseq.R
 Rscript --vanilla scripts/build-visium.R
 Rscript --vanilla scripts/build-bridge-annotation.R
 Rscript --vanilla scripts/build-getting-started.R
 Rscript --vanilla scripts/build-cite-seq.R
 Rscript --vanilla scripts/build-perturbseq.R
+Rscript --vanilla scripts/build-cosmx.R
 ```
 
 See `WEBSITE.md` for variables and deployment details. As the suite grows,
@@ -299,6 +313,19 @@ keep runtime and memory bounded.
   the predictor matrix to dense (since at least `afcf7c8`, 2025-01), so
   `center = F` does not keep the peak matrix sparse; with Matrix 1.7.5 the
   fresh page shows 2.6, 8.6 and 5.4 GiB coercion warnings.
+- CosMx folder:
+  `https://www.dropbox.com/scl/fo/z01qvst71kzxqog4bf5po/AKZzi-PgkZCDYZdUwLqfBWg?rlkey=65kg8zqatk2zdk5mnirgn1vmc&dl=1`
+  with 14 inputs and 2 cached results in `scripts/cosmx-inputs.tsv`. All 15
+  `.qs` objects were converted to qs2 (restored objects identical).
+  `output/CosMxAllLungsPhiRes4Refs.qs2` (all eight lungs, four references) is
+  loaded unconditionally and no vignette code computes it, so it is an input;
+  builds verify only its hash. The DWD step sets its seed immediately before
+  `cv.kerndwd()`, so fresh and cached builds agree. Fresh build: 1 minute 54
+  seconds, 9.7 GB; cached: 1 minute 10 seconds, 9.5 GB; 35 result metrics pass
+  in both. Fresh Lung5_Rep1 results match the established ones to about 1e-9
+  with identical niche sizes; printed outputs and the tumour-signature table
+  match the published page; 13 of 14 figures are byte-identical between fresh
+  and cached builds (the mesothelial map differs in 0.024% of pixels).
 - PerturbSeq folder:
   `https://www.dropbox.com/scl/fo/4gm1ef27yl4wgb0f6zio7/AG0bvE9LXKgv61AAKmD5ho8?rlkey=bkd7nlwo6qlltkl21645xdw90&dl=1`
   with 3 inputs and 1 cached result in `scripts/perturbseq-inputs.tsv`. The

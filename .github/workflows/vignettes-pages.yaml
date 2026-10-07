@@ -78,6 +78,11 @@ jobs:
         with:
           path: Test/perturbseq-inputs
           key: perturbseq-inputs-${{ hashFiles('scripts/perturbseq-inputs.tsv') }}
+      - name: Cache verified CosMx inputs
+        uses: actions/cache@v4
+        with:
+          path: Test/cosmx-inputs
+          key: cosmx-inputs-${{ hashFiles('scripts/cosmx-inputs.tsv') }}
       - name: Build Stereo-seq with fresh results
         run: Rscript --vanilla scripts/build-stereoseq.R
       - name: Build Visium with fresh results
@@ -90,6 +95,8 @@ jobs:
         run: Rscript --vanilla scripts/build-cite-seq.R
       - name: Build PerturbSeq with fresh results
         run: Rscript --vanilla scripts/build-perturbseq.R
+      - name: Build CosMx with fresh results
+        run: Rscript --vanilla scripts/build-cosmx.R
       - name: Upload website for review
         uses: actions/upload-artifact@v4
         with:
