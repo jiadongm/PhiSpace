@@ -380,7 +380,7 @@ VizSpatial(query, ptSize = 1, reducedDim = "Naive B(BM)", censor = T, fsize = 12
 
 Next we cluster the PhiSpace cell type scores to identify spatial niches. `findNiches()` computes the first 30 principal components of the scores and clusters them with k-means. Note how niche 4 (red) seems to represent the marginal zone and niche 7 (blue) seems to represent the white pulps. Niche 8 (green) represents the location of the largest AML clone (see above).
 
-```{r}
+```{r, message = FALSE}
 tempClustCols <- c(
   "1" = "#FF7F00", "2" = "#377EB8", "3" = "#F781BF", "4" = "#984EA3", 
   "5" = "#A65628", "6" = "#4DAF4A", "7" = "#FFFF33", "8" = "#E41A1C"  

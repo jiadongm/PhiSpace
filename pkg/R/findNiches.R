@@ -19,6 +19,9 @@
 #' @param seed Integer. Random seed for reproducibility (default: 94863).
 #' @param store_pca Logical. Whether to store PCA results in the object (default: FALSE).
 #' @param pca_name Character. Name for stored PCA results if store_pca = TRUE (default: "PhiSpace_PCA").
+#' @param verbose Logical. Whether to report progress and niche sizes with
+#'   [message()] (default: TRUE). Use `verbose = FALSE` or [suppressMessages()]
+#'   to silence them.
 #'
 #' @return The input object with niche assignments added to colData. If a single n_niches is provided,
 #'   results are stored as "spatial_niches". If multiple n_niches are provided, results are stored as
@@ -76,7 +79,8 @@ findNiches <- function(spe,
                        kmeans_algorithm = "Lloyd",
                        seed = 94863,
                        store_pca = FALSE,
-                       pca_name = "PhiSpace_PCA") {
+                       pca_name = "PhiSpace_PCA",
+                       verbose = TRUE) {
 
   # Input validation
   if (!inherits(spe, c("SpatialExperiment", "SingleCellExperiment"))) {
@@ -95,8 +99,8 @@ findNiches <- function(spe,
   n_niches <- sort(unique(n_niches))
   multiple_k <- length(n_niches) > 1
 
-  if (multiple_k) {
-    cat("Testing", length(n_niches), "different numbers of niches:", paste(n_niches, collapse = ", "), "\n")
+  if (multiple_k && verbose) {
+    message("Testing ", length(n_niches), " different numbers of niches: ", paste(n_niches, collapse = ", "))
   }
 
   # Extract PhiSpace scores
@@ -106,7 +110,7 @@ findNiches <- function(spe,
     stop("Number of rows in PhiSpace scores must match number of cells/spots")
   }
 
-  cat("Found PhiSpace scores with", ncol(phi_scores), "cell types for", nrow(phi_scores), "cells/spots\n")
+  if (verbose) message("Found PhiSpace scores with ", ncol(phi_scores), " cell types for ", nrow(phi_scores), " cells/spots")
 
   # Determine matrix for clustering
   if (use_pca) {
@@ -121,7 +125,7 @@ findNiches <- function(spe,
       ncomp <- ncol(phi_scores) - 1
     }
 
-    cat("Performing PCA with", ncomp, "components\n")
+    if (verbose) message("Performing PCA with ", ncomp, " components")
 
     # Perform PCA
     pca_result <- getPC(X = phi_scores,
@@ -134,11 +138,11 @@ findNiches <- function(spe,
     # Store PCA results if requested
     if (store_pca) {
       reducedDim(spe, pca_name) <- mat2clust
-      cat("PCA results stored as", pca_name, "\n")
+      if (verbose) message("PCA results stored as ", pca_name)
     }
 
   } else {
-    cat("Using PhiSpace scores directly for clustering\n")
+    if (verbose) message("Using PhiSpace scores directly for clustering")
     mat2clust <- phi_scores
   }
 
@@ -157,7 +161,7 @@ findNiches <- function(spe,
   metadata_entries <- list()
 
   for (k in n_niches) {
-    cat("Performing k-means clustering with k =", k, "\n")
+    if (verbose) message("Performing k-means clustering with k = ", k)
 
     # Perform k-means clustering
     cluster_result <- stats::kmeans(
@@ -186,10 +190,12 @@ findNiches <- function(spe,
     # Store in colData
     colData(spe)[[col_name]] <- niche_labels
 
-    # Print distribution
-    cat("Niche distribution for k =", k, ":\n")
-    print(table(niche_labels))
-    cat("\n")
+    # Report niche sizes
+    if (verbose) {
+      niche_sizes <- table(niche_labels)
+      message("Niche sizes for k = ", k, ": ",
+              paste(names(niche_sizes), niche_sizes, sep = " = ", collapse = ", "))
+    }
 
     # Store metadata
     metadata_entry <- list(
@@ -227,11 +233,13 @@ findNiches <- function(spe,
     list(metadata_entry)
   )
 
-  if (multiple_k) {
-    cat("Spatial niches identified for", length(n_niches), "different k values\n")
-    cat("Results stored in colData as:", paste0("spatial_niches_k", n_niches, collapse = ", "), "\n")
-  } else {
-    cat("Spatial niches identified and stored in colData$spatial_niches\n")
+  if (verbose) {
+    if (multiple_k) {
+      message("Spatial niches identified for ", length(n_niches), " different k values")
+      message("Results stored in colData as: ", paste0("spatial_niches_k", n_niches, collapse = ", "))
+    } else {
+      message("Spatial niches identified and stored in colData$spatial_niches")
+    }
   }
 
   return(spe)

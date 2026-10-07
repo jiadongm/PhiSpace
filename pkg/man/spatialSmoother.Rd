@@ -45,7 +45,8 @@ spatialSmoother(
 
 \item{include_self}{Whether to include the cell itself in smoothing (default: TRUE)}
 
-\item{verbose}{Show progress bar or not.}
+\item{verbose}{Whether to report progress with \code{\link[=message]{message()}} and show a
+progress bar (default: TRUE).}
 }
 \value{
 Modified object with new smoothed assay or reduced dimension

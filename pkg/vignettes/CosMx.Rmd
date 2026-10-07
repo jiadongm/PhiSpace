@@ -137,7 +137,7 @@ VizSpatial(query, "sdimx", "sdimy", ptSize = 1, reducedDim = "B cells(immu)", ce
 
 
 It is very encouraging to see how a simple spatial heatmap can alreay be so informative. Since the distribution of different cell types show such diverse spatial distributions, why can't we use them to define spatial niches? Here we simply cluster the PhiSpace cell type scores into 9 clusters to match the number of spatial domains defined by He et al. (2022). `findNiches()` computes the first 25 principal components of the scores and clusters them with k-means. As we see below, these clusters correspond well to the domains defined by He et al. (2022), but with more subtlety. In particular, our PhiSpace clustering seemed to idnetify two niches within the 'tumour interior' domain of He et al. (2022).
-```{r  fig.asp=1}
+```{r, fig.asp = 1, message = FALSE}
 nichePath <- paste0(dat_dir, "output/Lung5_Rep1_PhiNiches4Refs.qs2")
 if(!file.exists(nichePath)){
   query <- findNiches(

@@ -4,12 +4,15 @@
 \alias{zeroFeatQC}
 \title{Minimal quality control (QC): remove features with all zero values.}
 \usage{
-zeroFeatQC(sce, assayName = "counts")
+zeroFeatQC(sce, assayName = "counts", verbose = TRUE)
 }
 \arguments{
 \item{sce}{SingleCellExperiment object.}
 
 \item{assayName}{Character.}
+
+\item{verbose}{Logical. Whether to report the result with \code{\link[=message]{message()}}
+(default: TRUE).}
 }
 \value{
 An updated SingleCellExperiment object after minimal QC.

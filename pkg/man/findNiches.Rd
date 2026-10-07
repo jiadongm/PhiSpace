@@ -17,7 +17,8 @@ findNiches(
   kmeans_algorithm = "Lloyd",
   seed = 94863,
   store_pca = FALSE,
-  pca_name = "PhiSpace_PCA"
+  pca_name = "PhiSpace_PCA",
+  verbose = TRUE
 )
 }
 \arguments{
@@ -48,6 +49,10 @@ If NULL, defaults to half the number of cell types in PhiSpace scores.}
 \item{store_pca}{Logical. Whether to store PCA results in the object (default: FALSE).}
 
 \item{pca_name}{Character. Name for stored PCA results if store_pca = TRUE (default: "PhiSpace_PCA").}
+
+\item{verbose}{Logical. Whether to report progress and niche sizes with
+\code{\link[=message]{message()}} (default: TRUE). Use \code{verbose = FALSE} or \code{\link[=suppressMessages]{suppressMessages()}}
+to silence them.}
 }
 \value{
 The input object with niche assignments added to colData. If a single n_niches is provided,

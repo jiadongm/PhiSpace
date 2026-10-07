@@ -12,7 +12,8 @@
 #' @param kernel Kernel function: "gaussian", "uniform", or "linear" (default: "gaussian")
 #' @param sigma Bandwidth parameter for Gaussian kernel (default: auto-computed)
 #' @param include_self Whether to include the cell itself in smoothing (default: TRUE)
-#' @param verbose Show progress bar or not.
+#' @param verbose Whether to report progress with [message()] and show a
+#'   progress bar (default: TRUE).
 #'
 #' @return Modified object with new smoothed assay or reduced dimension
 #' @export
@@ -50,7 +51,7 @@ spatialSmoother <- function(object,
       x = coords_matrix[, 1],
       y = coords_matrix[, 2]
     )
-    if(verbose) cat("Using spatial coordinates from SpatialExperiment object\n")
+    if(verbose) message("Using spatial coordinates from SpatialExperiment object")
 
   } else if (is_sce) {
     # For SingleCellExperiment objects, use specified columns from colData
@@ -69,7 +70,7 @@ spatialSmoother <- function(object,
       x = colData(object)[[x_coord]],
       y = colData(object)[[y_coord]]
     )
-    if(verbose) cat("Using coordinates from colData columns:", x_coord, "and", y_coord, "\n")
+    if(verbose) message("Using coordinates from colData columns: ", x_coord, " and ", y_coord)
   }
 
   # Check for missing coordinates
@@ -85,7 +86,7 @@ spatialSmoother <- function(object,
     }
 
     # Smooth reduced dimensions
-    if(verbose) cat("Smoothing reduced dimensions:", reducedDim2smooth, "\n")
+    if(verbose) message("Smoothing reduced dimensions: ", reducedDim2smooth)
 
     if (!reducedDim2smooth %in% reducedDimNames(object)) {
       stop(paste("Reduced dimension", reducedDim2smooth, "not found in object"))
@@ -114,7 +115,7 @@ spatialSmoother <- function(object,
     # Add smoothed reduced dimension to object
     reducedDim(object, smoothedReducedDim) <- smoothed_redDim
 
-    if(verbose) cat("Added smoothed reduced dimension:", smoothedReducedDim, "\n")
+    if(verbose) message("Added smoothed reduced dimension: ", smoothedReducedDim)
 
   } else {
     # Set default name for smoothed assay if not provided
@@ -123,7 +124,7 @@ spatialSmoother <- function(object,
     }
 
     # Smooth gene expression
-    if(verbose) cat("Smoothing gene expression from assay:", assay2smooth, "\n")
+    if(verbose) message("Smoothing gene expression from assay: ", assay2smooth)
 
     if (!assay2smooth %in% assayNames(object)) {
       stop(paste("Assay", assay2smooth, "not found in object"))
@@ -146,7 +147,7 @@ spatialSmoother <- function(object,
     # Add smoothed assay to object
     assay(object, smoothedAssay) <- smoothed_expr
 
-    if(verbose) cat("Added smoothed assay:", smoothedAssay, "\n")
+    if(verbose) message("Added smoothed assay: ", smoothedAssay)
   }
 
   # Add metadata about smoothing parameters
@@ -193,7 +194,8 @@ spatialSmoother <- function(object,
 #' @param kernel Kernel function: "gaussian", "uniform", or "linear" (default: "gaussian")
 #' @param sigma Bandwidth parameter for Gaussian kernel (default: auto-computed)
 #' @param include_self Whether to include the cell itself in smoothing (default: TRUE)
-#' @param verbose Show progress bar or not.
+#' @param verbose Whether to report progress with [message()] and show a
+#'   progress bar (default: TRUE).
 #'
 #' @return Smoothed gene x cell expression matrix
 spatial_smooth_expression <- function(
@@ -222,7 +224,7 @@ spatial_smooth_expression <- function(
   search_k <- if(include_self) k else k + 1
 
   # Find k-nearest neighbors for each cell
-  if(verbose) cat("Finding k-nearest neighbors...\n")
+  if(verbose) message("Finding k-nearest neighbors...")
   knn_result <- FNN::get.knnx(data = coordinates[, c("x", "y")],
                               query = coordinates[, c("x", "y")],
                               k = search_k)
@@ -238,7 +240,7 @@ spatial_smooth_expression <- function(
   }
 
   # Compute kernel weights
-  if(verbose) cat("Computing kernel weights...\n")
+  if(verbose) message("Computing kernel weights...")
   weights <- compute_kernel_weights(knn_distances, kernel, sigma)
 
   # Initialize smoothed expression matrix
@@ -247,7 +249,7 @@ spatial_smooth_expression <- function(
   colnames(smoothed_expr) <- colnames(expression_matrix)
 
   # Perform smoothing for each cell
-  if(verbose) cat("Performing spatial smoothing...\n")
+  if(verbose) message("Performing spatial smoothing...")
   if(verbose) pb <- utils::txtProgressBar(min = 0, max = n_cells, style = 3)
 
   for (i in 1:n_cells) {
@@ -265,7 +267,7 @@ spatial_smooth_expression <- function(
   }
   if(verbose) close(pb)
 
-  if(verbose) cat("Spatial smoothing completed!\n")
+  if(verbose) message("Spatial smoothing completed!")
   return(smoothed_expr)
 }
 

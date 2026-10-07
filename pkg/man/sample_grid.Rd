@@ -9,7 +9,8 @@ sample_grid(
   n_target,
   grid_size,
   min_cells_per_region,
-  balance_regions
+  balance_regions,
+  verbose = TRUE
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ sample_grid(
 \item{min_cells_per_region}{Mimimum cells per region}
 
 \item{balance_regions}{Balance regions}
+
+\item{verbose}{Whether to report progress with \code{\link[=message]{message()}}}
 }
 \description{
 Grid-based spatial sampling

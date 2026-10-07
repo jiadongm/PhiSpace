@@ -12,6 +12,7 @@
 #' @param seed Random seed for reproducibility (default: 123)
 #' @param min_cells_per_region Minimum cells required per spatial region (default: 1)
 #' @param balance_regions Whether to balance sampling across spatial regions (default: FALSE; if true, might create duplicated spatial units)
+#' @param verbose Whether to report progress with [message()] (default: TRUE)
 #'
 #' @return Subsampled SpatialExperiment object
 #'
@@ -22,7 +23,8 @@ spatialSampler <- function(spe,
                            grid_size = NULL,
                            seed = 123,
                            min_cells_per_region = 1,
-                           balance_regions = FALSE) {
+                           balance_regions = FALSE,
+                           verbose = TRUE) {
 
   # Input validation
   if (!inherits(spe, "SpatialExperiment")) {
@@ -54,8 +56,10 @@ spatialSampler <- function(spe,
   n_total <- nrow(coordinates)
   n_target <- round(n_total * prop)
 
-  cat("Spatial sampling:", n_target, "cells from", n_total, "total cells\n")
-  cat("Method:", method, "\n")
+  if (verbose) {
+    message("Spatial sampling: ", n_target, " cells from ", n_total, " total cells")
+    message("Method: ", method)
+  }
 
   # Perform spatial sampling based on method
   if (method == "random") {
@@ -63,14 +67,16 @@ spatialSampler <- function(spe,
 
   } else if (method == "grid") {
     selected_indices <- sample_grid(coordinates, n_target, grid_size,
-                                    min_cells_per_region, balance_regions)
+                                    min_cells_per_region, balance_regions,
+                                    verbose = verbose)
 
   } else if (method == "kmeans") {
     selected_indices <- sample_kmeans(coordinates, n_target,
-                                      min_cells_per_region, balance_regions)
+                                      min_cells_per_region, balance_regions,
+                                      verbose = verbose)
   }
 
-  cat("Actually sampled:", length(selected_indices), "cells\n")
+  if (verbose) message("Actually sampled: ", length(selected_indices), " cells")
 
   # Subset the SpatialExperiment object
   spe_subset <- spe[, selected_indices]
@@ -113,7 +119,9 @@ sample_random <- function(coordinates, n_target) {
 #' @param grid_size Grid size
 #' @param min_cells_per_region Mimimum cells per region
 #' @param balance_regions Balance regions
-sample_grid <- function(coordinates, n_target, grid_size, min_cells_per_region, balance_regions) {
+#' @param verbose Whether to report progress with [message()]
+sample_grid <- function(coordinates, n_target, grid_size, min_cells_per_region, balance_regions,
+                        verbose = TRUE) {
 
   # Auto-calculate grid size if not provided
   if (is.null(grid_size)) {
@@ -121,7 +129,7 @@ sample_grid <- function(coordinates, n_target, grid_size, min_cells_per_region, 
     grid_size <- max(2, round(sqrt(n_target)))
   }
 
-  cat("Using grid size:", grid_size, "x", grid_size, "\n")
+  if (verbose) message("Using grid size: ", grid_size, " x ", grid_size)
 
   # Create spatial grid
   x_breaks <- seq(min(coordinates$x), max(coordinates$x), length.out = grid_size + 1)
@@ -136,7 +144,7 @@ sample_grid <- function(coordinates, n_target, grid_size, min_cells_per_region, 
   grid_counts <- table(coordinates$grid_cell)
   occupied_grids <- names(grid_counts)[grid_counts >= min_cells_per_region]
 
-  cat("Grid cells with sufficient cells:", length(occupied_grids), "out of", grid_size^2, "\n")
+  if (verbose) message("Grid cells with sufficient cells: ", length(occupied_grids), " out of ", grid_size^2)
 
   if (balance_regions) {
     # Sample equally from each occupied grid cell
@@ -183,12 +191,14 @@ sample_grid <- function(coordinates, n_target, grid_size, min_cells_per_region, 
 #' @param n_target Number of targets
 #' @param min_cells_per_region Minimum cells per region
 #' @param balance_regions Balance regions
-sample_kmeans <- function(coordinates, n_target, min_cells_per_region, balance_regions) {
+#' @param verbose Whether to report progress with [message()]
+sample_kmeans <- function(coordinates, n_target, min_cells_per_region, balance_regions,
+                          verbose = TRUE) {
 
   # Determine number of clusters (spatial regions)
   n_clusters <- max(2, min(round(sqrt(n_target)), round(nrow(coordinates) / min_cells_per_region)))
 
-  cat("Using", n_clusters, "spatial clusters\n")
+  if (verbose) message("Using ", n_clusters, " spatial clusters")
 
   # Perform k-means clustering on coordinates
   coord_matrix <- as.matrix(coordinates[, c("x", "y")])
@@ -208,7 +218,7 @@ sample_kmeans <- function(coordinates, n_target, min_cells_per_region, balance_r
   cluster_counts <- table(coordinates$spatial_cluster)
   valid_clusters <- names(cluster_counts)[cluster_counts >= min_cells_per_region]
 
-  cat("Valid spatial clusters:", length(valid_clusters), "out of", n_clusters, "\n")
+  if (verbose) message("Valid spatial clusters: ", length(valid_clusters), " out of ", n_clusters)
 
   if (balance_regions) {
     # Sample equally from each cluster

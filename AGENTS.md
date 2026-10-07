@@ -130,8 +130,16 @@ Decision column.
 500 iterations, against the R default Hartigan-Wong algorithm, 50 starts and
 200 iterations. Its default seed (94863) matches. Its PCA is the same `getPC()`
 call. With the vignette's arguments it reproduces the CosMx labels exactly; with
-its defaults the adjusted Rand index is 0.89. It reports progress with `cat()`,
-so the rendered page shows its messages and the niche-size table.
+its defaults the adjusted Rand index is 0.89. Since 2026-10-08 it reports
+progress and niche sizes with `message()` (silence with `verbose = FALSE` or
+`suppressMessages()`); the CosMx and Stereo-seq niche chunks set
+`message = FALSE`, so fresh and cached pages show the same text. The same
+change was made in `zeroFeatQC()`, `spatialSampler()` and `spatialSmoother()`
+(whose progress bar still writes to standard output). `clusterPhiSpace.R`
+keeps `cat()` because it uses it only in `print()` and `summary()` methods.
+Fresh local builds after the change: CosMx 35 checks and 14 of 14 figures
+identical, Stereo-seq 48 checks and 23 of 23 figures identical. The kmeans
+and irlba warnings stay visible, as in the old explicit vignettes.
 
 `pls.fit()` calls `irlba::partial_eigen()`, which draws a random start vector,
 so PhiSpace scores vary between runs by about 1e-8 unless the seed is the same.

@@ -4,7 +4,13 @@
 \alias{sample_kmeans}
 \title{K-means based spatial sampling}
 \usage{
-sample_kmeans(coordinates, n_target, min_cells_per_region, balance_regions)
+sample_kmeans(
+  coordinates,
+  n_target,
+  min_cells_per_region,
+  balance_regions,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{coordinates}{Spatial coordinates}
@@ -14,6 +20,8 @@ sample_kmeans(coordinates, n_target, min_cells_per_region, balance_regions)
 \item{min_cells_per_region}{Minimum cells per region}
 
 \item{balance_regions}{Balance regions}
+
+\item{verbose}{Whether to report progress with \code{\link[=message]{message()}}}
 }
 \description{
 K-means based spatial sampling
