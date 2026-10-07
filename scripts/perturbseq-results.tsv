@@ -3,16 +3,8 @@ query_n_cells	28453	0
 query_n_celltypes	15	0
 query_celltypes_sha256	8d52d52c0c373fd0eeb0f2fa2f6a02fbef1e36b958f0014b2611ff94e825ae38	
 query_cells_sha256	e3ae64c5638df4d6aa71407b6f10c4cd2424c90acf871f82c94e01927486438b	
-query_score_mean	-0.866666666666667	8.7e-06
-query_score_sd	0.0433336939509046	4.3e-07
-ref_n_cells	1561	0
-ref_n_celltypes	15	0
-ref_celltypes_sha256	8d52d52c0c373fd0eeb0f2fa2f6a02fbef1e36b958f0014b2611ff94e825ae38	
-ref_cells_sha256	84f9037eb989dbe271e705e3694f03e972d47530a1fb5bee7aab76f474b78809	
-ref_score_mean	-0.866666666666667	8.7e-06
-ref_score_sd	0.496866184960292	5.0e-06
-ncomp	15	0
-n_selected_features	2821	0
+norm_score_mean	0.000243406420778995	1.0e-07
+norm_score_sd	0.195123021663109	2.0e-06
 norm_mean_T cells, CD4+, naive, stimulated	0.0114877778036892	1.1e-07
 norm_sd_T cells, CD4+, naive, stimulated	0.168082467185111	1.7e-06
 norm_mean_T cells, CD8+, naive, stimulated	0.00166203145101288	1.0e-07

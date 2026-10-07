@@ -59,7 +59,7 @@ source(paste0(dat_dir, "utils.R"), local = TRUE)
 
 # Data preparation 
 
-Download the [shared folder](https://www.dropbox.com/scl/fo/4gm1ef27yl4wgb0f6zio7/AG0bvE9LXKgv61AAKmD5ho8?rlkey=bkd7nlwo6qlltkl21645xdw90&dl=0) and preserve its directory layout. It contains `utils.R`, the processed query dataset `data/sceStim.qs2`, the processed reference `data/ref_sce.qs2` and the cached annotation result `output/PhiRes.qs2`.
+Download the [shared folder](https://www.dropbox.com/scl/fo/4gm1ef27yl4wgb0f6zio7/AG0bvE9LXKgv61AAKmD5ho8?rlkey=bkd7nlwo6qlltkl21645xdw90&dl=0) and preserve its directory layout. It contains `utils.R`, the processed query dataset `data/sceStim.qs2`, the processed reference `data/ref_sce.qs2` and the cached PhiSpace scores `output/PhiSpaceScores.qs2`.
 
 Set `PHISPACE_PERTURBSEQ_DATA` to that folder before running this vignette, for example `Sys.setenv(PHISPACE_PERTURBSEQ_DATA = "/path/to/PerturbSeq")`. This vignette uses `qs2::qs_read()` and `qs2::qs_save()` with migrated `.qs2` files. The old `.qs` files cannot be converted by renaming them.
 ```{r}
@@ -88,19 +88,16 @@ if(!file.exists(refPath)){
 
 # Run PhiSpace
 ```{r}
-PhiResPath <- paste0(dat_dir, "output/PhiRes.qs2")
-if(!file.exists(PhiResPath)){
-  PhiAssay <- "logcounts"
-  PhiRes <- PhiSpaceR_1ref(
-    reference, query, phenotypes = "label.fine", refAssay = PhiAssay, 
+PhiScPath <- paste0(dat_dir, "output/PhiSpaceScores.qs2")
+if(!file.exists(PhiScPath)){
+  query <- PhiSpace(
+    reference, query, phenotypes = "label.fine", refAssay = "logcounts",
     regMethod = "PLS", nfeat = 500
   )
-  qs_save(PhiRes, PhiResPath)
+  qs_save(reducedDim(query, "PhiSpace"), PhiScPath)
 } else {
-  PhiRes <- qs_read(PhiResPath)
+  reducedDim(query, "PhiSpace") <- qs_read(PhiScPath)
 }
-length(PhiRes$selectedFeat)
-reducedDim(query, "PhiSpace") <- normPhiScores(PhiRes$PhiSpaceScore)
 ```
 
 Some cell types in the reference are not T cells. Keep only T cell types for better interpretation.

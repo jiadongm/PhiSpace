@@ -84,7 +84,7 @@ Optional variables:
   results, about 2.1 GB). Its fresh build peaks at about 65 GB RAM.
 - `PHISPACE_PERTURBSEQ_INPUTS`, `PHISPACE_PERTURBSEQ_ARCHIVE` and
   `PHISPACE_PERTURBSEQ_MODE`: the same roles for PerturbSeq (3 inputs and 1
-  cached result, about 1.16 GB). Its default mode is `fresh`.
+  cached score matrix, about 1.15 GB). Its default mode is `fresh`.
 - `PHISPACE_COSMX_INPUTS`, `PHISPACE_COSMX_ARCHIVE` and `PHISPACE_COSMX_MODE`:
   the same roles for CosMx (14 inputs and 2 cached results, about 0.9 GB).
   Its default mode is `fresh`.

@@ -112,12 +112,12 @@ qs2 from CRAN.
 ### Wrapper-Modernisation Plan (agreed 2026-10-07)
 
 This is pass 2 of "Compatibility First, Wrappers Last". Scope, by expected
-value (checked by reading the vignettes and wrapper sources; nothing has been
-run yet):
+value (checked by reading the vignettes and wrapper sources). Status is in the
+Decision column.
 
 | Order | Vignette | Explicit block | Wrapper | Decision |
 | --- | --- | --- | --- | --- |
-| 1 | PerturbSeq | `PhiSpaceR_1ref()` + `normPhiScores()`, one reference | `PhiSpace()` | Convert; it sets up the method. The vignette prints `length(PhiRes$selectedFeat)`, which `PhiSpace()` does not return. |
+| 1 | PerturbSeq | `PhiSpaceR_1ref()` + `normPhiScores()`, one reference | `PhiSpace()` | Done 2026-10-07 (see the PerturbSeq wrapper record below); Dropbox upload pending. |
 | 2 | CosMx | Loop over 4 lineage references with `PhiSpaceR_1ref()` + `normPhiScores()` and a `(lineage)` name suffix | `PhiSpace(reference = ref_list)` | Convert; the only multi-reference demonstration. |
 | 2 | CosMx | PCA of scores, `set.seed(94863)`, `kmeans(centers = 9, iter.max = 200, nstart = 50)` | `findNiches()` | Convert if equivalent. |
 | 3 | StereoSeq | Same PCA + k-means pattern (`centers = 8`) | `findNiches()` | Convert if equivalent. |
@@ -142,7 +142,33 @@ Procedure, one vignette per commit:
    `scripts/<slug>-results.tsv` checks to pass unchanged.
 4. `PhiSpace()` returns the query object, not the `PhiSpaceR_1ref()` list, so
    saved result files change. Regenerate them, update the manifests, and
-   confirm each Dropbox upload with the user.
+   confirm each Dropbox upload with the user. Save only what the vignette uses
+   (the user chose this for PerturbSeq): usually `reducedDim(query, "PhiSpace")`.
+   Result checks that need removed components are dropped; retained checks
+   must keep their values.
+5. Upload the new result file before the user pushes the commit: the preparation
+   script requires every manifest file in the Dropbox folder ZIP. Delete the
+   superseded file from Dropbox only after the new page is live.
+
+PerturbSeq wrapper record (2026-10-07):
+
+- `PhiSpace(reference, query, phenotypes = "label.fine", refAssay = "logcounts",
+  regMethod = "PLS", nfeat = 500)` matches `PhiSpaceR_1ref()` +
+  `normPhiScores()`: normalised query scores within 2.1e-15, raw query scores
+  within 3.3e-16, reference predictions within 3.3e-15, identical dimnames.
+  No wrapper change was needed.
+- The vignette now saves `output/PhiSpaceScores.qs2` (the 28,453 x 15
+  normalised score matrix, 3.2 MB) instead of `output/PhiRes.qs2` (9.7 MB). It no
+  longer prints the number of selected features (2,821).
+- `scripts/perturbseq-results.tsv`: dropped the raw-score, reference, `ncomp`
+  and feature-count checks (10 metrics); kept 12 with unchanged expected
+  values (observed within 1.5e-15); added `norm_score_mean` and
+  `norm_score_sd`. 14 metrics pass in fresh (61 s, 13.3 GB) and cached
+  (43 s, 6.5 GB) builds, with identical values.
+- All 11 figures are byte-identical to a local render of the previous
+  explicit vignette. Against the live page, 10 of 11 are identical; the
+  heatmap differs in fine detail, as it does for the explicit vignette built
+  locally, so the difference comes from the build machine.
 
 ### Dropbox Access
 

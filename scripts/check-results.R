@@ -160,22 +160,16 @@ result_metrics[["CITE-seq"]] <- function(output_dir) {
 }
 
 result_metrics$PerturbSeq <- function(output_dir) {
-  res <- qs2::qs_read(file.path(output_dir, "PhiRes.qs2"), validate_checksum = TRUE)
+  # Normalised PhiSpace scores from PhiSpace(): reducedDim(query, "PhiSpace").
+  norm <- qs2::qs_read(file.path(output_dir, "PhiSpaceScores.qs2"), validate_checksum = TRUE)
   m <- list()
-  for (part in c("PhiSpaceScore", "YrefHat")) {
-    score <- res[[part]]
-    key <- if (part == "YrefHat") "ref" else "query"
-    m[[paste0(key, "_n_cells")]] <- nrow(score)
-    m[[paste0(key, "_n_celltypes")]] <- ncol(score)
-    m[[paste0(key, "_celltypes_sha256")]] <- digest::digest(colnames(score), algo = "sha256")
-    m[[paste0(key, "_cells_sha256")]] <- digest::digest(rownames(score), algo = "sha256")
-    m[[paste0(key, "_score_mean")]] <- mean(score)
-    m[[paste0(key, "_score_sd")]] <- sd(as.vector(score))
-  }
-  m$ncomp <- res$ncomp
-  m$n_selected_features <- length(res$selectedFeat)
+  m$query_n_cells <- nrow(norm)
+  m$query_n_celltypes <- ncol(norm)
+  m$query_celltypes_sha256 <- digest::digest(colnames(norm), algo = "sha256")
+  m$query_cells_sha256 <- digest::digest(rownames(norm), algo = "sha256")
+  m$norm_score_mean <- mean(norm)
+  m$norm_score_sd <- sd(as.vector(norm))
   # Scores behind the activation and Th1/Th2 analyses.
-  norm <- normPhiScores(res$PhiSpaceScore)
   for (ct in c("T cells, CD4+, naive, stimulated", "T cells, CD8+, naive, stimulated",
                "T cells, CD4+, Th1", "T cells, CD4+, Th2")) {
     m[[paste0("norm_mean_", ct)]] <- mean(norm[, ct])
