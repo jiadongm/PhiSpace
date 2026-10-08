@@ -525,9 +525,12 @@ keep runtime and memory bounded.
   error, because it stores ggplot objects saved before ggplot2 4.0. Replacement
   `PhiRes.qs2`, `PhiClustRes.qs2` and `cloneKDEres.qs2`, computed with the
   vignette code, are in `PkgOverhaul/data/StereoSeq/replacement-2026-10-06/`
-  with hashes and a README. With them and the DWD seed below, a cached build
-  passes all 49 result checks and reproduces all 23 shared fresh-build figures
-  byte for byte. Pending: the user uploads them to the Dropbox `output/` folder.
+  with hashes and a README (the local files were deleted on 2026-10-07). With
+  them and the DWD seed below, a cached build passed all 49 result checks and
+  reproduced all 23 shared fresh-build figures byte for byte. They were
+  uploaded on 2026-10-07; `PhiRes.qs2` and `PhiClustRes.qs2` were later
+  replaced by `PhiSpaceScores.qs2` and `PhiNiches.qs2` (see the StereoSeq
+  wrapper record).
 - Stereo-seq DWD figure: `cv.kerndwd()` assigns random folds. Without a seed,
   fresh builds depended on earlier `set.seed()` calls inside compute branches,
   which cached builds skip; the selected lambda and loadings then changed (top
