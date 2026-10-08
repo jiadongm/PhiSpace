@@ -79,25 +79,29 @@ PhiSpace model when \code{fallback = "scoreCells"}.}
 \value{
 A list with the following components:
 \describe{
-\item{ncomp}{Integer. Number of components used.}
-\item{impScores}{Matrix. Feature importance scores (regression coefficients at the final component).}
+\item{ncomp}{Integer. Number of components used. \code{NA} when the \code{scoreCells} fallback is used.}
+\item{impScores}{Matrix. Feature importance scores (regression coefficients at the final component).
+\code{NULL} when the \code{scoreCells} fallback is used.}
 \item{phenoDict}{Data frame mapping phenotype labels to their categories, or \code{NULL} if \code{response}
 was provided directly.}
-\item{selectedFeat}{Character vector. Features used in the final model.}
+\item{selectedFeat}{Character vector. Features used in the final model. With the \code{scoreCells}
+fallback, the union of the signature features, or all centroid features if there are no
+signatures.}
 \item{YrefHat}{Matrix. Raw (unnormalised) predicted scores for the reference cells.
-\code{NULL} when \code{scoreCells} fallback is used.}
+\code{NULL} when the \code{scoreCells} fallback is used.}
 \item{YrefHatNorm}{Matrix. Normalised predicted scores for the reference cells (via \code{\link[=normPhiScores]{normPhiScores()}}).
-\code{NULL} when \code{scoreCells} fallback is used.}
+\code{NULL} when the \code{scoreCells} fallback is used.}
 \item{PhiSpaceScore}{Matrix or list of matrices. Raw (unnormalised) PhiSpace scores for the query
 dataset(s). A single matrix if one query was provided; a list of matrices if multiple queries.}
 \item{PhiSpaceNorm}{Matrix or list of matrices. Normalised PhiSpace scores for the query dataset(s)
 (via \code{\link[=normPhiScores]{normPhiScores()}}). Same structure as \code{PhiSpaceScore}.}
-\item{center}{Logical. Whether centering was applied.}
-\item{scale}{Logical. Whether scaling was applied.}
+\item{center}{Logical. Whether centering was applied. \code{NA} when the \code{scoreCells} fallback is used.}
+\item{scale}{Logical. Whether scaling was applied. \code{NA} when the \code{scoreCells} fallback is used.}
 \item{atlas_re}{List. Internal model object from \code{SuperPC()}, containing regression results and
-preprocessing parameters needed for prediction.}
-\item{fallback}{List or \code{NULL}. Metadata describing the fallback run when \code{scoreCells}
-fallback is used.}
+preprocessing parameters needed for prediction. \code{NULL} when the \code{scoreCells} fallback is used.}
+\item{fallback}{List. Present only when the \code{scoreCells} fallback is used. It records the method,
+the score type (\code{fallback_score}), the phenotype column and its number of classes,
+\code{fallback_min_classes}, and the \code{scoreCells()} metadata.}
 }
 }
 \description{

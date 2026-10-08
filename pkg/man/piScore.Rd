@@ -48,6 +48,6 @@ for the paper's original \code{|log2FC| * -log10(p)}.
 }
 \references{
 Xiao Y, Hsiao T-H, Suresh U, et al. (2014) A novel significance score for
-  gene selection and ranking. \emph{Bioinformatics} 30(6):801-807.
-  \doi{10.1093/bioinformatics/btr671}
+gene selection and ranking. \emph{Bioinformatics} 30(6):801-807.
+\doi{10.1093/bioinformatics/btr671}
 }

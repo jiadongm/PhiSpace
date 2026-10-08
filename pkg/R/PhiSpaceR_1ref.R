@@ -42,21 +42,29 @@
 #'
 #' @return A list with the following components:
 #' \describe{
-#'   \item{ncomp}{Integer. Number of components used.}
-#'   \item{impScores}{Matrix. Feature importance scores (regression coefficients at the final component).}
+#'   \item{ncomp}{Integer. Number of components used. `NA` when the `scoreCells` fallback is used.}
+#'   \item{impScores}{Matrix. Feature importance scores (regression coefficients at the final component).
+#'     `NULL` when the `scoreCells` fallback is used.}
 #'   \item{phenoDict}{Data frame mapping phenotype labels to their categories, or `NULL` if `response`
 #'     was provided directly.}
-#'   \item{selectedFeat}{Character vector. Features used in the final model.}
-#'   \item{YrefHat}{Matrix. Raw (unnormalised) predicted scores for the reference cells.}
-#'   \item{YrefHatNorm}{Matrix. Normalised predicted scores for the reference cells (via [normPhiScores()]).}
+#'   \item{selectedFeat}{Character vector. Features used in the final model. With the `scoreCells`
+#'     fallback, the union of the signature features, or all centroid features if there are no
+#'     signatures.}
+#'   \item{YrefHat}{Matrix. Raw (unnormalised) predicted scores for the reference cells.
+#'     `NULL` when the `scoreCells` fallback is used.}
+#'   \item{YrefHatNorm}{Matrix. Normalised predicted scores for the reference cells (via [normPhiScores()]).
+#'     `NULL` when the `scoreCells` fallback is used.}
 #'   \item{PhiSpaceScore}{Matrix or list of matrices. Raw (unnormalised) PhiSpace scores for the query
 #'     dataset(s). A single matrix if one query was provided; a list of matrices if multiple queries.}
 #'   \item{PhiSpaceNorm}{Matrix or list of matrices. Normalised PhiSpace scores for the query dataset(s)
 #'     (via [normPhiScores()]). Same structure as `PhiSpaceScore`.}
-#'   \item{center}{Logical. Whether centering was applied.}
-#'   \item{scale}{Logical. Whether scaling was applied.}
+#'   \item{center}{Logical. Whether centering was applied. `NA` when the `scoreCells` fallback is used.}
+#'   \item{scale}{Logical. Whether scaling was applied. `NA` when the `scoreCells` fallback is used.}
 #'   \item{atlas_re}{List. Internal model object from `SuperPC()`, containing regression results and
-#'     preprocessing parameters needed for prediction.}
+#'     preprocessing parameters needed for prediction. `NULL` when the `scoreCells` fallback is used.}
+#'   \item{fallback}{List. Present only when the `scoreCells` fallback is used. It records the method,
+#'     the score type (`fallback_score`), the phenotype column and its number of classes,
+#'     `fallback_min_classes`, and the `scoreCells()` metadata.}
 #' }
 #'
 #' @details
