@@ -35,6 +35,7 @@ Imports:
     umap,
     vizOmics
 Suggests: 
+    pls,
     testthat (>= 3.0.0)
 Remotes: 
     ByronSyun/vizOmics

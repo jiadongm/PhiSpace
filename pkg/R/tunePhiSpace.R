@@ -156,14 +156,18 @@ tunePhiSpace <- function(reference,
 
     selectedFeat <- rownames(reference)
 
-    impScores <- mvr(
-      X = t(assay(reference, assayName)),
-      Y = YY,
-      ncomp = ncomp,
-      method = regMethod,
-      center = center,
-      scale = scale
-    )$coefficients[,,ncomp]
+    impScores <- .coefSlice(
+      mvr(
+        X = t(assay(reference, assayName)),
+        Y = YY,
+        ncomp = ncomp,
+        method = regMethod,
+        center = center,
+        scale = scale,
+        keepComps = ncomp
+      )$coefficients,
+      ncomp
+    )
   }
 
 

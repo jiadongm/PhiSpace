@@ -45,7 +45,8 @@ SuperPC <- function(
     method = regMethod,
     center = center,
     scale = scale,
-    DRinfo = DRinfo
+    DRinfo = DRinfo,
+    keepComps = ncomp
   )
 
 

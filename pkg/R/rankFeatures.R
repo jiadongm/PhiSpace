@@ -243,23 +243,13 @@ rankFeatures <- function(data,
     ncomp = ncomp,
     method = "PLS",
     center = center,
-    scale = scale
+    scale = scale,
+    keepComps = ncomp
   )
 
-  # Extract coefficients from final component
-  # The coefficients array is [features x responses x components]
-  # We want [features x responses] for the final component
-  if (length(dim(pls_model$coefficients)) == 3) {
-    importance_scores <- pls_model$coefficients[, , ncomp, drop = FALSE]
-    # Convert 3D array to 2D matrix
-    dim(importance_scores) <- dim(importance_scores)[1:2]
-    rownames(importance_scores) <- rownames(pls_model$coefficients)
-    colnames(importance_scores) <- if (is.matrix(YY)) colnames(YY) else "Response"
-  } else {
-    # Handle case where coefficients might already be 2D
-    importance_scores <- as.matrix(pls_model$coefficients)
-    colnames(importance_scores) <- if (is.matrix(YY)) colnames(YY) else "Response"
-  }
+  # Coefficients for the final component, as a features x responses matrix
+  importance_scores <- .coefSlice(pls_model$coefficients, ncomp)
+  colnames(importance_scores) <- if (is.matrix(YY)) colnames(YY) else "Response"
 
   # Get component scores
   scores <- pls_model$scores

@@ -231,13 +231,17 @@ PhiSpaceR_1ref <- function(
   } else {
 
     if(!is.null(nfeat)){ # if nfeat has been specified
-      impScores <- mvr(
-        t(assay(reference, refAssay)),
-        YY,
-        ncomp,
-        method = regMethod,
-        center = center, scale = scale
-      )$coefficients[,,ncomp]
+      impScores <- .coefSlice(
+        mvr(
+          t(assay(reference, refAssay)),
+          YY,
+          ncomp,
+          method = regMethod,
+          center = center, scale = scale,
+          keepComps = ncomp
+        )$coefficients,
+        ncomp
+      )
       selectedFeat <- selectFeat(impScores, nfeat)$selectedFeat
     } else {
 
@@ -262,7 +266,7 @@ PhiSpaceR_1ref <- function(
 
   if(is.null(impScores)){
 
-    impScores <- atlas_re$reg_re$coefficients[,,ncomp]
+    impScores <- .coefSlice(atlas_re$reg_re$coefficients, ncomp)
   }
 
   YrefHat <- phenotype(

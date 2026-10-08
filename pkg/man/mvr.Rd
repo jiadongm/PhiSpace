@@ -12,11 +12,12 @@ mvr(
   center = TRUE,
   sparse = FALSE,
   scale = FALSE,
-  DRinfo = FALSE
+  DRinfo = FALSE,
+  keepComps = seq_len(ncomp)
 )
 }
 \arguments{
-\item{X}{Matrix.}
+\item{X}{Matrix (dense or sparse).}
 
 \item{Y}{Matrix.}
 
@@ -26,15 +27,22 @@ mvr(
 
 \item{center}{Logic.}
 
-\item{sparse}{Convert X to sparse matrix or not.}
+\item{sparse}{Not used; kept for backward compatibility.}
 
 \item{scale}{Logic.}
 
 \item{DRinfo}{Logic. Whether to return dimension reduction information from PCA or PLS. Disable to save memory.}
+
+\item{keepComps}{Integer vector. Numbers of components for which to return
+regression coefficients. The default returns all, \code{1:ncomp}. Use
+\code{keepComps = ncomp} to return only the final coefficients and save memory.}
 }
 \value{
 A list containing
-\item{coefficients}{Regression coefficient matrices.}
+\item{coefficients}{Array of regression coefficients with dimensions
+features x responses x \code{length(keepComps)}. The third dimension is named
+\code{"<k> comps"}, so \code{coefficients[, , paste(ncomp, "comps")]} selects the
+coefficients for \code{ncomp} components.}
 \item{Xmeans}{}
 \item{Ymeans}{}
 \item{ncomp}{}
@@ -42,4 +50,9 @@ A list containing
 }
 \description{
 Simplified version of \code{pls::mvr}, using computationally faster versions of PCA and PLS.
+}
+\details{
+A sparse \code{X} (for example a \code{dgCMatrix}) stays sparse: centring and
+scaling are applied implicitly, without a dense copy of \code{X}. PLS uses the
+kernel algorithm of \code{pls::kernelpls.fit}.
 }

@@ -18,7 +18,7 @@ phenotype <- function(phenoAssay,
 
   ncomp <- atlas_re$ncomp
   selectedFeat <- atlas_re$selectedFeat
-  Bhat <- atlas_re$reg_re$coefficients[,,ncomp]
+  Bhat <- .coefSlice(atlas_re$reg_re$coefficients, ncomp)
 
   # If use rank transformed data, do rank transformation again after feature selection
   if(assayName == 'rank'){
@@ -26,34 +26,34 @@ phenotype <- function(phenoAssay,
   } else {
     XX <- phenoAssay[, selectedFeat]
   }
+  XX <- .fit_matrix(XX)
 
-
+  # Centre and scale XX implicitly: (XX - 1 Xmeans') diag(1/Xscals) %*% Bhat
+  # equals XX %*% (Bhat/Xscals) - 1 Xmeans' (Bhat/Xscals), so a sparse XX
+  # stays sparse.
+  Xmeans <- rep(0, ncol(XX))
+  Xscals <- rep(1, ncol(XX))
   if(scaleMethod == "byQuery"){
-    XX_cent <- scale(XX, center = atlas_re$center, scale = atlas_re$scale)
-  } else {
+    if(atlas_re$center) Xmeans <- colMeans(XX)
     if(atlas_re$scale){
-      XX_cent <- scale(XX,
-                       scale = atlas_re$reg_re$Xscals,
-                       center = atlas_re$reg_re$Xmeans)
-    } else {
-      XX_cent <- scale(XX,
-                       scale = F,
-                       center = atlas_re$reg_re$Xmeans)
-
+      if(atlas_re$center){
+        Xscals <- .colSds(XX, Xmeans)
+      } else {
+        # As base::scale() without centring: root mean square
+        Xscals <- sqrt(colSums(XX^2)/(nrow(XX) - 1))
+      }
     }
-  }
-
-  if(is.null(atlas_re$reg_re$Ymeans)){
-    toCent <- FALSE
   } else {
-
-    toCent <- -atlas_re$reg_re$Ymeans
+    if(!is.null(atlas_re$reg_re$Xmeans)) Xmeans <- atlas_re$reg_re$Xmeans
+    if(atlas_re$scale) Xscals <- atlas_re$reg_re$Xscals
   }
-  Yhat <- scale(
-    XX_cent %*% Bhat,
-    scale = F,
-    center = toCent
-  )
+
+  Bscal <- Bhat/Xscals
+  offset <- as.numeric(crossprod(Xmeans, Bscal))
+  if(!is.null(atlas_re$reg_re$Ymeans)) offset <- offset - atlas_re$reg_re$Ymeans
+
+  Yhat <- as.matrix(XX %*% Bscal)
+  Yhat <- sweep(Yhat, 2, offset)
 
   return(Yhat)
 }

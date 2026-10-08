@@ -164,6 +164,66 @@ scal <- function(X, center = NULL, scale = NULL){
 
 
 
+## Predictor matrix for model fitting: sparse input stays sparse (as a
+## dgCMatrix); any other input becomes a base matrix.
+.fit_matrix <- function(X){
+
+  if(inherits(X, "sparseMatrix")){
+    X <- methods::as(methods::as(methods::as(X, "dMatrix"), "generalMatrix"), "CsparseMatrix")
+  } else {
+    X <- as.matrix(X)
+  }
+
+  return(X)
+}
+
+
+## Column standard deviations. For a dgCMatrix they are computed from the
+## non-zero entries and the number of zeros, without a dense copy.
+.colSds <- function(X, means = colMeans(X)){
+
+  if(inherits(X, "CsparseMatrix")){
+
+    nnz <- diff(X@p)
+    dev2 <- X
+    dev2@x <- (X@x - rep(means, nnz))^2
+    ss <- colSums(dev2) + (nrow(X) - nnz) * means^2
+    out <- sqrt(ss/(nrow(X) - 1))
+    names(out) <- colnames(X)
+  } else {
+
+    out <- apply(X, 2, stats::sd)
+  }
+
+  return(out)
+}
+
+
+## Coefficient matrix for ncomp components from a coefficient array
+## (features x responses x stored components). Works for arrays that store
+## every component (older objects) and for arrays that store only some.
+.coefSlice <- function(coefs, ncomp){
+
+  if(length(dim(coefs)) != 3) return(as.matrix(coefs))
+
+  sliceNames <- dimnames(coefs)[[3]]
+  sliceName <- paste(ncomp, "comps")
+  if(!is.null(sliceNames) && sliceName %in% sliceNames){
+    k <- match(sliceName, sliceNames)
+  } else if(is.null(sliceNames) && dim(coefs)[3] >= ncomp){
+    k <- ncomp
+  } else {
+    stop("Coefficients for ", ncomp, " components are not stored.")
+  }
+
+  out <- coefs[, , k]
+  dim(out) <- dim(coefs)[1:2]
+  dimnames(out) <- dimnames(coefs)[1:2]
+
+  return(out)
+}
+
+
 ## Double centring
 #' Double center a matrix by column and row means, resulting in a new matrix with zero row and column means.
 #'

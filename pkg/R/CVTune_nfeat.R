@@ -54,14 +54,18 @@ CVTune_nfeat <- function(reference,
 
   ## impScores
   if(is.null(impScores)){
-    impScores <- mvr(
-      XX,
-      YY,
-      ncomp,
-      method = regMethod,
-      center = center,
-      scale = scale
-    )$coefficients[,,ncomp]
+    impScores <- .coefSlice(
+      mvr(
+        XX,
+        YY,
+        ncomp,
+        method = regMethod,
+        center = center,
+        scale = scale,
+        keepComps = ncomp
+      )$coefficients,
+      ncomp
+    )
   } else {
     impScores <- as.matrix(impScores)
   }

@@ -1,11 +1,12 @@
-svdspc.fit <- function (X, Y, ncomp, center = TRUE, scale = FALSE,sparse = FALSE, DRinfo = FALSE) {
+svdspc.fit <- function (X, Y, ncomp, center = TRUE, scale = FALSE, sparse = FALSE, DRinfo = FALSE,
+                        keepComps = seq_len(ncomp)) {
 
     dnX <- dimnames(X)
     dnY <- dimnames(Y)
     nobj <- dim(X)[1]
     npred <- dim(X)[2]
     nresp <- dim(Y)[2]
-    B <- array(0, dim = c(npred, nresp, ncomp))
+    B <- array(0, dim = c(npred, nresp, length(keepComps)))
 
     if(center){
 
@@ -19,7 +20,7 @@ svdspc.fit <- function (X, Y, ncomp, center = TRUE, scale = FALSE,sparse = FALSE
 
     if(scale){
 
-      Xscals <- apply(X, 2, stats::sd)
+      Xscals <- .colSds(X)
       Yscals <- apply(Y, 2, stats::sd)
     } else {
 
@@ -27,14 +28,18 @@ svdspc.fit <- function (X, Y, ncomp, center = TRUE, scale = FALSE,sparse = FALSE
       Yscals <- NULL
     }
 
-    # This step may incur warnings if compute all singular values
-    huhn <- suppressWarnings(irlba::irlba(X, nv = ncomp, center = Xmeans, scale = Xscals))
-    D <- huhn$d
+    if(ncomp < 0.5 * min(nobj, npred)){
 
-    # if(sparse){
-    #   huhn$u[huhn$u < 1e-15] <- 0
-    #   huhn$v[huhn$v < 1e-15] <- 0
-    # }
+      # irlba centres and scales a sparse X implicitly
+      huhn <- suppressWarnings(irlba::irlba(X, nv = ncomp, center = Xmeans, scale = Xscals))
+    } else {
+
+      # irlba is not accurate for most of the singular values. Here one
+      # dimension of X is at most 2 * ncomp, so a dense copy is small.
+      huhn <- svd(scal(as.matrix(X), center = Xmeans, scale = Xscals), nu = ncomp, nv = ncomp)
+      huhn$d <- huhn$d[seq_len(ncomp)]
+    }
+    D <- huhn$d
 
     TT <- huhn$u %*% diag(D, nrow = ncomp)
     P <- huhn$v
@@ -47,18 +52,17 @@ svdspc.fit <- function (X, Y, ncomp, center = TRUE, scale = FALSE,sparse = FALSE
       paste0("comp", 1:ncomp)
     )
     tQ <- crossprod(TT, Y)/D^2
+    Bcum <- matrix(0, nrow = npred, ncol = nresp)
     for (a in 1:ncomp) {
-      B[, , a] <- as.matrix(P[, 1:a, drop = FALSE] %*% tQ[1:a, ])
+      Bcum <- Bcum + P[, a] %o% tQ[a, ]
+      k <- match(a, keepComps)
+      if (!is.na(k)) B[, , k] <- Bcum
     }
 
     # Dimnames
-    objnames <- dnX[[1]]
-    if (is.null(objnames)) objnames <- dnY[[1]]
     prednames <- dnX[[2]]
     respnames <- dnY[[2]]
-    compnames <- paste0("comp", 1:ncomp)
-    nCompnames <- paste(1:ncomp, "comps")
-    dimnames(B) <- list(prednames, respnames, nCompnames)
+    dimnames(B) <- list(prednames, respnames, paste(keepComps, "comps"))
 
 
     if(DRinfo){

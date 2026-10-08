@@ -51,10 +51,14 @@ getErr_nfeat <- function(
              XX_RT_cent <- scale(XX_RT, center = center, scale = scale)
 
              ## Regression using nfeat
-             Bhat <- mvr(XX_RT_cent, YYtrain,
-                         ncomp = ncomp,
-                         method = regMethod,
-                         center = FALSE, scale = FALSE)$coefficients[,,ncomp]
+             Bhat <- .coefSlice(
+               mvr(XX_RT_cent, YYtrain,
+                   ncomp = ncomp,
+                   method = regMethod,
+                   center = FALSE, scale = FALSE,
+                   keepComps = ncomp)$coefficients,
+               ncomp
+             )
 
              ## Prediction
              if(scale){

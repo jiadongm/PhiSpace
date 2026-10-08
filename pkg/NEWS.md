@@ -13,6 +13,36 @@
   trailing components, and the default `ncomp` (up to 30 components) could
   include them in the clustering. Clusters can therefore differ from previous
   versions, mainly for score matrices with few columns.
+* PLS fits (`mvr(method = "PLS")`, and therefore `PhiSpace()`,
+  `PhiSpaceR_1ref()` and `tunePhiSpace()`) now find each weight vector with an
+  exact eigendecomposition (`eigen()`) instead of `irlba::partial_eigen()`.
+  irlba stopped at a tolerance of about 1e-5 and used a random start, so
+  coefficients differed from `pls::kernelpls.fit` by up to about 2e-5
+  (relative) and varied with the random seed. They now agree with
+  `pls::kernelpls.fit` to about 1e-14 and do not depend on the seed. Scores
+  change by a similarly small amount.
+* `mvr(method = "PCA")` now uses a full singular value decomposition when
+  `ncomp` is at least half of the smaller dimension of `X`, where irlba can be
+  inaccurate.
+
+## Memory and speed
+
+* `mvr()` and `phenotype()` no longer convert a sparse predictor matrix to a
+  dense one. Centring and scaling are applied implicitly, inside the matrix
+  products. On a simulated 20,000 x 8,000 sparse matrix (10% non-zero, 20
+  responses), peak R memory (including the 185 MB input) fell from 3,574 MB
+  to 906 MB for the PLS fit and from 4,646 MB to 988 MB for prediction; run
+  times fell from 9.3 s to 0.9 s and from 4.0 s to 0.4 s. In fresh vignette
+  builds, peak memory fell from 17-24 GB to 7.2 GB for BridgeAnnotation and
+  from 64.9 GB to 16.1 GB for CITE-seq.
+* `mvr()` gains a `keepComps` argument that selects the numbers of components
+  whose coefficients are returned. The default, `1:ncomp`, returns all of them
+  as before. `PhiSpace()`, `PhiSpaceR_1ref()`, `tunePhiSpace()` and
+  `rankFeatures()` keep only the final coefficients. As a result, the
+  `atlas_re$reg_re$coefficients` array returned by `PhiSpaceR_1ref()` now has
+  one slice, named `"<ncomp> comps"`; select it by that name, not by
+  position. `phenotype()` accepts both forms, so objects saved by earlier
+  versions still work.
 
 ## Bug fixes
 
@@ -33,6 +63,10 @@
 ## Other changes
 
 * The `License` field changed from `AGPL (>= 3)` to `AGPL-3`.
+* Raw scores from `phenotype()` (for example `PhiSpaceScore` and `YrefHat`)
+  no longer carry a `"scaled:center"` attribute.
+* `pls` is now a suggested package; the unit tests compare `mvr()` with
+  `pls::kernelpls.fit`.
 * The `PhiSpaceR_1ref()` help page now documents every value that the
   `scoreCells` fallback changes.
 

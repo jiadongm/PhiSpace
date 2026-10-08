@@ -162,9 +162,11 @@ Fresh local builds after the change: CosMx 35 checks and 14 of 14 figures
 identical, Stereo-seq 48 checks and 23 of 23 figures identical. The kmeans
 and irlba warnings stay visible, as in the old explicit vignettes.
 
-`pls.fit()` calls `irlba::partial_eigen()`, which draws a random start vector,
-so PhiSpace scores vary between runs by about 1e-8 unless the seed is the same.
-Compare explicit and wrapper code from the same seed.
+Until 2026-10-08, `pls.fit()` called `irlba::partial_eigen()`, which draws a
+random start vector, so PhiSpace scores varied between runs by about 1e-8
+unless the seed was the same. Since the sparse-aware fit (see Package
+Performance Work), PLS uses `eigen()` and does not depend on the seed; PCA
+regression still uses irlba for few components.
 
 Procedure, one vignette per commit:
 
@@ -362,13 +364,9 @@ Done on 2026-10-07 with this procedure:
 - **Getting Started cross-validation chunk.** The `tunePhiSpace()` CV chunk is
   disabled with `if(F)`, so no build exercises tuning. Options: leave it, run a
   small grid with new expected values, or drop it. Not decided.
-- **Sparse-aware `mvr()`.** `mvr()` (and `phenotype()` through `scale()`)
-  converts sparse predictor matrices to dense. For BridgeAnnotation peaks this
-  allocates 8.6 GiB and fresh builds peaked at 17.3 and 24.4 GB RAM. A sparse-aware fit
-  (for example, uncentred cross-products on `dgCMatrix`) could let such
-  vignettes build fresh in Actions. This is a package change: validate it
-  against the BridgeAnnotation expected results before switching that vignette
-  back to fresh builds.
+- **Sparse-aware `mvr()`.** Done 2026-10-08 (see Package Performance Work).
+  BridgeAnnotation now builds fresh in 7.2 GB, but the user decided to keep
+  it on cached builds in Actions.
 
 ### Standard Procedure for Each Vignette
 
@@ -619,6 +617,29 @@ was checked for its new content and contains no private Dropbox paths. Job
 logs need repository admin rights; the public API gives run and step status.
 Future sessions should still recheck current Actions state.
 
+## Package Performance Work
+
+The plan, decisions and step records are in `../PERFORMANCE-PLAN.md` (outside
+the clone, in `PkgOverhaul/`). Read it before changing the fitting,
+prediction or tuning code.
+
+Step 1 (2026-10-08), sparse-aware fit:
+
+- `mvr()` and `phenotype()` keep a sparse predictor matrix sparse and centre
+  and scale it implicitly. PLS uses `eigen()` instead of
+  `irlba::partial_eigen()` and matches `pls::kernelpls.fit` to about 1e-14.
+  `mvr()` gains `keepComps` (default: all components); internal callers keep
+  only the final slice, so `PhiSpaceR_1ref()` returns an `atlas_re` whose
+  coefficient array has one slice named `"<ncomp> comps"`. Read slices with
+  the internal `.coefSlice()`, which also accepts older full arrays.
+- All seven vignettes built fresh and passed every result check with
+  unchanged expected values (248 checks). Peak RAM fell from 64.9 to 16.1 GB
+  (CITE-seq), from 17-24 to 7.2 GB (BridgeAnnotation), from 14.2 to 7.8 GB
+  (Visium) and from 9.2 to 6.0 GB (StereoSeq). Getting Started is unchanged
+  (11.2 GB): its remaining dense coercion is in `RankTransf()`.
+- Next is step 2: `RTassay()` after feature selection ranks each gene across
+  cells; the user decided it must rank genes within each cell.
+
 ## Build & Development Commands
 
 All commands should be run from the repo root. The package source is in `pkg/`.
@@ -669,6 +690,9 @@ Rscript -e 'pkgdown::build_site("pkg")'
   components (scores up to 3.4 from `prcomp()` with 6 columns). It now uses
   the internal full-SVD `.getPC_svd()` (same elements as `getPC()`), which
   matches `prcomp()` to 1e-14; 42 tests, 152 expectations, no warnings.
+  Since 2026-10-08, `test-mvr.R` compares `mvr()` with `pls::kernelpls.fit`
+  (`pls` is in Suggests) and checks `keepComps` and `phenotype()`; 184
+  expectations in total.
 - **Integration tests**: none are currently available. Earlier notes described
   `Test/test_cellTypeThreshold.R` with CosMx lung data, but on 2026-10-06 neither
   the script nor its data existed. The vignette builds and their result checks
