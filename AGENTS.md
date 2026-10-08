@@ -404,9 +404,12 @@ Done on 2026-10-07 with this procedure:
 - It runs on pushes to `main`, pull requests, and manual dispatch. Pull requests
   build an artifact but do not deploy. Main pushes deploy through GitHub Pages
   with the built-in token; no personal token is stored as a workflow secret.
-- It stages committed `docs/`, rebuilds the function reference from `pkg/man`
-  (`scripts/build-reference.R`, added 2026-10-08), then rebuilds every vignette
-  already automated. The reference step deletes the staged `reference/` first,
+- It stages committed `docs/`, rebuilds every vignette already automated, and
+  then rebuilds the function reference from `pkg/man`
+  (`scripts/build-reference.R`, added 2026-10-08). The reference step must run
+  after Stereo-seq: `build-stereoseq.R` stages the site itself and refuses an
+  existing site folder (run `37714789741` failed when the reference step ran
+  first). The reference step deletes the staged `reference/` first,
   so topics removed from `pkg/man` disappear, and rewrites the reference entries
   of the staged `sitemap.xml`. The first local run gave 57 pages: it dropped 13
   pages of functions that moved to vizOmics or were removed (for example
@@ -435,7 +438,6 @@ export PHISPACE_BRIDGE_ANNOTATION_INPUTS=../Test/bridge-annotation-inputs
 export PHISPACE_CITE_SEQ_INPUTS=../Test/cite-seq-inputs
 export PHISPACE_PERTURBSEQ_INPUTS=../Test/perturbseq-inputs
 export PHISPACE_COSMX_INPUTS=../Test/cosmx-inputs
-Rscript --vanilla scripts/build-reference.R
 Rscript --vanilla scripts/build-stereoseq.R
 Rscript --vanilla scripts/build-visium.R
 Rscript --vanilla scripts/build-bridge-annotation.R
@@ -443,6 +445,7 @@ Rscript --vanilla scripts/build-getting-started.R
 Rscript --vanilla scripts/build-cite-seq.R
 Rscript --vanilla scripts/build-perturbseq.R
 Rscript --vanilla scripts/build-cosmx.R
+Rscript --vanilla scripts/build-reference.R
 ```
 
 See `WEBSITE.md` for variables and deployment details. As the suite grows,
