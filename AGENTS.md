@@ -404,7 +404,14 @@ Done on 2026-10-07 with this procedure:
 - It runs on pushes to `main`, pull requests, and manual dispatch. Pull requests
   build an artifact but do not deploy. Main pushes deploy through GitHub Pages
   with the built-in token; no personal token is stored as a workflow secret.
-- It stages committed `docs/`, then rebuilds every vignette already automated.
+- It stages committed `docs/`, rebuilds the function reference from `pkg/man`
+  (`scripts/build-reference.R`, added 2026-10-08), then rebuilds every vignette
+  already automated. The reference step deletes the staged `reference/` first,
+  so topics removed from `pkg/man` disappear, and rewrites the reference entries
+  of the staged `sitemap.xml`. The first local run gave 57 pages: it dropped 13
+  pages of functions that moved to vizOmics or were removed (for example
+  `align_clusters`, `matrixPlot`, `plotSankey`) and added `piScore` and
+  `scoreCells`. Examples are not run; every example is in `\dontrun{}`.
   This is important: omitting an automated article from a later deployment
   would copy its old committed HTML and revert the live page.
 - The runner is pinned to `ubuntu-24.04`, because `ubuntu-latest` moves to
@@ -428,6 +435,7 @@ export PHISPACE_BRIDGE_ANNOTATION_INPUTS=../Test/bridge-annotation-inputs
 export PHISPACE_CITE_SEQ_INPUTS=../Test/cite-seq-inputs
 export PHISPACE_PERTURBSEQ_INPUTS=../Test/perturbseq-inputs
 export PHISPACE_COSMX_INPUTS=../Test/cosmx-inputs
+Rscript --vanilla scripts/build-reference.R
 Rscript --vanilla scripts/build-stereoseq.R
 Rscript --vanilla scripts/build-visium.R
 Rscript --vanilla scripts/build-bridge-annotation.R

@@ -83,6 +83,8 @@ jobs:
         with:
           path: Test/cosmx-inputs
           key: cosmx-inputs-${{ hashFiles('scripts/cosmx-inputs.tsv') }}
+      - name: Build function reference
+        run: Rscript --vanilla scripts/build-reference.R
       - name: Build Stereo-seq with fresh results
         run: Rscript --vanilla scripts/build-stereoseq.R
       - name: Build Visium with fresh results
