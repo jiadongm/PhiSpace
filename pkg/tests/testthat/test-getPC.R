@@ -29,3 +29,20 @@ test_that("getPC gives the same total variance for sparse and dense input", {
   expect_equal(sparse$totVar, dense$totVar)
   expect_equal(sparse$props, dense$props, tolerance = 1e-6)
 })
+
+test_that("the SVD fallback of getPC matches prcomp and getPC", {
+  set.seed(4)
+  X <- matrix(rnorm(200 * 12, mean = 1), 200, 12) %*% diag(1:12)
+  for (scale in c(FALSE, TRUE)) {
+    full <- .getPC_svd(X, ncomp = 11, center = TRUE, scale = scale)
+    ref <- stats::prcomp(X, center = TRUE, scale. = scale)
+    expect_equal(full$props, (ref$sdev^2 / sum(ref$sdev^2))[1:11])
+    expect_equal(abs(unname(full$scores)), abs(unname(ref$x[, 1:11])))
+
+    few <- getPC(X, ncomp = 3, center = TRUE, scale = scale)
+    expect_equal(full$totVar, few$totVar)
+    expect_equal(abs(full$scores[, 1:3]), abs(few$scores), tolerance = 1e-6)
+    expect_named(full, names(few))
+  }
+  expect_equal(.getPC_svd(X, ncomp = 50)$ncomp, 12)
+})

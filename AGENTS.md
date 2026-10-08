@@ -631,9 +631,11 @@ Rscript -e 'pkgdown::build_site("pkg")'
   `getPC()`, `zeroFeatQC()`, `spatialSampler()`, `spatialSmoother()` and
   `clusterPhiSpace()`, using the simulated 300-cell SpatialExperiment in
   `helper-spatial.R`. Fifteen of the new tests fail on the code before that
-  day's fixes (commit `a5dd5e1`). `clusterPhiSpace()` always computes
-  `ncol(x) - 1` components with irlba, which warns and may not converge on the
-  last components; its tests muffle only those two warnings.
+  day's fixes (commit `a5dd5e1`). `clusterPhiSpace()` keeps `ncol(x) - 1`
+  components; it used irlba, which warned and returned wrong trailing
+  components (scores up to 3.4 from `prcomp()` with 6 columns). It now uses
+  the internal full-SVD `.getPC_svd()` (same elements as `getPC()`), which
+  matches `prcomp()` to 1e-14; 42 tests, 152 expectations, no warnings.
 - **Integration tests**: none are currently available. Earlier notes described
   `Test/test_cellTypeThreshold.R` with CosMx lung data, but on 2026-10-06 neither
   the script nor its data existed. The vignette builds and their result checks

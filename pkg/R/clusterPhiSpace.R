@@ -239,8 +239,9 @@ clusterPhiSpace <- function(
     ncomp <- max_ncomp
   }
 
-  # Perform PCA
-  pca_result <- getPC(
+  # Perform PCA. All max_ncomp components are kept for the variance summaries,
+  # which is nearly all of them, so use a full SVD rather than irlba.
+  pca_result <- .getPC_svd(
     data_matrix,
     ncomp = max_ncomp,
     center = center,

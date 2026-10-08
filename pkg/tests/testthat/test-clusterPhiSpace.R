@@ -1,15 +1,5 @@
-# clusterPhiSpace() computes ncol(x) - 1 components with irlba whatever ncomp is,
-# so irlba warns that it computes too many singular values and may not converge
-# on the last ones. Only those two known warnings are muffled here.
 fit_clusters <- function(X) {
-  withCallingHandlers(
-    clusterPhiSpace(X, k_range = c(2, 5), ncomp = 5, algorithm = "Hartigan-Wong", seed = 1),
-    warning = function(w) {
-      if (grepl("too large a percentage|did not converge", conditionMessage(w))) {
-        invokeRestart("muffleWarning")
-      }
-    }
-  )
+  clusterPhiSpace(X, k_range = c(2, 5), ncomp = 5, algorithm = "Hartigan-Wong", seed = 1)
 }
 
 test_that("clusterPhiSpace selects k and recovers well-separated groups", {
@@ -45,4 +35,15 @@ test_that("clusterPhiSpace plots build for every type", {
     expect_no_error(ggplot2::ggplot_build(p))
   }
   expect_match(plot(res, type = "pca")$labels$x, "^PC1 \\([0-9.]+%\\)$")
+})
+
+test_that("clusterPhiSpace computes all components without warnings", {
+  spe <- make_spatial_fixture()
+  X <- SingleCellExperiment::reducedDim(spe, "PhiSpace")
+  expect_no_warning(res <- fit_clusters(X))
+
+  ref <- stats::prcomp(X)
+  expect_equal(res$pca_result$ncomp, ncol(X) - 1)
+  expect_equal(res$pca_result$props, (ref$sdev^2 / sum(ref$sdev^2))[1:(ncol(X) - 1)])
+  expect_equal(abs(unname(res$pc_scores)), abs(unname(ref$x[, 1:5])))
 })

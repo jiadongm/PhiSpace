@@ -71,3 +71,46 @@ getPC <- function(X, ncomp, center = TRUE, scale = FALSE, sparse = FALSE){
     Xscals = Xscals
   ))
 }
+
+
+# PCA by a full SVD of the dense matrix. It returns the same elements as getPC().
+# Use it when nearly all components are needed: irlba is designed for a few
+# leading components, and for most of them it warns and may not converge.
+.getPC_svd <- function(X, ncomp, center = TRUE, scale = FALSE){
+
+  X <- as.matrix(X)
+  ncomp <- min(ncomp, dim(X))
+  Xmeans <- if(center) colMeans(X) else NULL
+  Xscals <- if(scale) apply(X, 2, stats::sd) else NULL
+  Xc <- base::scale(X,
+                    center = if(center) Xmeans else FALSE,
+                    scale = if(scale) Xscals else FALSE)
+
+  svd_res <- svd(Xc, nu = ncomp, nv = ncomp)
+  d <- svd_res$d[seq_len(ncomp)]
+
+  loadings <- svd_res$v
+  scores <- svd_res$u %*% diag(d, nrow = ncomp)
+
+  sdev <- d/sqrt( nrow(X) - 1 )
+  totVar <- sum(Xc^2)/(nrow(X)-1)
+  props <- sdev^2/totVar
+  accuProps <- cumsum(props)
+
+  rownames(scores) <- rownames(X)
+  colnames(scores) <- paste0('comp', 1:ncomp)
+  rownames(loadings) <- colnames(X)
+  colnames(loadings) <- paste0('comp', 1:ncomp)
+
+  return(list(
+    scores = scores,
+    loadings = loadings,
+    sdev = sdev,
+    totVar = totVar,
+    props = props,
+    accuProps = accuProps,
+    ncomp = ncomp,
+    Xmeans = Xmeans,
+    Xscals = Xscals
+  ))
+}
