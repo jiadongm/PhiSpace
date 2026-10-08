@@ -9,13 +9,13 @@
 #' @return A list containing
 #' \item{scores}{Score matrix for X.}
 #' \item{loadings}{Laoding matrix for X.}
-#' \item{sdev}{}
-#' \item{totVar}{}
-#' \item{props}{}
-#' \item{accuProps}{}
-#' \item{ncomp}{}
-#' \item{selectFeat}{}
-#' \item{reg_re}{}
+#' \item{sdev}{Standard deviations of the principal components.}
+#' \item{totVar}{Total variance of `X` after the requested centring and scaling.}
+#' \item{props}{Proportion of `totVar` explained by each component.}
+#' \item{accuProps}{Cumulative sum of `props`.}
+#' \item{ncomp}{Number of components.}
+#' \item{Xmeans}{Column means used for centring, or `NULL`.}
+#' \item{Xscals}{Column standard deviations used for scaling, or `NULL`.}
 #'
 #' @export
 getPC <- function(X, ncomp, center = TRUE, scale = FALSE, sparse = FALSE){
@@ -44,7 +44,12 @@ getPC <- function(X, ncomp, center = TRUE, scale = FALSE, sparse = FALSE){
   scores <- irlba_res$u %*% diag(irlba_res$d)
 
   sdev <- irlba_res$d/sqrt( nrow(X) - 1 )
-  totVar <- sum(colSums(X^2)/(nrow(X)-1))
+  # Total variance of the matrix that irlba decomposed (after centring and
+  # scaling), computed without densifying a sparse X.
+  colSS <- colSums(X^2)
+  if(center) colSS <- colSS - nrow(X) * Xmeans^2
+  if(scale) colSS <- colSS / Xscals^2
+  totVar <- sum(colSS)/(nrow(X)-1)
   props <- sdev^2/totVar
   accuProps <- cumsum(props)
 

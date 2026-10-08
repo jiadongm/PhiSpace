@@ -21,13 +21,13 @@ getPC(X, ncomp, center = TRUE, scale = FALSE, sparse = FALSE)
 A list containing
 \item{scores}{Score matrix for X.}
 \item{loadings}{Laoding matrix for X.}
-\item{sdev}{}
-\item{totVar}{}
-\item{props}{}
-\item{accuProps}{}
-\item{ncomp}{}
-\item{selectFeat}{}
-\item{reg_re}{}
+\item{sdev}{Standard deviations of the principal components.}
+\item{totVar}{Total variance of \code{X} after the requested centring and scaling.}
+\item{props}{Proportion of \code{totVar} explained by each component.}
+\item{accuProps}{Cumulative sum of \code{props}.}
+\item{ncomp}{Number of components.}
+\item{Xmeans}{Column means used for centring, or \code{NULL}.}
+\item{Xscals}{Column standard deviations used for scaling, or \code{NULL}.}
 }
 \description{
 Principal component analysis (PCA) based on partial singular value decomposition (SVD).
