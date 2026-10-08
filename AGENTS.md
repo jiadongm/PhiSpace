@@ -101,15 +101,17 @@ None. The user pushes each commit; after a push, check both workflows
 (**Build and publish vignettes** and **R CMD check**) and the live pages. A new
 push cancels the running build of the older commit; only the newest deploys.
 
-State at the end of the 2026-10-08 session: all commits up to `e229433` were
-pushed. R CMD check passed for `e229433` (run `37723374945`). Its site build
-(run `37723374942`) was still running; it is the first run expected to deploy
-the rebuilt function reference, the Stereo-seq `vizOmics::align_clusters`
-text and the reference sitemap. The `3b703aa` site build passed every build
-step, including the reference step, before the `e229433` push cancelled its
-deploy. Confirm on the live site that `reference/findNiches.html` shows
-`verbose`, `reference/scoreCells.html` exists and `reference/align_clusters.html`
-returns 404.
+State at the end of the 2026-10-08 session: all commits up to `f94518e` were
+pushed. R CMD check passed for `e229433` (run `37723374945`), and its site
+build deployed at 03:50 UTC. Checked on the live site: `findNiches` and
+`zeroFeatQC` reference pages show `verbose`, `PhiSpaceR_1ref` shows the
+fallback values, `scoreCells.html` exists, `align_clusters.html` returns 404,
+the sitemap lists 58 reference entries, the Stereo-seq page names
+`vizOmics::align_clusters`, the CosMx page shows no `findNiches()` progress
+text but keeps its 6 k-means warnings, and all 7 articles return 200. The runs
+for `f94518e` (documentation only) were not checked: the unauthenticated
+GitHub API limit (60 requests per hour) was reached. Poll the API at most
+every few minutes.
 
 Local clean-up was done on 2026-10-07: the user deleted all of
 `PkgOverhaul/Test/` (input caches, the qs2 library, logs and scripts) and the
