@@ -20,18 +20,54 @@ censor <- function(vec, quant = 0.05){
 
 #' Apply rank transform to a gene by cell matrix.
 #'
+#' Ranks the values within each column (the genes within each cell), with
+#' ties given the minimum rank, and rescales the ranks to 0 to 1:
+#' `(rank - 1)/(nrow(X) - 1)`. A sparse matrix with no negative values stays
+#' sparse, because its zeros have rank 1 and therefore stay 0.
+#'
 #' @param X A gene by cell matrix.
 #'
-#' @return Rank transformed cell by gene matrix.
+#' @return Rank transformed gene by cell matrix (sparse).
 #'
 RTassay <- function(X){
 
-  temp <- Matrix::Matrix(
-    apply(X, 2, rank, ties.method = "min") - 1,
-    sparse = TRUE
-  )
+  if(inherits(X, "sparseMatrix")) X <- methods::as(methods::as(methods::as(X, "dMatrix"), "generalMatrix"), "CsparseMatrix")
+
+  if(inherits(X, "CsparseMatrix") && length(X@x) > 0 && !any(X@x < 0)){
+
+    # Rank the stored values within each column. A value's minimum rank is the
+    # number of smaller values plus one: smaller stored values, plus every
+    # implicit zero if the value is positive.
+    nnz <- diff(X@p)
+    col <- rep.int(seq_len(ncol(X)), nnz)
+    o <- order(col, X@x)
+    colSorted <- col[o]
+    xSorted <- X@x[o]
+    idx <- seq_along(xSorted)
+    newCol <- c(TRUE, colSorted[-1] != colSorted[-length(colSorted)])
+    newTie <- newCol | c(TRUE, xSorted[-1] != xSorted[-length(xSorted)])
+    colStart <- cummax(ifelse(newCol, idx, 0L))
+    tieStart <- cummax(ifelse(newTie, idx, 0L))
+    rankMin <- tieStart - colStart + 1 + ifelse(xSorted > 0, (nrow(X) - nnz)[colSorted], 0)
+    temp <- X
+    temp@x[o] <- rankMin - 1
+  } else {
+
+    temp <- Matrix::Matrix(
+      apply(as.matrix(X), 2, rank, ties.method = "min") - 1,
+      sparse = TRUE
+    )
+  }
   temp <- temp/(nrow(temp) - 1)
   return(temp)
+}
+
+
+## Rank transform of a cell by gene matrix: ranks the genes within each cell,
+## as RankTransf() does, and returns a cell by gene matrix.
+.rankWithinCells <- function(X){
+
+  return(Matrix::t(RTassay(Matrix::t(X))))
 }
 
 #' Calcualte classification errors.

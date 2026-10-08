@@ -31,8 +31,8 @@ getErr <- function(
 
 
   if(assayName == 'rank'){
-    XX_RT <- RTassay(XXtrain[, selectedFeat])
-    XXtest_RT <- RTassay(XXtest[, selectedFeat])
+    XX_RT <- .rankWithinCells(XXtrain[, selectedFeat])
+    XXtest_RT <- .rankWithinCells(XXtest[, selectedFeat])
   } else {
     XX_RT <- XXtrain[, selectedFeat]
     XXtest_RT <- XXtest[, selectedFeat]

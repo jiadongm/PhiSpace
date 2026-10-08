@@ -22,7 +22,7 @@ phenotype <- function(phenoAssay,
 
   # If use rank transformed data, do rank transformation again after feature selection
   if(assayName == 'rank'){
-    XX <- RTassay(phenoAssay[ , selectedFeat])
+    XX <- .rankWithinCells(phenoAssay[ , selectedFeat])
   } else {
     XX <- phenoAssay[, selectedFeat]
   }

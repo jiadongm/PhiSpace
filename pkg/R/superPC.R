@@ -32,7 +32,7 @@ SuperPC <- function(
 
   ## Prepare predictor matrix
   if(assayName == 'rank'){
-    XX <- RTassay(XX[, selectedFeat])
+    XX <- .rankWithinCells(XX[, selectedFeat])
   } else {
     XX <- XX[, selectedFeat]
   }

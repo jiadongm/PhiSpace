@@ -637,8 +637,22 @@ Step 1 (2026-10-08), sparse-aware fit:
   (CITE-seq), from 17-24 to 7.2 GB (BridgeAnnotation), from 14.2 to 7.8 GB
   (Visium) and from 9.2 to 6.0 GB (StereoSeq). Getting Started is unchanged
   (11.2 GB): its remaining dense coercion is in `RankTransf()`.
-- Next is step 2: `RTassay()` after feature selection ranks each gene across
-  cells; the user decided it must rank genes within each cell.
+
+Step 2 (2026-10-09), rank direction:
+
+- With a `"rank"` assay, the second ranking after feature selection used to
+  rank each gene across cells. The user decided that ranks must always order
+  the genes within each cell. The internal `.rankWithinCells()` now does this
+  in `superPC()`, `phenotype()`, `getErr()` and `getErr_nfeat()`.
+  `RTassay()` (used by `RankTransf()`) keeps sparse non-negative input sparse.
+- Getting Started is the only vignette with a `"rank"` assay. Its 14 score
+  metrics changed and `scripts/getting-started-results.tsv` was updated after
+  review; tolerances are unchanged. The vignette prose still holds: for
+  example, Day 9 cells remain closer to in vitro DC1 than to in vivo DC1 in
+  the PCA (centroid distances 0.58 and 1.24). Its peak RAM fell from 11.2 to
+  4.3 GB, and the sparse-to-dense coercion warning is gone.
+- The other six vignettes built fresh and passed every result check with
+  unchanged expected values.
 
 ## Build & Development Commands
 

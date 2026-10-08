@@ -11,7 +11,7 @@
 RankTransf <- function(sce, assayname = 'counts', targetAssay = 'rank', sparse = TRUE){
 
   temp <- assay(sce, assayname)
-  # RTassay takes cell by gene matrix as input
+  # RTassay ranks within columns, i.e. the genes within each cell
   temp <- RTassay(temp)
 
   if(sparse){

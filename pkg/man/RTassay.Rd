@@ -10,8 +10,11 @@ RTassay(X)
 \item{X}{A gene by cell matrix.}
 }
 \value{
-Rank transformed cell by gene matrix.
+Rank transformed gene by cell matrix (sparse).
 }
 \description{
-Apply rank transform to a gene by cell matrix.
+Ranks the values within each column (the genes within each cell), with
+ties given the minimum rank, and rescales the ranks to 0 to 1:
+\code{(rank - 1)/(nrow(X) - 1)}. A sparse matrix with no negative values stays
+sparse, because its zeros have rank 1 and therefore stay 0.
 }

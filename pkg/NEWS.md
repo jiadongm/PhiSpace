@@ -21,6 +21,12 @@
   (relative) and varied with the random seed. They now agree with
   `pls::kernelpls.fit` to about 1e-14 and do not depend on the seed. Scores
   change by a similarly small amount.
+* With a `"rank"` assay, `PhiSpace()`, `PhiSpaceR_1ref()` and
+  `tunePhiSpace()` rank the selected features again after feature selection.
+  This second ranking now ranks the genes within each cell, as
+  `RankTransf()` does. Previous versions ranked each gene across cells, so a
+  cell's ranked values depended on the other cells in the same reference or
+  query. Scores computed from a `"rank"` assay change.
 * `mvr(method = "PCA")` now uses a full singular value decomposition when
   `ncomp` is at least half of the smaller dimension of `X`, where irlba can be
   inaccurate.
@@ -43,6 +49,8 @@
   one slice, named `"<ncomp> comps"`; select it by that name, not by
   position. `phenotype()` accepts both forms, so objects saved by earlier
   versions still work.
+* `RankTransf()` no longer converts a sparse count matrix with no negative
+  values to a dense one. The ranks are unchanged.
 
 ## Bug fixes
 
