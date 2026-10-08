@@ -627,6 +627,13 @@ Rscript -e 'pkgdown::build_site("pkg")'
 ## Testing
 
 - **Unit tests**: `testthat` (edition 3). Test files in `pkg/tests/`. Run with `devtools::test("pkg")`.
+  Since 2026-10-08, 40 tests (137 expectations) also cover `findNiches()`,
+  `getPC()`, `zeroFeatQC()`, `spatialSampler()`, `spatialSmoother()` and
+  `clusterPhiSpace()`, using the simulated 300-cell SpatialExperiment in
+  `helper-spatial.R`. Fifteen of the new tests fail on the code before that
+  day's fixes (commit `a5dd5e1`). `clusterPhiSpace()` always computes
+  `ncol(x) - 1` components with irlba, which warns and may not converge on the
+  last components; its tests muffle only those two warnings.
 - **Integration tests**: none are currently available. Earlier notes described
   `Test/test_cellTypeThreshold.R` with CosMx lung data, but on 2026-10-06 neither
   the script nor its data existed. The vignette builds and their result checks
