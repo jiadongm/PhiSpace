@@ -415,7 +415,7 @@ print.PhiSpaceClustering <- function(x, ...) {
       round(x$kmeans_result$betweenss / x$kmeans_result$totss, 3), "\n")
 
   if (!is.null(x$pca_result)) {
-    var_explained <- sum(x$pca_result$var.exp[1:ncol(x$pc_scores)])
+    var_explained <- sum(x$pca_result$props[1:ncol(x$pc_scores)])
     cat("\nVariance explained by selected PCs:",
         round(var_explained * 100, 1), "%\n")
   }
@@ -460,11 +460,11 @@ summary.PhiSpaceClustering <- function(object, ...) {
 
   if (!is.null(object$pca_result)) {
     cat("\n\nPCA variance explained:\n")
-    n_show <- min(10, length(object$pca_result$var.exp))
+    n_show <- min(10, length(object$pca_result$props))
     pca_df <- data.frame(
       PC = paste0("PC", 1:n_show),
-      Variance = round(object$pca_result$var.exp[1:n_show], 4),
-      Cumulative = round(cumsum(object$pca_result$var.exp)[1:n_show], 4)
+      Variance = round(object$pca_result$props[1:n_show], 4),
+      Cumulative = round(cumsum(object$pca_result$props)[1:n_show], 4)
     )
     print(pca_df)
   }
@@ -497,14 +497,14 @@ plot.PhiSpaceClustering <- function(x, type = c("pca", "elbow", "silhouette", "v
       Cluster = x$clusters
     )
 
-    p <- ggplot2::ggplot(plot_df, ggplot2::aes(x = PC1, y = PC2, color = Cluster)) +
+    p <- ggplot2::ggplot(plot_df, ggplot2::aes(x = .data$PC1, y = .data$PC2, color = .data$Cluster)) +
       ggplot2::geom_point(alpha = 0.6, size = 1.5) +
       ggplot2::theme_bw() +
       ggplot2::labs(
         title = "K-means Clustering on PhiSpace PCs",
         subtitle = paste0("k = ", x$optimal_k, ", ", ncol(x$pc_scores), " PCs used"),
-        x = paste0("PC1 (", round(x$pca_result$var.exp[1] * 100, 1), "%)"),
-        y = paste0("PC2 (", round(x$pca_result$var.exp[2] * 100, 1), "%)")
+        x = paste0("PC1 (", round(x$pca_result$props[1] * 100, 1), "%)"),
+        y = paste0("PC2 (", round(x$pca_result$props[2] * 100, 1), "%)")
       )
 
     return(p)
@@ -520,10 +520,10 @@ plot.PhiSpaceClustering <- function(x, type = c("pca", "elbow", "silhouette", "v
       wss = x$k_selection$wss
     )
 
-    p <- ggplot2::ggplot(plot_df, ggplot2::aes(x = k, y = wss)) +
+    p <- ggplot2::ggplot(plot_df, ggplot2::aes(x = .data$k, y = .data$wss)) +
       ggplot2::geom_line() +
       ggplot2::geom_point(size = 3) +
-      ggplot2::geom_point(data = subset(plot_df, k == x$optimal_k),
+      ggplot2::geom_point(data = plot_df[plot_df$k == x$optimal_k, ],
                           color = "red", size = 5) +
       ggplot2::theme_bw() +
       ggplot2::labs(
@@ -546,10 +546,10 @@ plot.PhiSpaceClustering <- function(x, type = c("pca", "elbow", "silhouette", "v
       silhouette = x$k_selection$silhouette_widths
     )
 
-    p <- ggplot2::ggplot(plot_df, ggplot2::aes(x = k, y = silhouette)) +
+    p <- ggplot2::ggplot(plot_df, ggplot2::aes(x = .data$k, y = .data$silhouette)) +
       ggplot2::geom_line() +
       ggplot2::geom_point(size = 3) +
-      ggplot2::geom_point(data = subset(plot_df, k == x$optimal_k),
+      ggplot2::geom_point(data = plot_df[plot_df$k == x$optimal_k, ],
                           color = "red", size = 5) +
       ggplot2::theme_bw() +
       ggplot2::labs(
@@ -567,13 +567,13 @@ plot.PhiSpaceClustering <- function(x, type = c("pca", "elbow", "silhouette", "v
       stop("PCA results not available. Set return_pca=TRUE when calling clusterPhiSpace()")
     }
 
-    n_show <- min(30, length(x$pca_result$var.exp))
+    n_show <- min(30, length(x$pca_result$props))
     plot_df <- data.frame(
       PC = 1:n_show,
-      Variance = x$pca_result$var.exp[1:n_show]
+      Variance = x$pca_result$props[1:n_show]
     )
 
-    p <- ggplot2::ggplot(plot_df, ggplot2::aes(x = PC, y = Variance)) +
+    p <- ggplot2::ggplot(plot_df, ggplot2::aes(x = .data$PC, y = .data$Variance)) +
       ggplot2::geom_col(fill = "steelblue") +
       ggplot2::geom_vline(xintercept = ncol(x$pc_scores),
                           linetype = "dashed", color = "red") +

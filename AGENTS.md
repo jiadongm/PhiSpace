@@ -104,8 +104,9 @@ Local clean-up was done on 2026-10-07: the user deleted all of
 `PkgOverhaul/Test/` (input caches, the qs2 library, logs and scripts) and the
 data files under `PkgOverhaul/data/`. Only READMEs, conversion manifests and
 sessionInfo files remain in `data/`. The `.qs` to `.qs2` conversion scripts and
-`make_stereoseq_replacements.R` were lost with `Test/`; the READMEs that name
-them are now out of date, but the manifests still record every hash. For a
+`make_stereoseq_replacements.R` were lost with `Test/`. On 2026-10-08 the
+READMEs in `data/` were rewritten as records that describe the lost scripts'
+method; the manifests still record every hash. For a
 local build, download inputs again with `scripts/prepare-<slug>.R` and install
 qs2 from CRAN.
 
@@ -399,6 +400,8 @@ Done on 2026-10-07 with this procedure:
 
 ### Current Automation
 
+- Package check: `.github/workflows/R-CMD-check.yaml`, displayed as
+  **R CMD check** (added 2026-10-08; see Known Check Notes).
 - Workflow: `.github/workflows/vignettes-pages.yaml`, displayed in Actions as
   **Build and publish vignettes**.
 - It runs on pushes to `main`, pull requests, and manual dispatch. Pull requests
@@ -631,4 +634,8 @@ Rscript -e 'pkgdown::build_site("pkg")'
 
 ## Known Check Notes
 
-- `plot.PhiSpaceClustering` has ggplot2 NSE binding NOTEs (cosmetic, pre-existing)
+- None. On 2026-10-08, `R CMD check --no-manual --ignore-vignettes` (R 4.5.0)
+  gave Status OK after `plot.PhiSpaceClustering` switched to `.data$` columns.
+  The workflow `.github/workflows/R-CMD-check.yaml` runs the same check on
+  pushes to `main` and pull requests and fails on warnings. Vignettes are
+  excluded because they need external data; the Pages workflow builds them.
