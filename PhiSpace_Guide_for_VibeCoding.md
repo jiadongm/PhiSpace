@@ -643,9 +643,11 @@ spe <- findNiches(
   ncomp           = NULL,   # auto: min(30, floor(n_cell_types / 2))
   center          = TRUE, scale = FALSE,
   kmeans_iter     = 500, kmeans_nstart = 20,
+  kmeans_algorithm = "Lloyd",
   seed            = 94863,
   store_pca       = FALSE,
-  pca_name        = "PhiSpace_PCA"
+  pca_name        = "PhiSpace_PCA",
+  verbose         = TRUE    # progress and niche sizes via message()
 )
 # Stored as colData(spe)$spatial_niches (factor: "Niche_1", ..., "Niche_9")
 
@@ -697,7 +699,7 @@ plot(result, type = "variance")   # PCA variance explained
 # Extract assignments
 query$niche <- result$clusters
 result$optimal_k         # selected k
-result$pca_result        # PCA output (getPC() format)
+result$pca_result        # PCA output (getPC() format, ncol - 1 components from a full SVD)
 result$pc_scores         # matrix used for clustering
 result$kmeans_result     # raw kmeans object
 ```
@@ -816,7 +818,7 @@ corMat <- cellTypeCorMat(query)
 
 ### 6.4 PCA on PhiSpace Scores: `getPC()`
 
-General-purpose PCA using partial SVD (irlba). Used internally by `clusterPhiSpace()` and `findNiches()`.
+General-purpose PCA using partial SVD (irlba). Used internally by `findNiches()`. `clusterPhiSpace()` needs nearly all components, so it uses the internal full-SVD `.getPC_svd()`, which returns the same elements. irlba is designed for a few leading components; asking for most of them gives a warning and can return inaccurate trailing components. `props` and `accuProps` are proportions of the variance of the centred (and, if requested, scaled) data, matching `prcomp()` (fixed 2026-10-08; earlier versions divided by the raw-data variance).
 
 ```r
 pc_res <- getPC(
@@ -1173,6 +1175,8 @@ VizSpatial(lung5_norm, colBy = "spatial_niches", ptSize = 0.8)
 9. **`findNiches` vs `clusterPhiSpace`**: `findNiches()` is simpler and stores results directly in the object's `colData`. `clusterPhiSpace()` returns a `PhiSpaceClustering` object with diagnostics (elbow/silhouette plots, variance explained) and can auto-select k.
 
 10. **Feature selection order**: If both `nfeat` and `selectedFeat` are given, `selectedFeat` takes priority. Feature selection is a two-step process internally: first fit PLS on all features to get importance scores, then refit on the selected union.
+
+11. **Progress messages**: `findNiches()`, `zeroFeatQC()`, `spatialSampler()` and `spatialSmoother()` report progress with `message()`, never `cat()`. Silence them with `verbose = FALSE`, `suppressMessages()`, or the knitr chunk option `message = FALSE`. New package code should follow the same rule; `cat()` belongs only in `print()` and `summary()` methods.
 
 ---
 

@@ -97,8 +97,19 @@ parameter tuning. Complete and publish one vignette-sized change at a time.
 
 ### Pending User Actions (TODO)
 
-None. The user pushes each commit; after a push, check both Actions jobs and
-the live pages.
+None. The user pushes each commit; after a push, check both workflows
+(**Build and publish vignettes** and **R CMD check**) and the live pages. A new
+push cancels the running build of the older commit; only the newest deploys.
+
+State at the end of the 2026-10-08 session: all commits up to `e229433` were
+pushed. R CMD check passed for `e229433` (run `37723374945`). Its site build
+(run `37723374942`) was still running; it is the first run expected to deploy
+the rebuilt function reference, the Stereo-seq `vizOmics::align_clusters`
+text and the reference sitemap. The `3b703aa` site build passed every build
+step, including the reference step, before the `e229433` push cancelled its
+deploy. Confirm on the live site that `reference/findNiches.html` shows
+`verbose`, `reference/scoreCells.html` exists and `reference/align_clusters.html`
+returns 404.
 
 Local clean-up was done on 2026-10-07: the user deleted all of
 `PkgOverhaul/Test/` (input caches, the qs2 library, logs and scripts) and the
@@ -109,6 +120,13 @@ READMEs in `data/` were rewritten as records that describe the lost scripts'
 method; the manifests still record every hash. For a
 local build, download inputs again with `scripts/prepare-<slug>.R` and install
 qs2 from CRAN.
+
+`PkgOverhaul/Test/` was recreated during the wrapper work (about 13 GB on
+2026-10-08): verified input caches for CosMx, PerturbSeq, Stereo-seq and
+Visium (`<slug>-inputs`, 0.2 to 1.5 GB each), the isolated qs2 library
+`qs2-library` (use `R_LIBS=$PWD/../Test/qs2-library:$R_LIBS`), staged sites
+`site-*`, kept run directories, equivalence scripts and logs. Only the input
+caches and `qs2-library` are worth keeping; the rest can be deleted by hand.
 
 ### Wrapper-Modernisation Plan (agreed 2026-10-07)
 
@@ -332,6 +350,16 @@ Done on 2026-10-07 with this procedure:
 
 ### Future Work
 
+- **`findNiches()` and irlba.** `findNiches()` computes its PCA with
+  `getPC()` (irlba). CosMx asks for 25 of 43 components, which makes irlba warn
+  on the page; irlba can return inaccurate trailing components when most are
+  requested (see `clusterPhiSpace()`, which now uses `.getPC_svd()`). Before
+  switching `findNiches()`, compare irlba and SVD components on the CosMx and
+  Stereo-seq scores, check whether niche labels and figures change, and run
+  the results checks. Not started; the user has not decided.
+- **Getting Started cross-validation chunk.** The `tunePhiSpace()` CV chunk is
+  disabled with `if(F)`, so no build exercises tuning. Options: leave it, run a
+  small grid with new expected values, or drop it. Not decided.
 - **Sparse-aware `mvr()`.** `mvr()` (and `phenotype()` through `scale()`)
   converts sparse predictor matrices to dense. For BridgeAnnotation peaks this
   allocates 8.6 GiB and fresh builds peaked at 17.3 and 24.4 GB RAM. A sparse-aware fit

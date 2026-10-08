@@ -2,10 +2,19 @@
 
 The root workflow `.github/workflows/vignettes-pages.yaml` checks pull requests
 and builds and publishes pushes to `main`. It also supports a manual run from
-the Actions tab. Stereo-seq, Visium, Getting Started, PerturbSeq and CosMx are rebuilt from fresh results, and
-BridgeAnnotation and CITE-seq are rebuilt from verified cached results; the other pages and shared assets
-are copied from the committed `docs/` website. Changes to other vignette sources
-will not be published until those vignettes are added to this workflow.
+the Actions tab. Stereo-seq, Visium, Getting Started, PerturbSeq and CosMx are
+rebuilt from fresh results, and BridgeAnnotation and CITE-seq are rebuilt from
+verified cached results. The function reference (`reference/`) is then rebuilt
+from `pkg/man` by `scripts/build-reference.R`, which also drops pages of removed
+topics and updates the reference entries of `sitemap.xml`. The other pages and
+shared assets are copied from the committed `docs/` website.
+
+A second workflow, `.github/workflows/R-CMD-check.yaml` (**R CMD check**), runs
+`R CMD check --no-manual --ignore-vignettes` on the same pushes and pull
+requests and fails on warnings. It does not deploy anything.
+
+Both workflows cancel a running build when a newer commit reaches the same
+branch, so only the newest push deploys.
 
 ## One-time GitHub setup
 
@@ -36,6 +45,7 @@ Rscript --vanilla scripts/build-getting-started.R
 Rscript --vanilla scripts/build-cite-seq.R
 Rscript --vanilla scripts/build-perturbseq.R
 Rscript --vanilla scripts/build-cosmx.R
+Rscript --vanilla scripts/build-reference.R
 ```
 
 The Stereo-seq script downloads the public archive, extracts only five required
@@ -49,8 +59,9 @@ Each article includes a session information file in the website artifact.
 After rendering, each build script checks summaries of the fresh outputs
 against `scripts/<slug>-results.tsv` with `scripts/check-results.R`, and fails if
 they differ. Set `PHISPACE_RESULTS_OUT` to a file path to save the observed values.
-Stereo-seq requires a new site directory; Visium and Getting Started append to it
-without replacing earlier pages. Separate R processes release memory between articles.
+Stereo-seq requires a new site directory, so it must run first; the other
+scripts, including the reference build, append to it without replacing earlier
+pages. Separate R processes release memory between articles.
 For another full build, choose a new destination:
 
 ```bash
@@ -62,6 +73,7 @@ Rscript --vanilla scripts/build-getting-started.R
 Rscript --vanilla scripts/build-cite-seq.R
 Rscript --vanilla scripts/build-perturbseq.R
 Rscript --vanilla scripts/build-cosmx.R
+Rscript --vanilla scripts/build-reference.R
 ```
 
 Optional variables:
@@ -105,9 +117,7 @@ changes the Actions data-cache key. Computed analysis outputs are never cached.
 
 ## Check deployment
 
-In Actions, confirm both `build` and `deploy` succeed. Open the live Stereo-seq,
-Visium and Getting Started articles and verify that they use `qs2` and `.qs2` data files. Download
-the `vignette-website` artifact to inspect the complete staged website if needed.
-
-Dependency installation and resource limits still need validation on the first
-GitHub-hosted run; local execution does not test GitHub's runner or permissions.
+In Actions, confirm that `build` and `deploy` of **Build and publish vignettes**
+and the **R CMD check** job succeed. Open the changed live articles and
+reference pages. Download the `vignette-website` artifact to inspect the
+complete staged website if needed.
