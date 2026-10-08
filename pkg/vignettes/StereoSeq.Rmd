@@ -258,7 +258,7 @@ if(!file.exists(clustPath)){
 }
 ```
 
-Next we visualise the clusters, or meta-clones. The idea is to select a number of meta-clones based on this visualisation. Now a trick we use in PhiSpace is to **align** the clusters across different clustering results, so that two clusters similar to each other will receive the same label. This cluster alignment is done by `PhiSpace::align_clusters`. This is actually a very useful functionality as clusters in clustering algorithms are arbitrarily named. So even the same cluster in two cluster results might be labelled differently (e.g. labelled 1 in one run of k-means, labelled 2 in another). This will make their visualisation harder to compare since even the same cluster will receive two colours across two results.
+Next we visualise the clusters, or meta-clones. The idea is to select a number of meta-clones based on this visualisation. Now a trick we use in PhiSpace is to **align** the clusters across different clustering results, so that two clusters similar to each other will receive the same label. This cluster alignment is done by `vizOmics::align_clusters` from the vizOmics package, which this vignette loads. This is actually a very useful functionality as clusters in clustering algorithms are arbitrarily named. So even the same cluster in two cluster results might be labelled differently (e.g. labelled 1 in one run of k-means, labelled 2 in another). This will make their visualisation harder to compare since even the same cluster will receive two colours across two results.
 
 **Technical note**: we align the clusters using the Hungarian algorithm implemented by `clue::solve_LSAP`. Similar clusters across different cluster results will be labelled using the same number.
 
