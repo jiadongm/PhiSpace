@@ -54,11 +54,11 @@
 #'   \item \code{qval}: q-value parameter (default: 1)
 #'   \item \code{lambda}: Regularization parameter or sequence (default: auto-tuned)
 #'   \item \code{cv_folds}: Cross-validation folds (default: 5)
-#'   \item \code{max_cells}: Largest number of cells allowed with a non-linear
-#'     kernel (default: 10000). A non-linear kernel needs a cells by cells
-#'     kernel matrix (8 bytes per entry: 0.8 GB for 10,000 cells, 80 GB for
-#'     100,000), so `rankFeatures()` stops above this number. Subsample the
-#'     cells, use the linear kernel, or raise `max_cells`.
+#'   \item \code{max_cells}: Optional limit on the number of cells with a
+#'     non-linear kernel (default: `Inf`, no limit). A non-linear kernel needs
+#'     a cells by cells kernel matrix (8 bytes per entry: 0.8 GB for 10,000
+#'     cells, 80 GB for 100,000). If set, `rankFeatures()` stops before
+#'     fitting when there are more cells than this.
 #' }
 #'
 #' @examples
@@ -319,7 +319,7 @@ rankFeatures <- function(data,
     cv_folds = 5,
     eps = 1e-5,
     maxit = 1e5,
-    max_cells = 10000
+    max_cells = Inf
   )
 
   # Override with user parameters
@@ -332,7 +332,7 @@ rankFeatures <- function(data,
          " kernel matrix (about ", signif(8 * nrow(XX)^2 / 1e9, 2),
          " GB), more than dwd_params$max_cells = ", dwd_params$max_cells,
          " cells allow. Subsample the cells, use kerndwd::vanilladot(), ",
-         "or raise dwd_params$max_cells.")
+         "or raise or remove dwd_params$max_cells.")
   }
 
   # Center and/or scale data

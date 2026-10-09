@@ -36,12 +36,12 @@
 #' @param scale Logical indicating whether to scale data before PCA.
 #'   Default is FALSE.
 #' @param seed Integer seed for reproducibility. Default is NULL (no seed set).
-#' @param silhouette_max_cells Integer. With the silhouette method, the
-#'   silhouette widths need a distance matrix whose size grows with the square
-#'   of the number of cells (about 0.4 GB for 10,000 cells and 40 GB for
-#'   100,000). With more cells than this, the widths are computed on a random
-#'   subsample of this many cells; k-means still uses every cell. Default is
-#'   10000. Use `Inf` to always use every cell.
+#' @param silhouette_max_cells Number or `Inf`. With the silhouette method,
+#'   the silhouette widths need a distance matrix whose size grows with the
+#'   square of the number of cells (about 0.4 GB for 10,000 cells and 40 GB
+#'   for 100,000). If set, and there are more cells than this, the widths are
+#'   computed on a random subsample of this many cells; k-means still uses
+#'   every cell. Default is `Inf`: every cell is used.
 #' @param return_pca Logical indicating whether to return PCA results.
 #'   Default is TRUE.
 #' @param store_in_colData Logical indicating whether to store cluster assignments
@@ -150,7 +150,7 @@ clusterPhiSpace <- function(
     center = TRUE,
     scale = FALSE,
     seed = NULL,
-    silhouette_max_cells = 10000,
+    silhouette_max_cells = Inf,
     return_pca = TRUE,
     store_in_colData = FALSE,
     cluster_name = "PhiClust"
@@ -339,14 +339,8 @@ clusterPhiSpace <- function(
   k_values <- seq(k_range[1], k_range[2])
 
   if (method == "silhouette") {
-    # Silhouette method
-    if (!requireNamespace("cluster", quietly = TRUE)) {
-      stop("Package 'cluster' is required for silhouette method. ",
-           "Please install it with: install.packages('cluster')")
-    }
-
-    # The distance matrix is computed once, on a random subsample of cells
-    # if there are more than silhouette_max_cells
+    # Silhouette method. Use a random subsample of cells only if the user
+    # set silhouette_max_cells below the number of cells.
     n_cells <- nrow(pc_scores)
     if (n_cells > silhouette_max_cells) {
       sil_cells <- sort(sample.int(n_cells, silhouette_max_cells))
@@ -355,14 +349,15 @@ clusterPhiSpace <- function(
     } else {
       sil_cells <- seq_len(n_cells)
     }
-    sil_dist <- dist(pc_scores[sil_cells, , drop = FALSE])
 
-    sil_widths <- sapply(k_values, function(k) {
+    clusterings <- lapply(k_values, function(k) {
       km <- kmeans(pc_scores, centers = k, nstart = nstart,
                    iter.max = iter.max, algorithm = algorithm)
-      sil <- cluster::silhouette(km$cluster[sil_cells], sil_dist)
-      mean(sil[, 3])
+      km$cluster[sil_cells]
     })
+    sil_widths <- .mean_silhouette_widths(
+      pc_scores[sil_cells, , drop = FALSE], clusterings
+    )
 
     optimal_k <- k_values[which.max(sil_widths)]
 
@@ -399,6 +394,71 @@ clusterPhiSpace <- function(
       wss = wss
     ))
   }
+}
+
+
+#' Mean silhouette widths for several clusterings of the same cells
+#'
+#' Gives the same widths as `cluster::silhouette()` with Euclidean distances
+#' from `dist()`, but never stores the cells x cells distance matrix: the
+#' distances from a block of cells to all cells are computed, summed by
+#' cluster for every clustering, and discarded. Memory grows linearly with
+#' the number of cells.
+#'
+#' @param X Matrix, cells x dimensions.
+#' @param clusterings List of cluster label vectors, one per clustering.
+#' @return Numeric vector of mean silhouette widths, `NA` for a clustering
+#'   with one cluster or with as many clusters as cells.
+#' @keywords internal
+.mean_silhouette_widths <- function(X, clusterings) {
+
+  n <- nrow(X)
+  labels <- lapply(clusterings, function(cl) as.integer(factor(cl)))
+  n_clust <- vapply(labels, max, integer(1))
+  sizes <- lapply(labels, tabulate)
+  # Cluster indicator matrices, one block of columns per clustering
+  ind <- do.call(cbind, lapply(labels, function(cl) {
+    M <- matrix(0, n, max(cl))
+    M[cbind(seq_len(n), cl)] <- 1
+    M
+  }))
+  offsets <- c(0L, cumsum(n_clust))
+  sil_sum <- numeric(length(labels))
+
+  X <- unname(as.matrix(X))
+  # Blocks of about 3e6 distances (24 MB) stay small enough to be fast
+  block_size <- max(1L, floor(3e6 / n))
+  for (start in seq(1L, n, by = block_size)) {
+    rows <- start:min(start + block_size - 1L, n)
+    # Euclidean distances, summed over dimensions in the same order as dist()
+    D <- matrix(0, length(rows), n)
+    for (d in seq_len(ncol(X))) {
+      D <- D + (X[rows, d] - rep(X[, d], each = length(rows)))^2
+    }
+    sums <- sqrt(D) %*% ind
+    rm(D)
+
+    for (j in seq_along(labels)) {
+      cl <- labels[[j]][rows]
+      sz <- sizes[[j]]
+      S <- sums[, offsets[j] + seq_len(n_clust[j]), drop = FALSE]
+      own <- cbind(seq_along(rows), cl)
+      # Mean distance to the own cluster (excluding the cell itself) and to
+      # each other cluster
+      den <- matrix(sz, length(rows), n_clust[j], byrow = TRUE)
+      den[own] <- sz[cl] - 1
+      S <- S / den
+      a <- S[own]
+      S[own] <- Inf
+      b <- apply(S, 1, min)
+      s_i <- ifelse(sz[cl] > 1 & a != b, (b - a) / pmax(a, b), 0)
+      sil_sum[j] <- sil_sum[j] + sum(s_i)
+    }
+  }
+
+  out <- sil_sum / n
+  out[n_clust <= 1 | n_clust >= n] <- NA_real_
+  out
 }
 
 

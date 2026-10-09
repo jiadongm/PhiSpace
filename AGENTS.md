@@ -677,13 +677,14 @@ Step 4 (2026-10-09), smoothing, pseudo-bulks and correlation scores:
 
 Step 5 (2026-10-09), quadratic-memory guards:
 
-- `clusterPhiSpace()` gains `silhouette_max_cells` (default 10,000): above
-  it, silhouette widths use a random subsample of cells; the distance
-  matrix is computed once instead of once per k. Below it, output is
-  unchanged. 30,000 cells: 10.9 GB -> 2.2 GB peak.
-- `rankFeatures(method = "DWD")` stops above `dwd_params$max_cells`
-  (default 10,000) with a non-linear kernel, which needs a cells x cells
-  kernel matrix. The default linear kernel builds none when cells >= genes.
+- Limits are opt-in (user decision, 2026-10-09): HPC users should get the
+  full computation unless they ask for a limit. `clusterPhiSpace()`
+  `silhouette_max_cells` and `rankFeatures()` `dwd_params$max_cells` both
+  default to `Inf`.
+- Silhouette widths are computed blockwise by the internal
+  `.mean_silhouette_widths()`, without a cells x cells matrix; they match
+  `cluster::silhouette()` to about 1e-16. 30,000 cells: 10.9 GB -> 0.8 GB
+  peak, 45 s -> 81 s. `cluster` moved to Suggests.
 - Bug found and fixed in a separate commit: `rankFeatures(method = "DWD")`
   with the linear kernel and cells >= genes failed ("non-conformable
   arguments") because `.fit_dwd()` treated kerndwd's primal coefficients

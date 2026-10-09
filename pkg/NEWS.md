@@ -27,12 +27,6 @@
   `RankTransf()` does. Previous versions ranked each gene across cells, so a
   cell's ranked values depended on the other cells in the same reference or
   query. Scores computed from a `"rank"` assay change.
-* With `select_k_method = "silhouette"` and more than
-  `silhouette_max_cells` cells (new argument, default 10,000),
-  `clusterPhiSpace()` computes the silhouette widths on a random subsample
-  of that many cells. k-means still clusters every cell. The selected k can
-  therefore differ from previous versions for larger inputs; set
-  `silhouette_max_cells = Inf` for the previous behaviour.
 * `mvr(method = "PCA")` now uses a full singular value decomposition when
   `ncomp` is at least half of the smaller dimension of `X`, where irlba can be
   inaccurate.
@@ -72,15 +66,21 @@
   genes, 30,000 cells), smoothing an assay took 8 s instead of 332 s,
   `pseudoBulk()` 0.7 s instead of 22 s, and Spearman correlation scoring
   (25,000 query cells, 20 classes) 5 s instead of 26 s.
-* `clusterPhiSpace()` computes the distance matrix for the silhouette
-  widths once instead of once for each k, and on at most
-  `silhouette_max_cells` cells. With 30,000 cells and five values of k, peak
-  R memory fell from 10.9 GB to 2.2 GB and the run time from 45 s to 8 s.
-  Results with fewer cells than `silhouette_max_cells` are unchanged.
-* `rankFeatures(method = "DWD")` with a non-linear kernel stops with an
-  error when there are more cells than `dwd_params$max_cells` (default
-  10,000), because the kernel matrix needs 8 bytes per pair of cells. The
-  default linear kernel is not affected.
+* `clusterPhiSpace()` no longer stores a cells x cells distance matrix to
+  compute silhouette widths (`select_k_method = "silhouette"`). The
+  distances from blocks of cells to all cells are computed and summed by
+  cluster, so memory grows linearly with the number of cells; previously the
+  matrix was rebuilt for each k and `cluster::silhouette()` copied it. The
+  widths agree with `cluster::silhouette()` to about 1e-16. With 30,000
+  cells and five values of k, peak R memory fell from 10.9 GB to 0.8 GB; the
+  run time rose from 45 s to 81 s. `cluster` moved from Imports to Suggests.
+* Two optional limits for large inputs. Both are off by default:
+  - `clusterPhiSpace()` gains `silhouette_max_cells`. If set, silhouette
+    widths are computed on a random subsample of that many cells; k-means
+    still clusters every cell.
+  - `rankFeatures(method = "DWD")` accepts `dwd_params$max_cells`. If set,
+    a fit with a non-linear kernel stops before it builds a cells x cells
+    kernel matrix for more cells than this.
 
 ## Bug fixes
 

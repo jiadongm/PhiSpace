@@ -67,3 +67,20 @@ test_that("clusterPhiSpace computes silhouette widths on a subsample above silho
   expect_equal(sub$optimal_k, 3)
   expect_output(summary(sub), "subsample of 150 cells")
 })
+
+test_that("blockwise silhouette widths match cluster::silhouette", {
+  skip_if_not_installed("cluster")
+  set.seed(3)
+  X <- matrix(stats::rnorm(400 * 4), 400, 4)
+  X[1:3, ] <- X[1, ]                                  # duplicated cells
+  clusterings <- list(
+    sample(1:2, 400, TRUE),
+    sample(1:6, 400, TRUE),
+    c(1, rep(2:4, length.out = 399))                  # a one-cell cluster
+  )
+  expected <- vapply(clusterings, function(cl) {
+    mean(cluster::silhouette(cl, stats::dist(X))[, 3])
+  }, numeric(1))
+  expect_equal(.mean_silhouette_widths(X, clusterings), expected, tolerance = 1e-12)
+  expect_true(is.na(.mean_silhouette_widths(X, list(rep(1, 400)))))
+})

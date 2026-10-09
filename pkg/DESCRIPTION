@@ -31,10 +31,10 @@ Imports:
     FNN,
     S4Vectors,
     kerndwd,
-    cluster,
     umap,
     vizOmics
 Suggests: 
+    cluster,
     pls,
     testthat (>= 3.0.0)
 Remotes: 
