@@ -353,3 +353,39 @@ test_that("score dimensions are query cells by reference classes", {
     list("query1", c("A", "B"))
   )
 })
+
+test_that("vectorised correlation matches stats::cor column by column", {
+  set.seed(1)
+  X <- matrix(stats::rpois(40 * 30, 1), 40, 30)  # many ties
+  X[, 5] <- 2                                     # a constant column
+  y <- stats::rpois(40, 3) + stats::runif(40)
+  expect_equal(.colRanksAverage(X), apply(X, 2, rank))
+  for (method in c("spearman", "pearson")) {
+    expected <- suppressWarnings(apply(X, 2, stats::cor, y = y, method = method))
+    expected[5] <- NA_real_
+    expect_equal(.corWithVector(X, y, method), expected, tolerance = 1e-12)
+  }
+  expect_length(.corWithVector(X[, 0, drop = FALSE], y, "pearson"), 0)
+})
+
+test_that("correlation scores of cells with missing values are unchanged", {
+  set.seed(2)
+  genes <- paste0("gene", 1:30)
+  centroids <- matrix(stats::runif(60), 30, 2, dimnames = list(genes, c("A", "B")))
+  centroids[3, "A"] <- NA
+  query <- matrix(stats::rnorm(30 * 12), 30, 12, dimnames = list(genes, paste0("c", 1:12)))
+  query[1:4, 2] <- NA
+  query[, 7] <- 1
+  sigs <- list(A = genes[1:20], B = genes[5:30])
+  out <- .scoreCorrelation(query, centroids, sigs, "spearman")
+  for (cl in c("A", "B")) {
+    g <- sigs[[cl]]
+    for (i in seq_len(ncol(query))) {
+      ok <- is.finite(query[g, i]) & is.finite(centroids[g, cl])
+      v <- query[g, i][ok]
+      expected <- if (stats::sd(v) == 0) NA_real_ else
+        stats::cor(v, centroids[g, cl][ok], method = "spearman")
+      expect_equal(out[i, cl], expected, tolerance = 1e-12)
+    }
+  }
+})

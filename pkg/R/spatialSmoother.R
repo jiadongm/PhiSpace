@@ -243,27 +243,37 @@ spatial_smooth_expression <- function(
   if(verbose) message("Computing kernel weights...")
   weights <- compute_kernel_weights(knn_distances, kernel, sigma)
 
+  # Weight matrix W (cells x cells): column i holds the weights of cell i's
+  # neighbours, normalised to sum to 1, so the smoothed matrix is
+  # expression_matrix %*% W.
+  weights <- weights / rowSums(weights)
+  W <- Matrix::sparseMatrix(
+    i = as.vector(t(knn_indices)),
+    j = rep(seq_len(n_cells), each = ncol(knn_indices)),
+    x = as.vector(t(weights)),
+    dims = c(n_cells, n_cells)
+  )
+  if (!is.matrix(expression_matrix) && !methods::is(expression_matrix, "Matrix")) {
+    expression_matrix <- as.matrix(expression_matrix)
+  }
+
   # Initialize smoothed expression matrix
   smoothed_expr <- matrix(0, nrow = n_genes, ncol = n_cells)
   rownames(smoothed_expr) <- rownames(expression_matrix)
   colnames(smoothed_expr) <- colnames(expression_matrix)
 
-  # Perform smoothing for each cell
+  # Multiply in blocks of cells, so that a sparse product is never held in
+  # full next to the dense result
   if(verbose) message("Performing spatial smoothing...")
+  block_size <- max(1L, floor(1e7 / max(1L, n_genes)))
+  block_starts <- seq(1L, n_cells, by = block_size)
   if(verbose) pb <- utils::txtProgressBar(min = 0, max = n_cells, style = 3)
 
-  for (i in 1:n_cells) {
-    # Get neighbors and weights for current cell
-    neighbors <- knn_indices[i, ]
-    cell_weights <- weights[i, ]
+  for (start in block_starts) {
+    cells <- start:min(start + block_size - 1L, n_cells)
+    smoothed_expr[, cells] <- as.matrix(expression_matrix %*% W[, cells, drop = FALSE])
 
-    # Normalize weights to sum to 1
-    cell_weights <- cell_weights / sum(cell_weights)
-
-    # Compute weighted average for all genes
-    smoothed_expr[, i] <- as.vector(expression_matrix[, neighbors] %*% cell_weights)
-
-    if(verbose) utils::setTxtProgressBar(pb, i)
+    if(verbose) utils::setTxtProgressBar(pb, max(cells))
   }
   if(verbose) close(pb)
 

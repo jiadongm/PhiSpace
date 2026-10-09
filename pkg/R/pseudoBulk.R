@@ -83,31 +83,24 @@ pseudoBulk <- function(
     }
   )
   resampIdx <- do.call(c, resampIdx)
+  # Indicator matrix A (cells x pseudo-bulks): A[c, b] counts how often cell c
+  # was drawn for pseudo-bulk b, so X %*% A gives the sums
+  poolSizes <- lengths(resampIdx)
+  A <- Matrix::sparseMatrix(
+    i = unlist(resampIdx, use.names = FALSE),
+    j = rep(seq_along(resampIdx), poolSizes),
+    x = 1,
+    dims = c(nCells, length(resampIdx))
+  )
   # Aggregate X
   XX <- assay(sce, assayName)
-  XXagg <- sapply(
-    resampIdx,
-    function(x){
-
-      if(calcMean){
-
-        rowMeans(XX[,x])
-      } else {
-
-        rowSums(XX[,x])
-      }
-    }
-  )
+  if (!is.matrix(XX) && !methods::is(XX, "Matrix")) XX <- as.matrix(XX)
+  XXagg <- as.matrix(XX %*% A)
+  if(calcMean) XXagg <- sweep(XXagg, 2, poolSizes, "/")
+  dimnames(XXagg) <- list(rownames(XX), NULL)
   # Aggregate Y
-  YYagg <- t(
-    sapply(
-      resampIdx,
-      function(x){
-
-        colMeans(YY[x,])
-      }
-    )
-  )
+  YYagg <- as.matrix(Matrix::crossprod(A, as.matrix(YY))) / poolSizes
+  dimnames(YYagg) <- list(NULL, colnames(YY))
   colnames(XXagg) <- rownames(YYagg) <- paste0("PB", 1:ncol(XXagg))
 
   # Output

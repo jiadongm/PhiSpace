@@ -665,6 +665,15 @@ Step 3 (2026-10-09), data handling in `PhiSpaceR_1ref()`:
   (CITE-seq), from 10.9 to 6.5 GB (PerturbSeq), from 6.2 to 4.7 GB
   (StereoSeq) and from 7.2 to 6.1 GB (BridgeAnnotation).
 
+Step 4 (2026-10-09), smoothing, pseudo-bulks and correlation scores:
+
+- `spatialSmoother()` multiplies by one sparse weight matrix,
+  `pseudoBulk()` by a sparse indicator matrix, and `scoreCells()` computes
+  correlations for blocks of cells (`.corWithVector()`). Outputs agree with
+  the previous code to about 2e-15. No vignette calls these functions.
+- Known bug, not fixed: `pseudoBulk()` samples a one-cell cluster with
+  `sample(i, ...)`, which draws from `1:i`.
+
 ## Build & Development Commands
 
 All commands should be run from the repo root. The package source is in `pkg/`.

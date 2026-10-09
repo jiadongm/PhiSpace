@@ -57,6 +57,15 @@
   before it transposes the matrix. Results are unchanged. On simulated data
   (3.3 GB of input: a 10,000-cell reference and a 40,000-cell query, each
   with three assays), peak R memory fell from 7.4 GB to 3.7 GB.
+* `spatialSmoother()` smooths an assay with one sparse cell-by-cell weight
+  matrix instead of a loop over cells, and `pseudoBulk()` aggregates with a
+  sparse indicator matrix instead of a loop over pseudo-bulks.
+  `scoreCells()` computes correlation scores for blocks of cells at once and
+  no longer holds the class's whole query matrix as a dense matrix. Results
+  agree with the previous versions to about 2e-15. On simulated data (5,000
+  genes, 30,000 cells), smoothing an assay took 8 s instead of 332 s,
+  `pseudoBulk()` 0.7 s instead of 22 s, and Spearman correlation scoring
+  (25,000 query cells, 20 classes) 5 s instead of 26 s.
 
 ## Bug fixes
 

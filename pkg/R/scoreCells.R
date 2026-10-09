@@ -638,28 +638,77 @@ scoreCells <- function(reference,
       )
     }
 
-    class_query <- as.matrix(query_expr[genes, , drop = FALSE])
-    scores[, cl] <- vapply(
-      seq_len(ncol(class_query)),
-      function(i) {
-        values <- class_query[, i]
-        complete <- is.finite(values) & finite_centroid
-        if (sum(complete) < 2 ||
-            stats::sd(values[complete]) == 0 ||
-            stats::sd(centroid[complete]) == 0) {
-          return(NA_real_)
-        }
-        stats::cor(
-          values[complete],
-          centroid[complete],
-          method = method
-        )
-      },
-      numeric(1)
-    )
+    # Score the cells in blocks, so that only one block of the query is held
+    # as a dense matrix. Cells whose values are finite at every gene with a
+    # finite centroid are scored together; the others one at a time.
+    class_expr <- query_expr[genes, , drop = FALSE]
+    block_size <- max(1L, floor(2e6 / length(genes)))
+    for (cells in split(seq_len(ncol(class_expr)),
+                        ceiling(seq_len(ncol(class_expr)) / block_size))) {
+      class_query <- as.matrix(class_expr[, cells, drop = FALSE])
+      fast <- colSums(!is.finite(class_query[finite_centroid, , drop = FALSE])) == 0
+      scores[cells[fast], cl] <- .corWithVector(
+        class_query[finite_centroid, fast, drop = FALSE],
+        centroid[finite_centroid],
+        method
+      )
+
+      scores[cells[!fast], cl] <- vapply(
+        which(!fast),
+        function(i) {
+          values <- class_query[, i]
+          complete <- is.finite(values) & finite_centroid
+          if (sum(complete) < 2 ||
+              stats::sd(values[complete]) == 0 ||
+              stats::sd(centroid[complete]) == 0) {
+            return(NA_real_)
+          }
+          stats::cor(
+            values[complete],
+            centroid[complete],
+            method = method
+          )
+        },
+        numeric(1)
+      )
+    }
   }
 
   scores
+}
+
+## Correlation of each column of X with the vector y, as stats::cor() would
+## give it column by column. NA for a constant column. X and y must be finite
+## and y must not be constant.
+.corWithVector <- function(X, y, method) {
+  if (ncol(X) == 0) return(numeric(0))
+  constant <- colSums(X != rep(X[1, ], each = nrow(X))) == 0
+  if (method == "spearman") {
+    X <- .colRanksAverage(X)
+    y <- rank(y)
+  }
+  y <- y - mean(y)
+  X <- sweep(X, 2, colMeans(X))
+  out <- as.numeric(crossprod(X, y)) / sqrt(colSums(X^2) * sum(y^2))
+  out[constant] <- NA_real_
+  out
+}
+
+## Ranks within each column of a matrix with no missing values, ties given
+## their average rank, as apply(X, 2, rank) gives them.
+.colRanksAverage <- function(X) {
+  n <- nrow(X)
+  N <- length(X)
+  o <- order(rep(seq_len(ncol(X)), each = n), X, method = "radix")
+  xSorted <- X[o]
+  # A tie group starts at a new value or at the first entry of a column
+  newTie <- c(TRUE, xSorted[-1] != xSorted[-N])
+  newTie[seq.int(1L, N, by = n)] <- TRUE
+  groupStart <- which(newTie)
+  groupEnd <- c(groupStart[-1] - 1L, N)
+  group <- cumsum(newTie)
+  X[o] <- (groupStart[group] + groupEnd[group])/2 - ((seq_len(N) - 1L) %/% n) * n
+  X
 }
 
 .scoreSignature <- function(query_expr, signatures, zscore) {

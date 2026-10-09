@@ -43,3 +43,29 @@ test_that("spatialSmoother uses colData coordinates for a SingleCellExperiment",
                SingleCellExperiment::reducedDim(from_spe, "PhiSpace_smoothed"))
   expect_error(spatialSmoother(sce, k = 5), "x_coord and y_coord must be specified")
 })
+
+test_that("spatial_smooth_expression matches a weighted average over neighbours", {
+  spe <- make_spatial_fixture()
+  coords <- as.data.frame(SpatialExperiment::spatialCoords(spe))
+  X <- Matrix::Matrix(SummarizedExperiment::assay(spe, "counts"), sparse = TRUE)
+  for (kernel in c("linear", "gaussian", "uniform")) {
+    for (self in c(TRUE, FALSE)) {
+      knn <- FNN::get.knnx(coords, coords, k = if (self) 6 else 7)
+      idx <- knn$nn.index
+      dst <- knn$nn.dist
+      if (!self) {
+        idx <- idx[, -1]
+        dst <- dst[, -1]
+      }
+      w <- compute_kernel_weights(dst, kernel)
+      expected <- sapply(seq_len(ncol(X)), function(i) {
+        as.vector(as.matrix(X[, idx[i, ]]) %*% (w[i, ] / sum(w[i, ])))
+      })
+      out <- spatial_smooth_expression(X, coords, k = 6, kernel = kernel,
+                                       include_self = self, verbose = FALSE)
+      expect_true(is.matrix(out))
+      expect_equal(dimnames(out), dimnames(X))
+      expect_equal(out, expected, ignore_attr = TRUE, tolerance = 1e-12)
+    }
+  }
+})
