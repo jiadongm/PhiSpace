@@ -84,6 +84,13 @@
 
 ## Bug fixes
 
+* `rankFeatures(method = "DWD")` with the default linear kernel failed with
+  "non-conformable arguments" whenever there were at least as many cells as
+  genes. kerndwd then returns one coefficient per gene, which
+  `rankFeatures()` treated as one weight per cell. These coefficients are
+  now the importance scores, and the DWD scores are computed from them.
+  Fits with fewer cells than genes, or with a non-linear kernel, are
+  unchanged.
 * `pseudoBulk()` drew the pseudo-bulks of a cluster with only one cell from
   the wrong cells: for the cell at position i, `sample()` drew from cells 1
   to i. It now draws from that cell only. Clusters with two or more cells

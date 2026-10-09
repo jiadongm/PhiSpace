@@ -684,9 +684,10 @@ Step 5 (2026-10-09), quadratic-memory guards:
 - `rankFeatures(method = "DWD")` stops above `dwd_params$max_cells`
   (default 10,000) with a non-linear kernel, which needs a cells x cells
   kernel matrix. The default linear kernel builds none when cells >= genes.
-- Known bug, not fixed: `rankFeatures(method = "DWD")` with the linear
-  kernel and cells >= genes fails ("non-conformable arguments"):
-  `.fit_dwd()` treats kerndwd's primal coefficients as dual ones.
+- Bug found and fixed in a separate commit: `rankFeatures(method = "DWD")`
+  with the linear kernel and cells >= genes failed ("non-conformable
+  arguments") because `.fit_dwd()` treated kerndwd's primal coefficients
+  as dual ones.
 
 ## Build & Development Commands
 

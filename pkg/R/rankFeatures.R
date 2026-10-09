@@ -369,13 +369,24 @@ rankFeatures <- function(data,
     maxit = dwd_params$maxit
   )
 
-  # Extract discriminant weights (loadings)
+  # Extract discriminant weights (loadings). With the linear kernel and at
+  # least as many cells as genes, kerndwd fits the primal problem and alpha
+  # holds one coefficient per gene; otherwise it holds one dual weight per
+  # cell, and X' alpha gives the per-gene weights.
   A <- dwd_model$alpha[-1, , drop = FALSE]
-  importance_scores <- crossprod(XX, A)
+  primal <- inherits(dwd_params$kernel, "vanillakernel") && nrow(XX) >= ncol(XX)
+  if (primal) {
+    importance_scores <- A
+    rownames(importance_scores) <- colnames(XX)
+    # predict.kerndwd() assumes dual weights when cells equal genes
+    scores <- XX %*% A + dwd_model$alpha[1, 1]
+  } else {
+    importance_scores <- crossprod(XX, A)
+    scores <- predict(dwd_model, dwd_params$kernel, XX, XX, type = "link")
+  }
   colnames(importance_scores) <- "DWD_weight"
 
-  # Compute DWD scores
-  scores <- predict(dwd_model, dwd_params$kernel, XX, XX, type = "link")
+  # DWD scores
   colnames(scores) <- "DWD_score"
 
   # Rank features by absolute importance
