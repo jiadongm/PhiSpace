@@ -223,7 +223,7 @@ By comparing these UMAPs, we can see that the totalVI model in Barmada et al. (2
 
 In contrast, the reference based approaches (row 2, 3 and 4) attained better balance between removing batch effects and preserving biology. In particular, the ADT-derived phenotype space embeddings (3rd row) had less power distinguishing cell types, due to the lower throughput of the ADT modality. Combining RNA-derived and ADT-derived results achieved the best visual effects (4th row), since the the cell types were best separated while the disease conditions were still separable.
 
-These results demonstrated that our PhiSpace bimodal annotation is effective, despite its simplicity. In fact, this simple approach can also be applied using other cell type annotation methods such as Seurat (both V3 and V4) and scANVI. See our [paper](https://www.biorxiv.org/content/10.1101/2024.06.19.599787v1.full) for more details.
+These results demonstrated that our PhiSpace bimodal annotation is effective, despite its simplicity. In fact, this simple approach can also be applied using other cell type annotation methods such as Seurat (both V3 and V4) and scANVI. See our [paper](https://doi.org/10.1186/s13059-025-03755-8) for more details.
 
 
 

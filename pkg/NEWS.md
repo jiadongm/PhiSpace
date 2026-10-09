@@ -128,6 +128,12 @@
 
 ## Other changes
 
+* The package now cites the published papers: Mao et al. (2025), *Genome
+  Biology* 26, 323 (doi:10.1186/s13059-025-03755-8), and Mao et al. (2026),
+  *Cell Reports Methods* 6(8), 101483 (doi:10.1016/j.crmeth.2026.101483).
+  `citation("PhiSpace")` returns both. The README files, `DESCRIPTION`, the
+  `PhiSpace()` and `PhiSpaceR_1ref()` help pages and the vignettes no longer
+  link to the bioRxiv preprints.
 * The `License` field changed from `AGPL (>= 3)` to `AGPL-3`.
 * Raw scores from `phenotype()` (for example `PhiSpaceScore` and `YrefHat`)
   no longer carry a `"scaled:center"` attribute.

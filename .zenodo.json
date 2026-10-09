@@ -35,6 +35,16 @@
       "identifier": "https://github.com/jiadongm/PhiSpace",
       "relation": "isSupplementTo",
       "scheme": "url"
+    },
+    {
+      "identifier": "10.1016/j.crmeth.2026.101483",
+      "relation": "isSupplementTo",
+      "scheme": "doi"
+    },
+    {
+      "identifier": "10.1186/s13059-025-03755-8",
+      "relation": "isSupplementTo",
+      "scheme": "doi"
     }
   ],
   "communities": [],

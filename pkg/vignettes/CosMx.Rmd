@@ -197,7 +197,7 @@ VizSpatial(
 
 
 
-Next we visualise the PhiSpace-niche-specific cell type divergence. Recall that niches 5 and 9 are both located in the 'tumour interior' domain. Here we can see that these two niches have very different cell type divergence. For more analysis along this line see our [PhiSpace ST paper](https://www.biorxiv.org/content/10.1101/2025.02.05.636735v1).
+Next we visualise the PhiSpace-niche-specific cell type divergence. Recall that niches 5 and 9 are both located in the 'tumour interior' domain. Here we can see that these two niches have very different cell type divergence. For more analysis along this line see our [PhiSpace ST paper](https://doi.org/10.1016/j.crmeth.2026.101483).
 ```{r}
 query@colData %>% ggplot(aes(y = PhiClust, x = divergence)) +
   geom_boxplot(aes(fill = PhiClust), outlier.size = 0.5, linewidth = 0.1, outlier.stroke = 0) +
@@ -271,7 +271,7 @@ for(ii in 1:length(tissueNames)){
 
 
 
-Top five enriched cell types in different tumours. The results make a lot of sense. First we see that the cell states of tumours from biological replicates (e.g. Lung5_Rep1, Lung5_Rep2, Lung5_Rep3) are very similar. But tumour cell states from different patients tend to be more different. See our [PhiSpace ST paper](https://www.biorxiv.org/content/10.1101/2025.02.05.636735v1) for more detailed analysis on this result.
+Top five enriched cell types in different tumours. The results make a lot of sense. First we see that the cell states of tumours from biological replicates (e.g. Lung5_Rep1, Lung5_Rep2, Lung5_Rep3) are very similar. But tumour cell states from different patients tend to be more different. See our [PhiSpace ST paper](https://doi.org/10.1016/j.crmeth.2026.101483) for more detailed analysis on this result.
 ```{r}
 tumTab <- do.call("cbind", tumourSig)[1:5,]
 knitr::kable(tumTab)

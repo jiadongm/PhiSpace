@@ -49,7 +49,14 @@
 #'
 #'
 #' @references
-#' Mao J., Deng, Y. and Lê Cao, K.-A. (2024).Φ-Space: Continuous phenotyping of single-cell multi-omics data. bioRxiv.
+#' Mao J., Deng Y. and Lê Cao K.-A. (2025). Φ-Space: continuous phenotyping of
+#'   single-cell multi-omics data. \emph{Genome Biology} 26, 323.
+#'   \doi{10.1186/s13059-025-03755-8}
+#'
+#' Mao J., Choi J. and Lê Cao K.-A. (2026). Φ-Space ST: a platform-agnostic
+#'   method to identify cell states in spatial transcriptomics studies.
+#'   \emph{Cell Reports Methods} 6(8), 101483.
+#'   \doi{10.1016/j.crmeth.2026.101483}
 #'
 #' @export
 PhiSpace <- function(

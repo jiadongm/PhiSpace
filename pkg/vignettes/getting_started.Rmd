@@ -28,7 +28,7 @@ knitr::opts_chunk$set(error = FALSE)
 PhiSpace is inspired by stem cell research, where the focus is often on transitional cell *states* 
 instead of terminally differentiated cell *types*. 
 
-In the first case study in our [manuscript](https://www.biorxiv.org/content/10.1101/2024.06.19.599787v1), we
+In the first case study in our [manuscript](https://doi.org/10.1186/s13059-025-03755-8), we
 used
 
 - Reference bulk RNA-seq: [Stemformatics DC atlas](https://journals.aai.org/jimmunol/article/209/12/2352/237295/The-Human-Dendritic-Cell-Atlas-An-Integrated)
@@ -107,7 +107,7 @@ PhiSpaceAssay <- "rank"
 PhiMethod <- "PLS"
 ```
 
-There are two key parameters to select for running PhiSpace annotation: `ncomp` and `nfeat`, which controls the complexity of regression model. We will discuss their selection towards the end of this article. For now, we use `ncomp=30` and load a pre-computed gene list (`ref_dc_feat.qs2`), containing genes that are most useful for predicting phenotypes of interest. In our [manuscript](https://www.biorxiv.org/content/10.1101/2024.06.19.599787v1) why this gene list was well selected.
+There are two key parameters to select for running PhiSpace annotation: `ncomp` and `nfeat`, which controls the complexity of regression model. We will discuss their selection towards the end of this article. For now, we use `ncomp=30` and load a pre-computed gene list (`ref_dc_feat.qs2`), containing genes that are most useful for predicting phenotypes of interest. In our [manuscript](https://doi.org/10.1186/s13059-025-03755-8) why this gene list was well selected.
 ```{r}
 ncomp <- 30
 selectedFeat <- qs_read(paste0(dat_dir, "ref_dc_feat.qs2"))

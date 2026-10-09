@@ -7,7 +7,7 @@
 \description{
 \if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
 
-Continous phenotyping of bulk, single-cell and spatial omics data using partial least squares regression.
+Continuous phenotyping of bulk, single-cell and spatial omics data using partial least squares regression. The methods are described in Mao et al. (2025) \doi{10.1186/s13059-025-03755-8} and Mao et al. (2026) \doi{10.1016/j.crmeth.2026.101483}.
 }
 \seealso{
 Useful links:

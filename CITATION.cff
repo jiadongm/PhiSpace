@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 title: "PhiSpace ST: a platform-agnostic method to identify cell states in spatial transcriptomics studies"
-message: "If you use this software, please cite both the Cell Reports Methods paper and this archived software release."
+message: "If you use this software, please cite the Cell Reports Methods paper (PhiSpace ST), the Genome Biology paper (PhiSpace) and this archived software release."
 type: software
 authors:
   - family-names: Mao
@@ -48,5 +48,24 @@ preferred-citation:
     - family-names: Lê Cao
       given-names: Kim-Anh
   journal: "Cell Reports Methods"
+  volume: 6
+  issue: 8
+  start: 101483
+  month: 8
   year: 2026
-  doi: ""  # add manuscript DOI when assigned by Cell Press
+  doi: "10.1016/j.crmeth.2026.101483"
+references:
+  - type: article
+    title: "Φ-Space: continuous phenotyping of single-cell multi-omics data"
+    authors:
+      - family-names: Mao
+        given-names: Jiadong
+      - family-names: Deng
+        given-names: Yidi
+      - family-names: Lê Cao
+        given-names: Kim-Anh
+    journal: "Genome Biology"
+    volume: 26
+    start: 323
+    year: 2025
+    doi: "10.1186/s13059-025-03755-8"

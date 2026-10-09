@@ -85,7 +85,9 @@
 #' scaling would greatly inflate the expression levels of these genes.
 #'
 #' @references
-#' Mao J., Deng, Y. and Lê Cao, K.-A. (2024). Phi-Space: Continuous phenotyping of single-cell multi-omics data. bioRxiv.
+#' Mao J., Deng Y. and Lê Cao K.-A. (2025). Φ-Space: continuous phenotyping of
+#'   single-cell multi-omics data. \emph{Genome Biology} 26, 323.
+#'   \doi{10.1186/s13059-025-03755-8}
 #'
 #' @seealso [PhiSpace()] for the main user-facing wrapper that handles multiple references,
 #'   [normPhiScores()] for score normalisation, [tunePhiSpace()] for parameter tuning.

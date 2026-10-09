@@ -39,7 +39,7 @@ We use
 
 - Bridge and query: 10x multiome (scRNA+ATAC-seq) dataset with 13 batches from [Leucken et al. (2021)](https://datasets-benchmarks-proceedings.neurips.cc/paper/2021/hash/158f3069a435b314a80bdcb024f8e422-Abstract-round2.html).
 
-In our [paper](https://www.biorxiv.org/content/10.1101/2024.06.19.599787v1.full) we used a cross-validation (CV) scheme as follows. Each time we use one of the 13 batches of multiome data as the bridge dataset to facilitate the transfer of cell type annotations from the scRNA-seq reference to the remaining 12 batches of query scATAC-seq data (with their RNA part and ground truth cell type labels hidden). This allowed us to benchmark PhiSpace cross-modality annotation with Seurat V5. Here we simply show how PhiSpace bridge annotation can be done using one bridge and one query datasets.
+In our [paper](https://doi.org/10.1186/s13059-025-03755-8) we used a cross-validation (CV) scheme as follows. Each time we use one of the 13 batches of multiome data as the bridge dataset to facilitate the transfer of cell type annotations from the scRNA-seq reference to the remaining 12 batches of query scATAC-seq data (with their RNA part and ground truth cell type labels hidden). This allowed us to benchmark PhiSpace cross-modality annotation with Seurat V5. Here we simply show how PhiSpace bridge annotation can be done using one bridge and one query datasets.
 
 
 All data related to this case study can be downloaded [here](https://www.dropbox.com/scl/fo/jeuqzjfyyr2j7doa922ve/AI-2U_wtZBpPGOswxMzReGQ?rlkey=n328yyr2llf81gz3chynjg0r6&st=nb1svufg&dl=0). Preserve the directory layout of the shared folder. It includes `utils.R`, the input data in `data/` and cached annotation results in `output/`.

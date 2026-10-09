@@ -27,11 +27,9 @@ BiocManager::install('jiadongm/PhiSpace/pkg')
 
 ## Citing PhiSpace
 
-Mao, Jiadong, Choi, Jarny and Lê Cao, Kim-Anh. (2026). Φ-Space ST: 
-a platform-agnostic method to identify cell states in spatial transcriptomics studies. 
-[*Cell Reports Methods*](https://www.cell.com/cell-reports-methods/fulltext/S2667-2375(26)00183-9?_returnURL=https%3A%2F%2Flinkinghub.elsevier.com%2Fretrieve%2Fpii%2FS2667237526001839%3Fshowall%3Dtrue). 
+Mao, Jiadong, Choi, Jarny and Lê Cao, Kim-Anh. (2026). Φ-Space ST: a platform-agnostic method to identify cell states in spatial transcriptomics studies. *Cell Reports Methods* 6(8), 101483. [doi:10.1016/j.crmeth.2026.101483](https://doi.org/10.1016/j.crmeth.2026.101483).
 
-Mao, Jiadong, Deng, Yidi and Lê Cao, Kim-Anh. (2025). Φ-Space: Continuous phenotyping of single-cell multi-omics data. [*Genome Biology*](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-025-03755-8).
+Mao, Jiadong, Deng, Yidi and Lê Cao, Kim-Anh. (2025). Φ-Space: continuous phenotyping of single-cell multi-omics data. *Genome Biology* 26, 323. [doi:10.1186/s13059-025-03755-8](https://doi.org/10.1186/s13059-025-03755-8).
 
 
 

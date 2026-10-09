@@ -19,8 +19,8 @@ BiocManager::install('jiadongm/PhiSpace/pkg')
 of cell states in single-cell and spatial multiomics data. Currently it has two
 modules:
 
-- PhiSpace multiomics for single-cell multiomics data ([Mao et al., 2024](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-025-03755-8)), and
-- PhiSpace ST for spatial transcriptomics data ([Mao et al., 2025](https://www.biorxiv.org/content/10.1101/2024.06.19.599787v1))
+- PhiSpace multiomics for single-cell multiomics data ([Mao et al., 2025](https://doi.org/10.1186/s13059-025-03755-8)), and
+- PhiSpace ST for spatial transcriptomics data ([Mao et al., 2026](https://doi.org/10.1016/j.crmeth.2026.101483))
 
 Given a bulk or single-cell RNA-seq **reference** dataset with potentially multiple 
 layers of phenotypes defined in the metadata (e.g. cell type and sample source), 
@@ -51,9 +51,9 @@ We have applied Φ-Space to many different use cases, including
 
 ## Cite PhiSpace
 
-Mao, Jiadong, Choi, Jarny and Lê Cao, Kim-Anh. (2025). Φ-Space ST: a platform-agnostic method to identify cell states in spatial transcriptomics studies. [Cell Reports Methods](https://www.cell.com/cell-reports-methods/fulltext/S2667-2375(26)00183-9).
+Mao, Jiadong, Choi, Jarny and Lê Cao, Kim-Anh. (2026). Φ-Space ST: a platform-agnostic method to identify cell states in spatial transcriptomics studies. *Cell Reports Methods* 6(8), 101483. [doi:10.1016/j.crmeth.2026.101483](https://doi.org/10.1016/j.crmeth.2026.101483).
 
-Mao, Jiadong, Deng, Yidi and Lê Cao, Kim-Anh. (2024). Φ-Space: Continuous phenotyping of single-cell multi-omics data. [*Genome Biology*](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-025-03755-8).
+Mao, Jiadong, Deng, Yidi and Lê Cao, Kim-Anh. (2025). Φ-Space: continuous phenotyping of single-cell multi-omics data. *Genome Biology* 26, 323. [doi:10.1186/s13059-025-03755-8](https://doi.org/10.1186/s13059-025-03755-8).
 
 Check out our talk for PhiSpace single-cell multiomics at [mixOmics website](http://mixomics.org/2024/06/phispace/).
 

@@ -1,0 +1,38 @@
+citHeader("To cite PhiSpace in publications, please use:")
+
+bibentry(
+  bibtype = "Article",
+  title = "\u03a6-Space: continuous phenotyping of single-cell multi-omics data",
+  author = c(person("Jiadong", "Mao"), person("Yidi", "Deng"),
+             person("Kim-Anh", "L\u00ea Cao")),
+  journal = "Genome Biology",
+  year = "2025",
+  volume = "26",
+  pages = "323",
+  doi = "10.1186/s13059-025-03755-8",
+  textVersion = paste(
+    "Mao J, Deng Y, L\u00ea Cao K-A (2025).",
+    "\u03a6-Space: continuous phenotyping of single-cell multi-omics data.",
+    "Genome Biology 26, 323. doi:10.1186/s13059-025-03755-8"
+  )
+)
+
+bibentry(
+  bibtype = "Article",
+  title = paste("\u03a6-Space ST: a platform-agnostic method to identify",
+                "cell states in spatial transcriptomics studies"),
+  author = c(person("Jiadong", "Mao"), person("Jarny", "Choi"),
+             person("Kim-Anh", "L\u00ea Cao")),
+  journal = "Cell Reports Methods",
+  year = "2026",
+  volume = "6",
+  number = "8",
+  pages = "101483",
+  doi = "10.1016/j.crmeth.2026.101483",
+  textVersion = paste(
+    "Mao J, Choi J, L\u00ea Cao K-A (2026).",
+    "\u03a6-Space ST: a platform-agnostic method to identify cell states in",
+    "spatial transcriptomics studies. Cell Reports Methods 6(8), 101483.",
+    "doi:10.1016/j.crmeth.2026.101483"
+  )
+)
