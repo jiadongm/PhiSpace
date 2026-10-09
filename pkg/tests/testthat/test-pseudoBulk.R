@@ -39,3 +39,13 @@ test_that("pseudoBulk with calcMean divides the sums by nPool", {
   expect_equal(SummarizedExperiment::assay(means, "counts"),
                SummarizedExperiment::assay(sums, "counts") / 5)
 })
+
+test_that("pseudoBulk draws a one-cell cluster from that cell only", {
+  # Each cluster has one cell; cells 2 and 3 used to be drawn from 1:2 and 1:3
+  sce <- make_pb_fixture()
+  pb <- pseudoBulk(sce, phenotypes = "type", resampSizes = 2, nPool = 4)
+  X <- as.matrix(SummarizedExperiment::assay(sce, "counts"))
+  expect_equal(unname(SummarizedExperiment::assay(pb, "counts")),
+               unname(4 * X[, rep(1:3, each = 2)]))
+  expect_equal(pb$type, rep(c("A", "B", "C"), each = 2))
+})

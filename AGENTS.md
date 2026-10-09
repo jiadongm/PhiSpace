@@ -671,8 +671,9 @@ Step 4 (2026-10-09), smoothing, pseudo-bulks and correlation scores:
   `pseudoBulk()` by a sparse indicator matrix, and `scoreCells()` computes
   correlations for blocks of cells (`.corWithVector()`). Outputs agree with
   the previous code to about 2e-15. No vignette calls these functions.
-- Known bug, not fixed: `pseudoBulk()` samples a one-cell cluster with
-  `sample(i, ...)`, which draws from `1:i`.
+- Bug found and fixed in a separate commit: `pseudoBulk()` sampled a
+  one-cell cluster with `sample(i, ...)`, which draws from `1:i`. Clusters
+  with two or more cells give the same draws as before.
 
 ## Build & Development Commands
 

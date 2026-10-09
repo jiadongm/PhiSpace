@@ -74,8 +74,11 @@ pseudoBulk <- function(
     function(x){
 
       resampSize <- resampSizes[x]
+      # Index into the cluster: sample() on a single index i would draw
+      # from 1:i
+      clustIdx <- idxList[[x]]
       out <- split(
-        sample(idxList[[x]], nPool*resampSize, replace = TRUE),
+        clustIdx[sample.int(length(clustIdx), nPool*resampSize, replace = TRUE)],
         rep(1:resampSize, rep(nPool, resampSize))
       )
       names(out) <- NULL

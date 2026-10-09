@@ -69,6 +69,10 @@
 
 ## Bug fixes
 
+* `pseudoBulk()` drew the pseudo-bulks of a cluster with only one cell from
+  the wrong cells: for the cell at position i, `sample()` drew from cells 1
+  to i. It now draws from that cell only. Clusters with two or more cells
+  give the same pseudo-bulks as before, for the same `seed`.
 * `print()`, `summary()` and `plot()` for `clusterPhiSpace()` results now read
   the variance proportions that `getPC()` returns. Previously `print()`
   reported 0% variance explained, `summary()` and `plot(type = "variance")`
