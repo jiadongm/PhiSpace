@@ -654,6 +654,17 @@ Step 2 (2026-10-09), rank direction:
 - The other six vignettes built fresh and passed every result check with
   unchanged expected values.
 
+Step 3 (2026-10-09), data handling in `PhiSpaceR_1ref()`:
+
+- `PhiSpaceR_1ref()` extracts only the assays it uses and no longer subsets
+  the reference and query objects, which copied every assay. Genes are
+  selected before the matrix is transposed (`.cellsByGenes()`). `SuperPC()`
+  accepts a cell x gene matrix as well as an SCE.
+- Results are identical: all seven vignettes built fresh and every observed
+  value matched the step 2 builds. Peak RAM fell from 16.1 to 11.0 GB
+  (CITE-seq), from 10.9 to 6.5 GB (PerturbSeq), from 6.2 to 4.7 GB
+  (StereoSeq) and from 7.2 to 6.1 GB (BridgeAnnotation).
+
 ## Build & Development Commands
 
 All commands should be run from the repo root. The package source is in `pkg/`.

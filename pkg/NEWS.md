@@ -51,6 +51,12 @@
   versions still work.
 * `RankTransf()` no longer converts a sparse count matrix with no negative
   values to a dense one. The ranks are unchanged.
+* `PhiSpaceR_1ref()` (and therefore `PhiSpace()`) no longer subsets the
+  reference and query objects to their shared genes, which copied every
+  assay. It extracts only the assay it uses and keeps the selected genes
+  before it transposes the matrix. Results are unchanged. On simulated data
+  (3.3 GB of input: a 10,000-cell reference and a 40,000-cell query, each
+  with three assays), peak R memory fell from 7.4 GB to 3.7 GB.
 
 ## Bug fixes
 

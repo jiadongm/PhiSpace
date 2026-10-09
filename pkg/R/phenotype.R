@@ -21,11 +21,8 @@ phenotype <- function(phenoAssay,
   Bhat <- .coefSlice(atlas_re$reg_re$coefficients, ncomp)
 
   # If use rank transformed data, do rank transformation again after feature selection
-  if(assayName == 'rank'){
-    XX <- .rankWithinCells(phenoAssay[ , selectedFeat])
-  } else {
-    XX <- phenoAssay[, selectedFeat]
-  }
+  XX <- .selectCols(phenoAssay, selectedFeat)
+  if(assayName == 'rank') XX <- .rankWithinCells(XX)
   XX <- .fit_matrix(XX)
 
   # Centre and scale XX implicitly: (XX - 1 Xmeans') diag(1/Xscals) %*% Bhat

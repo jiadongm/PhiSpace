@@ -1,6 +1,7 @@
 #' Compute regression model using selected features.
 #'
-#' @param reference SingleCellExperiment object. The reference
+#' @param reference SingleCellExperiment object (the reference), or a cell by
+#'   gene matrix of the `assayName` assay.
 #' @param YY Resonse matrix
 #' @param ncomp Integer. Number of components
 #' @param selectedFeat Character. Vector containing selected feature names
@@ -27,15 +28,14 @@ SuperPC <- function(
 {
   regMethod <- match.arg(regMethod)
 
-  XX <- t(assay(reference, assayName))
-
+  if(methods::is(reference, "SummarizedExperiment")){
+    XX <- .cellsByGenes(assay(reference, assayName), selectedFeat)
+  } else {
+    XX <- .selectCols(reference, selectedFeat)
+  }
 
   ## Prepare predictor matrix
-  if(assayName == 'rank'){
-    XX <- .rankWithinCells(XX[, selectedFeat])
-  } else {
-    XX <- XX[, selectedFeat]
-  }
+  if(assayName == 'rank') XX <- .rankWithinCells(XX)
 
 
   reg_re <- mvr(

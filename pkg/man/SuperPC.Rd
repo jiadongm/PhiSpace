@@ -18,7 +18,8 @@ SuperPC(
 )
 }
 \arguments{
-\item{reference}{SingleCellExperiment object. The reference}
+\item{reference}{SingleCellExperiment object (the reference), or a cell by
+gene matrix of the \code{assayName} assay.}
 
 \item{YY}{Resonse matrix}
 

@@ -210,12 +210,14 @@ PhiSpaceR_1ref <- function(
       )
   }
 
-  ## Common genes and rank transform
-  featNames <- lapply(query, rownames)
+  ## Common genes. Only the needed assays are extracted (gene x cell); genes
+  ## are subset before transposing, and the SCE objects are not subset, so
+  ## their other assays are not copied.
+  refX <- assay(reference, refAssay)
+  queryX <- lapply(query, assay, queryAssay)
+  featNames <- lapply(queryX, rownames)
   featNames <- Reduce(intersect, featNames)
-  featNames <- intersect(rownames(reference), featNames)
-  reference <- reference[featNames,]
-  query <- lapply(query, function(x) x[featNames, ])
+  featNames <- intersect(rownames(refX), featNames)
 
   ## Build atlas
   if(is.null(ncomp)) ncomp <- ncol(YY)
@@ -223,7 +225,7 @@ PhiSpaceR_1ref <- function(
   # Define selectedFeat
   if(!is.null(selectedFeat)){ # if selectedFeat provided
 
-    selectedFeat <- intersect(selectedFeat, rownames(reference))
+    selectedFeat <- intersect(selectedFeat, featNames)
     if(length(selectedFeat) == 0) stop("Reference and query don't share any selected genes.")
 
     impScores <- NULL
@@ -233,7 +235,7 @@ PhiSpaceR_1ref <- function(
     if(!is.null(nfeat)){ # if nfeat has been specified
       impScores <- .coefSlice(
         mvr(
-          t(assay(reference, refAssay)),
+          .cellsByGenes(refX, featNames),
           YY,
           ncomp,
           method = regMethod,
@@ -246,14 +248,15 @@ PhiSpaceR_1ref <- function(
     } else {
 
       impScores <- NULL
-      selectedFeat <- rownames(reference)
+      selectedFeat <- featNames
     }
 
   }
 
 
+  refXsel <- .cellsByGenes(refX, selectedFeat)
   atlas_re <- SuperPC(
-    reference = reference,
+    reference = refXsel,
     YY = YY,
     ncomp = ncomp,
     selectedFeat = selectedFeat,
@@ -270,16 +273,17 @@ PhiSpaceR_1ref <- function(
   }
 
   YrefHat <- phenotype(
-    phenoAssay = t(assay(reference, refAssay)),
+    phenoAssay = refXsel,
     atlas_re = atlas_re,
     assayName = refAssay
   )
+  rm(refXsel)
   ## Project query
   PhiSpaceScore_l <- lapply(
-    query,
+    queryX,
     function(x){
       phenotype(
-        phenoAssay = t(assay(x, queryAssay)),
+        phenoAssay = .cellsByGenes(x, selectedFeat),
         atlas_re = atlas_re,
         assayName = queryAssay
       )

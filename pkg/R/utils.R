@@ -214,6 +214,24 @@ scal <- function(X, center = NULL, scale = NULL){
 }
 
 
+## Columns of X named by cols, in that order. X is returned unchanged (no
+## copy) when it already has exactly these columns.
+.selectCols <- function(X, cols){
+
+  if(identical(colnames(X), cols)) return(X)
+  return(X[, cols, drop = FALSE])
+}
+
+
+## Cell by gene matrix of the genes in a gene by cell matrix X. The rows are
+## subset before the transpose, so only the selected genes are copied.
+.cellsByGenes <- function(X, genes){
+
+  if(!identical(rownames(X), genes)) X <- X[genes, , drop = FALSE]
+  return(t(X))
+}
+
+
 ## Column standard deviations. For a dgCMatrix they are computed from the
 ## non-zero entries and the number of zeros, without a dense copy.
 .colSds <- function(X, means = colMeans(X)){
