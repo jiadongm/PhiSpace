@@ -56,7 +56,8 @@ Not used for DWD.}
 A list with class "FeatureRanking" containing:
 \item{method}{The method used}
 \item{importance_scores}{Matrix of feature importance scores}
-\item{scores}{Component or discriminant scores for observations}
+\item{scores}{For PLSDA and PLS, the PLS component scores (observations x
+\code{ncomp}). For DWD, the discriminant score of each observation.}
 \item{model}{The fitted model object}
 \item{feature_ranking}{Data frame with features ranked by importance}
 \item{response_summary}{Summary of the response variable}

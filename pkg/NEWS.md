@@ -84,6 +84,11 @@
 
 ## Bug fixes
 
+* `rankFeatures()` with `method = "PLSDA"` or `method = "PLS"` returned
+  `scores = NULL`, because it did not ask the PLS fit for the component
+  scores. It now returns them as an observations x `ncomp` matrix. Importance
+  scores and feature rankings are unchanged.
+
 * `rankFeatures(method = "DWD")` with the default linear kernel failed with
   "non-conformable arguments" whenever there were at least as many cells as
   genes. kerndwd then returns one coefficient per gene, which

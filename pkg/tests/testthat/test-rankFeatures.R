@@ -48,3 +48,20 @@ test_that("linear DWD weights agree between the primal and dual fits", {
                unname(drop(Xc %*% res$importance_scores) + res$model$alpha[1, 1]),
                tolerance = 1e-8)
 })
+
+test_that("PLS and PLSDA return the component scores", {
+  skip_if_not_installed("pls")
+  d <- make_dwd_data(60)
+  y3 <- factor(rep(c("a", "b", "c"), 20))
+  for (method in c("PLSDA", "PLS")) {
+    resp <- if (method == "PLS") d$X[, 1] + stats::rnorm(60) else y3
+    res <- rankFeatures(d$X[, -1], response = resp, method = method, ncomp = 3)
+    expect_equal(dim(res$scores), c(60, 3))
+    Y <- if (method == "PLS") resp else codeY_vec(resp)
+    ref <- pls::kernelpls.fit(scale(d$X[, -1], scale = FALSE),
+                              scale(as.matrix(Y), scale = FALSE), ncomp = 3)
+    # Component signs are arbitrary
+    expect_equal(abs(unname(res$scores)), abs(unname(unclass(ref$scores))),
+                 tolerance = 1e-10)
+  }
+})
