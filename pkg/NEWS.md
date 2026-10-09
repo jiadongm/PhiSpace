@@ -56,6 +56,11 @@
   one slice, named `"<ncomp> comps"`; select it by that name, not by
   position. `phenotype()` accepts both forms, so objects saved by earlier
   versions still work.
+* `getPC(scale = TRUE)` computes the column standard deviations of a sparse
+  matrix without converting it to a dense one. On a simulated 50,000 x 2,000
+  sparse matrix (5% non-zero, 57 MB), the memory used above the R session
+  baseline fell from 2,302 MB to 261 MB, and the run time from 8.8 s to
+  6.2 s. Results agree to about 1e-14.
 * `RankTransf()` no longer converts a sparse count matrix with no negative
   values to a dense one. The ranks are unchanged.
 * `PhiSpaceR_1ref()` (and therefore `PhiSpace()`) no longer subsets the

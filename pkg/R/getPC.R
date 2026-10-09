@@ -37,7 +37,7 @@ getPC <- function(X, ncomp, center = TRUE, scale = FALSE, sparse = FALSE){
   }
 
   if(scale){
-    Xscals <- apply(X, 2, stats::sd)
+    Xscals <- .colSds(X)
   } else {
     Xscals <- NULL
   }

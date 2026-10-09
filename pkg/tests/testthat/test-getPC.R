@@ -56,3 +56,13 @@ test_that("getPC uses a full SVD when ncomp is at least half of min(dim(X))", {
   expect_equal(abs(unname(pc$scores)), abs(unname(ref$x[, 1:10])))
   expect_equal(pc$ncomp, 10)
 })
+
+test_that("getPC scales sparse and dense input the same way", {
+  set.seed(6)
+  Xs <- Matrix::rsparsematrix(300, 30, density = 0.2)
+  sparse <- getPC(Xs, ncomp = 5, scale = TRUE)
+  dense <- getPC(as.matrix(Xs), ncomp = 5, scale = TRUE)
+  expect_equal(sparse$Xscals, dense$Xscals)
+  expect_equal(sparse$totVar, ncol(Xs))
+  expect_equal(abs(sparse$scores), abs(dense$scores), tolerance = 1e-6)
+})
