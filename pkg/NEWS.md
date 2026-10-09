@@ -30,6 +30,13 @@
 * `mvr(method = "PCA")` now uses a full singular value decomposition when
   `ncomp` is at least half of the smaller dimension of `X`, where irlba can be
   inaccurate.
+* `getPC()` (and therefore `findNiches()` and `computeUMAP()`) also uses a
+  full singular value decomposition when `ncomp` is at least half of the
+  smaller dimension of `X`. irlba warned "You're computing too large a
+  percentage of total singular values" in these cases, for example in the
+  CosMx and CITE-seq vignettes. In tests, the results agreed with irlba to
+  about 1e-14, apart from the signs of components. The CosMx niches and the
+  CITE-seq result checks are unchanged.
 
 ## Memory and speed
 

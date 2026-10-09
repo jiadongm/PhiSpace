@@ -46,3 +46,13 @@ test_that("the SVD fallback of getPC matches prcomp and getPC", {
   }
   expect_equal(.getPC_svd(X, ncomp = 50)$ncomp, 12)
 })
+
+test_that("getPC uses a full SVD when ncomp is at least half of min(dim(X))", {
+  set.seed(5)
+  X <- matrix(rnorm(300 * 20, mean = 1), 300, 20) %*% diag(1:20)
+  ref <- stats::prcomp(X, center = TRUE, scale. = FALSE)
+  expect_no_warning(pc <- getPC(X, ncomp = 10))
+  expect_equal(pc$props, (ref$sdev^2 / sum(ref$sdev^2))[1:10])
+  expect_equal(abs(unname(pc$scores)), abs(unname(ref$x[, 1:10])))
+  expect_equal(pc$ncomp, 10)
+})

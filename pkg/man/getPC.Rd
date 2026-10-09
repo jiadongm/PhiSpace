@@ -30,5 +30,7 @@ A list containing
 \item{Xscals}{Column standard deviations used for scaling, or \code{NULL}.}
 }
 \description{
-Principal component analysis (PCA) based on partial singular value decomposition (SVD).
+\code{getPC()} uses irlba's partial SVD. When \code{ncomp} is at least half of the
+smaller dimension of \code{X}, where irlba can be inaccurate, it uses a full SVD
+of a dense copy of \code{X} instead.
 }
