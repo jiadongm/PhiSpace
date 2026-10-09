@@ -27,6 +27,12 @@
   `RankTransf()` does. Previous versions ranked each gene across cells, so a
   cell's ranked values depended on the other cells in the same reference or
   query. Scores computed from a `"rank"` assay change.
+* With `select_k_method = "silhouette"` and more than
+  `silhouette_max_cells` cells (new argument, default 10,000),
+  `clusterPhiSpace()` computes the silhouette widths on a random subsample
+  of that many cells. k-means still clusters every cell. The selected k can
+  therefore differ from previous versions for larger inputs; set
+  `silhouette_max_cells = Inf` for the previous behaviour.
 * `mvr(method = "PCA")` now uses a full singular value decomposition when
   `ncomp` is at least half of the smaller dimension of `X`, where irlba can be
   inaccurate.
@@ -66,6 +72,15 @@
   genes, 30,000 cells), smoothing an assay took 8 s instead of 332 s,
   `pseudoBulk()` 0.7 s instead of 22 s, and Spearman correlation scoring
   (25,000 query cells, 20 classes) 5 s instead of 26 s.
+* `clusterPhiSpace()` computes the distance matrix for the silhouette
+  widths once instead of once for each k, and on at most
+  `silhouette_max_cells` cells. With 30,000 cells and five values of k, peak
+  R memory fell from 10.9 GB to 2.2 GB and the run time from 45 s to 8 s.
+  Results with fewer cells than `silhouette_max_cells` are unchanged.
+* `rankFeatures(method = "DWD")` with a non-linear kernel stops with an
+  error when there are more cells than `dwd_params$max_cells` (default
+  10,000), because the kernel matrix needs 8 bytes per pair of cells. The
+  default linear kernel is not affected.
 
 ## Bug fixes
 

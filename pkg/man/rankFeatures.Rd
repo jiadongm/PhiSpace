@@ -85,6 +85,11 @@ Features ranked by discriminant weights.
 \item \code{qval}: q-value parameter (default: 1)
 \item \code{lambda}: Regularization parameter or sequence (default: auto-tuned)
 \item \code{cv_folds}: Cross-validation folds (default: 5)
+\item \code{max_cells}: Largest number of cells allowed with a non-linear
+kernel (default: 10000). A non-linear kernel needs a cells by cells
+kernel matrix (8 bytes per entry: 0.8 GB for 10,000 cells, 80 GB for
+100,000), so \code{rankFeatures()} stops above this number. Subsample the
+cells, use the linear kernel, or raise \code{max_cells}.
 }
 }
 \examples{

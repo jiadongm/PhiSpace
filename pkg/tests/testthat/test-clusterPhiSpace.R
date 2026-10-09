@@ -47,3 +47,23 @@ test_that("clusterPhiSpace computes all components without warnings", {
   expect_equal(res$pca_result$props, (ref$sdev^2 / sum(ref$sdev^2))[1:(ncol(X) - 1)])
   expect_equal(abs(unname(res$pc_scores)), abs(unname(ref$x[, 1:5])))
 })
+
+test_that("clusterPhiSpace computes silhouette widths on a subsample above silhouette_max_cells", {
+  spe <- make_spatial_fixture()
+  X <- SingleCellExperiment::reducedDim(spe, "PhiSpace")
+  full <- clusterPhiSpace(X, k_range = c(2, 5), ncomp = 5, algorithm = "Hartigan-Wong", seed = 1)
+  same <- clusterPhiSpace(X, k_range = c(2, 5), ncomp = 5, algorithm = "Hartigan-Wong", seed = 1,
+                          silhouette_max_cells = nrow(X))
+  expect_identical(full$k_selection, same$k_selection)
+  expect_equal(full$k_selection$silhouette_cells, nrow(X))
+
+  expect_message(
+    sub <- clusterPhiSpace(X, k_range = c(2, 5), ncomp = 5, algorithm = "Hartigan-Wong", seed = 1,
+                           silhouette_max_cells = 150),
+    "random subsample of 150 of 300 cells"
+  )
+  expect_equal(sub$k_selection$silhouette_cells, 150)
+  expect_length(sub$clusters, nrow(X))
+  expect_equal(sub$optimal_k, 3)
+  expect_output(summary(sub), "subsample of 150 cells")
+})

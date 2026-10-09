@@ -36,6 +36,12 @@
 #' @param scale Logical indicating whether to scale data before PCA.
 #'   Default is FALSE.
 #' @param seed Integer seed for reproducibility. Default is NULL (no seed set).
+#' @param silhouette_max_cells Integer. With the silhouette method, the
+#'   silhouette widths need a distance matrix whose size grows with the square
+#'   of the number of cells (about 0.4 GB for 10,000 cells and 40 GB for
+#'   100,000). With more cells than this, the widths are computed on a random
+#'   subsample of this many cells; k-means still uses every cell. Default is
+#'   10000. Use `Inf` to always use every cell.
 #' @param return_pca Logical indicating whether to return PCA results.
 #'   Default is TRUE.
 #' @param store_in_colData Logical indicating whether to store cluster assignments
@@ -144,6 +150,7 @@ clusterPhiSpace <- function(
     center = TRUE,
     scale = FALSE,
     seed = NULL,
+    silhouette_max_cells = 10000,
     return_pca = TRUE,
     store_in_colData = FALSE,
     cluster_name = "PhiClust"
@@ -260,7 +267,8 @@ clusterPhiSpace <- function(
       select_k_method,
       nstart = nstart,
       iter.max = iter.max,
-      algorithm = algorithm
+      algorithm = algorithm,
+      silhouette_max_cells = silhouette_max_cells
     )
     k <- k_select_result$optimal_k
     k_selection <- k_select_result
@@ -325,7 +333,8 @@ clusterPhiSpace <- function(
 #'
 #' @importFrom stats dist
 #' @keywords internal
-.select_optimal_k <- function(pc_scores, k_range, method, nstart, iter.max, algorithm) {
+.select_optimal_k <- function(pc_scores, k_range, method, nstart, iter.max, algorithm,
+                              silhouette_max_cells = Inf) {
 
   k_values <- seq(k_range[1], k_range[2])
 
@@ -336,10 +345,22 @@ clusterPhiSpace <- function(
            "Please install it with: install.packages('cluster')")
     }
 
+    # The distance matrix is computed once, on a random subsample of cells
+    # if there are more than silhouette_max_cells
+    n_cells <- nrow(pc_scores)
+    if (n_cells > silhouette_max_cells) {
+      sil_cells <- sort(sample.int(n_cells, silhouette_max_cells))
+      message("Computing silhouette widths on a random subsample of ",
+              silhouette_max_cells, " of ", n_cells, " cells.")
+    } else {
+      sil_cells <- seq_len(n_cells)
+    }
+    sil_dist <- dist(pc_scores[sil_cells, , drop = FALSE])
+
     sil_widths <- sapply(k_values, function(k) {
       km <- kmeans(pc_scores, centers = k, nstart = nstart,
                    iter.max = iter.max, algorithm = algorithm)
-      sil <- cluster::silhouette(km$cluster, dist(pc_scores))
+      sil <- cluster::silhouette(km$cluster[sil_cells], sil_dist)
       mean(sil[, 3])
     })
 
@@ -349,7 +370,8 @@ clusterPhiSpace <- function(
       optimal_k = optimal_k,
       method = "silhouette",
       k_values = k_values,
-      silhouette_widths = sil_widths
+      silhouette_widths = sil_widths,
+      silhouette_cells = length(sil_cells)
     ))
 
   } else {  # elbow method
@@ -440,7 +462,12 @@ summary.PhiSpaceClustering <- function(object, ...) {
   if (!is.null(object$k_selection)) {
     cat("\n\nK selection details:\n")
     if (object$k_selection$method == "silhouette") {
-      cat("Silhouette widths for each k:\n")
+      n_sil <- object$k_selection$silhouette_cells
+      if (!is.null(n_sil) && n_sil < length(object$clusters)) {
+        cat("Silhouette widths for each k (subsample of", n_sil, "cells):\n")
+      } else {
+        cat("Silhouette widths for each k:\n")
+      }
       sil_df <- data.frame(
         k = object$k_selection$k_values,
         avg_silhouette = round(object$k_selection$silhouette_widths, 4)

@@ -675,6 +675,19 @@ Step 4 (2026-10-09), smoothing, pseudo-bulks and correlation scores:
   one-cell cluster with `sample(i, ...)`, which draws from `1:i`. Clusters
   with two or more cells give the same draws as before.
 
+Step 5 (2026-10-09), quadratic-memory guards:
+
+- `clusterPhiSpace()` gains `silhouette_max_cells` (default 10,000): above
+  it, silhouette widths use a random subsample of cells; the distance
+  matrix is computed once instead of once per k. Below it, output is
+  unchanged. 30,000 cells: 10.9 GB -> 2.2 GB peak.
+- `rankFeatures(method = "DWD")` stops above `dwd_params$max_cells`
+  (default 10,000) with a non-linear kernel, which needs a cells x cells
+  kernel matrix. The default linear kernel builds none when cells >= genes.
+- Known bug, not fixed: `rankFeatures(method = "DWD")` with the linear
+  kernel and cells >= genes fails ("non-conformable arguments"):
+  `.fit_dwd()` treats kerndwd's primal coefficients as dual ones.
+
 ## Build & Development Commands
 
 All commands should be run from the repo root. The package source is in `pkg/`.

@@ -4,7 +4,15 @@
 \alias{.select_optimal_k}
 \title{Internal function to select optimal k}
 \usage{
-.select_optimal_k(pc_scores, k_range, method, nstart, iter.max, algorithm)
+.select_optimal_k(
+  pc_scores,
+  k_range,
+  method,
+  nstart,
+  iter.max,
+  algorithm,
+  silhouette_max_cells = Inf
+)
 }
 \description{
 Internal function to select optimal k

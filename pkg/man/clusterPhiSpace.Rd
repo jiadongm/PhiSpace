@@ -18,6 +18,7 @@ clusterPhiSpace(
   center = TRUE,
   scale = FALSE,
   seed = NULL,
+  silhouette_max_cells = 10000,
   return_pca = TRUE,
   store_in_colData = FALSE,
   cluster_name = "PhiClust"
@@ -68,6 +69,13 @@ Default is TRUE.}
 Default is FALSE.}
 
 \item{seed}{Integer seed for reproducibility. Default is NULL (no seed set).}
+
+\item{silhouette_max_cells}{Integer. With the silhouette method, the
+silhouette widths need a distance matrix whose size grows with the square
+of the number of cells (about 0.4 GB for 10,000 cells and 40 GB for
+100,000). With more cells than this, the widths are computed on a random
+subsample of this many cells; k-means still uses every cell. Default is
+10000. Use \code{Inf} to always use every cell.}
 
 \item{return_pca}{Logical indicating whether to return PCA results.
 Default is TRUE.}
