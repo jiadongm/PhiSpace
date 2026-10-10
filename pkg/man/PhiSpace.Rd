@@ -32,8 +32,9 @@ PhiSpace(
 \code{\link[=trainPhiSpace]{trainPhiSpace()}}, or a list of either (models and SCE objects can be mixed). Each SCE must contain an
 assay named by \code{refAssay}. A model is applied as it is: the training arguments (\code{phenotypes},
 \code{response}, \code{refAssay}, \code{regMethod}, \code{ncomp}, \code{nfeat}, \code{selectedFeat}, \code{center}, \code{scale}, \code{DRinfo},
-\code{cellTypeThreshold} and the fallback arguments) are used only for SCE references, and every query must
-contain all the model genes.}
+\code{cellTypeThreshold} and the fallback arguments) are used only for SCE references. If the queries lack
+some model genes, the model is restricted to the genes shared by all queries, as described in
+\code{\link[=predict.PhiSpaceModel]{predict.PhiSpaceModel()}}.}
 
 \item{query}{The queries. An SCE object or a list of SCE object. Each must contain an assay named by \code{queryAssay}.}
 

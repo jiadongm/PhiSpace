@@ -7,8 +7,9 @@
 #'   [trainPhiSpace()], or a list of either (models and SCE objects can be mixed). Each SCE must contain an
 #'   assay named by `refAssay`. A model is applied as it is: the training arguments (`phenotypes`,
 #'   `response`, `refAssay`, `regMethod`, `ncomp`, `nfeat`, `selectedFeat`, `center`, `scale`, `DRinfo`,
-#'   `cellTypeThreshold` and the fallback arguments) are used only for SCE references, and every query must
-#'   contain all the model genes.
+#'   `cellTypeThreshold` and the fallback arguments) are used only for SCE references. If the queries lack
+#'   some model genes, the model is restricted to the genes shared by all queries, as described in
+#'   [predict.PhiSpaceModel()].
 #' @param query The queries. An SCE object or a list of SCE object. Each must contain an assay named by `queryAssay`.
 #' @param phenotypes Which phenotypes (e.g. "cell type") to predict. If `NULL`, then have to specify `response`.
 #' @param response Named matrix. Rows correpond to cells (columns) in reference; columns correspond to phenotypes. If not `NULL`, then will override `phenotypes`.
@@ -255,6 +256,9 @@ PhiSpace <- function(
   if(!inherits(query, "list")) query <- list(query)
   allAssayNames <- Reduce(intersect, lapply(query, assayNames))
   if(!(queryAssay %in% allAssayNames)) stop("queryAssay needs to be present in every query.")
+  # Restrict the model once, to the genes shared by all queries, as an SCE
+  # reference is fitted on them
+  model <- .modelForGenes(model, Reduce(intersect, lapply(query, rownames)))
 
   PhiSpaceScore_l <- lapply(
     query,

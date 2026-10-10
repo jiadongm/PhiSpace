@@ -18,6 +18,7 @@ trainPhiSpace(
   DRinfo = FALSE,
   cellTypeThreshold = NULL,
   genes = NULL,
+  keepStats = TRUE,
   referenceName = NULL,
   species = NULL,
   geneIdType = NULL
@@ -59,6 +60,10 @@ this are removed before training. Only used with \code{phenotypes}.}
 \item{genes}{Character vector or \code{NULL}. If given, training uses only these
 genes (those present in the reference).}
 
+\item{keepStats}{Logical. Whether to store the cross-product statistics
+that refit the model on a subset of its genes. Ignored for the \code{"rank"}
+assay. See Details.}
+
 \item{referenceName, species, geneIdType}{Character or \code{NULL}. Optional
 descriptions of the reference, stored in the model.}
 }
@@ -73,6 +78,9 @@ A \code{PhiSpaceModel} object: a list with
 \item{responseNames}{Names of the score columns.}
 \item{refAssay}{The training assay.}
 \item{nCells}{Number of reference cells used for training.}
+\item{stats}{\code{NULL}, or a list with \code{XtX} (genes x genes) and \code{XtY}
+(genes x phenotypes): the cross-products of the centred (and scaled)
+reference over the model genes, with the uncoded response.}
 \item{referenceName, species, geneIdType}{As supplied, or \code{NULL}.}
 \item{format_version, phispace_version, created}{Model format version,
 the PhiSpace version that trained the model, and the date.}
@@ -87,9 +95,27 @@ or \code{\link[=PhiSpace]{PhiSpace()}}, without the reference cells.
 \details{
 \code{\link[=PhiSpaceR_1ref]{PhiSpaceR_1ref()}} and \code{\link[=PhiSpace]{PhiSpace()}} fit the same model on the genes that the
 reference shares with the query. \code{trainPhiSpace()} uses all reference genes,
-or the genes given in \code{genes}. To score a query that lacks some genes, train
-with \code{genes} set to the genes of that query (for example a targeted spatial
-panel); the query must contain every gene in the model.
+or the genes given in \code{genes}.
+
+A query may lack some of the model genes, for example a targeted spatial
+panel. With \code{keepStats = TRUE} (the default), the model stores the
+cross-products \eqn{X'X} and \eqn{X'Y} of the centred (and scaled)
+reference over the model genes. \link[=predict.PhiSpaceModel]{predict()} then
+refits the model on the genes that the query has, without the reference
+cells. The refitted model equals a model trained on the reference with
+\code{selectedFeat} set to those genes. Genes are not selected again (\code{nfeat}):
+the refit uses the model genes that the query has.
+
+The statistics are not kept for the \code{"rank"} assay. Ranks are computed
+within each cell over the model genes, so removing genes changes the
+reference values and an exact refit needs the reference cells. A \code{"rank"}
+model therefore scores a query that lacks genes approximately, with a
+warning (see \code{\link[=predict.PhiSpaceModel]{predict.PhiSpaceModel()}}).
+
+\eqn{X'X} has one row and one column per model gene: it takes
+\eqn{8 G^2} bytes for \eqn{G} genes, for example 72 MB for 3,000 genes and
+3.2 GB for 20,000 genes. Use \code{nfeat}, \code{selectedFeat} or \code{genes} to train on
+fewer genes, or \code{keepStats = FALSE}.
 }
 \seealso{
 \code{\link[=predict.PhiSpaceModel]{predict.PhiSpaceModel()}}, \code{\link[=PhiSpace]{PhiSpace()}}, \code{\link[=PhiSpaceR_1ref]{PhiSpaceR_1ref()}}.

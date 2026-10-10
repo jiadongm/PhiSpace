@@ -44,13 +44,21 @@
   a `PhiSpaceModel` object, which can be saved and applied later to queries
   with `predict()`, without the reference cells. The model records the
   training assay, the PhiSpace version and, optionally, the reference name,
-  species and gene ID type. `predict()` requires every model gene in the
-  query; train with `genes =` set to the query genes (for example a spatial
-  panel) when the query lacks some of them. `PhiSpaceR_1ref()` now uses the
-  same code and also returns its model (`model`); its scores are unchanged.
+  species and gene ID type. `PhiSpaceR_1ref()` now uses the same code and
+  also returns its model (`model`); its scores are unchanged.
+* A `PhiSpaceModel` also stores the cross-products X'X and X'Y of the centred
+  (and scaled) reference over its genes (`keepStats = TRUE`, not for the
+  `"rank"` assay). When a query lacks some model genes, for example a targeted
+  spatial panel, `predict()` refits the model exactly on the genes that the
+  query has, without the reference cells; the result equals a model trained
+  with `selectedFeat` set to those genes (to about 1e-14 in the tests). Models
+  without these statistics keep the coefficients of the shared genes and warn
+  that the scores are approximate. X'X takes 8 bytes per pair of genes:
+  72 MB for 3,000 genes, 3.2 GB for 20,000 genes.
 * `PhiSpace()` accepts a `PhiSpaceModel` as the reference, or a list that
-  mixes models and reference objects. Models are applied without refitting;
-  `updateRef = TRUE` is not available for a model.
+  mixes models and reference objects. A model is restricted once to the genes
+  shared by all queries, as above; `updateRef = TRUE` is not available for a
+  model.
 
 ## Memory and speed
 

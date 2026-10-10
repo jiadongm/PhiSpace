@@ -10,8 +10,8 @@
 \item{object}{A \code{PhiSpaceModel} from \code{\link[=trainPhiSpace]{trainPhiSpace()}}.}
 
 \item{newdata}{The query: a \code{SummarizedExperiment} (for example a
-\code{SingleCellExperiment}) or a gene by cell matrix. It must contain every
-gene in \code{object$selectedFeat}.}
+\code{SingleCellExperiment}) or a gene by cell matrix, with gene names as row
+names. It must share at least one gene with the model.}
 
 \item{assay}{Character. Assay of \code{newdata} to use. Defaults to the model's
 \code{refAssay}. With \code{"rank"}, the genes are re-ranked within each cell over
@@ -25,4 +25,18 @@ A cell by phenotype matrix of raw PhiSpace scores. Use
 }
 \description{
 Score a query with a stored PhiSpace model
+}
+\details{
+If the query lacks some of the model genes, the model is first restricted
+to the genes that the query has:
+\itemize{
+\item A model with stored statistics (see \code{\link[=trainPhiSpace]{trainPhiSpace()}}) is refitted
+exactly on these genes, with a message. The scores equal those of a model
+trained on the reference with \code{selectedFeat} set to these genes.
+\item A model without statistics (a \code{"rank"} model, a model trained with
+\code{keepStats = FALSE}, or \code{PhiSpaceR_1ref()$model}) keeps the coefficients
+of these genes and drops the others, with a warning. These scores are
+approximate: the error grows with the share of the coefficients that the
+missing genes hold, which the warning reports.
+}
 }
