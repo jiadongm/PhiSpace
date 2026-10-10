@@ -4,7 +4,7 @@
 \alias{predict.PhiSpaceModel}
 \title{Score a query with a stored PhiSpace model}
 \usage{
-\method{predict}{PhiSpaceModel}(object, newdata, assay = NULL, ...)
+\method{predict}{PhiSpaceModel}(object, newdata, assay = NULL, nfeat = NULL, ...)
 }
 \arguments{
 \item{object}{A \code{PhiSpaceModel} from \code{\link[=trainPhiSpace]{trainPhiSpace()}}.}
@@ -16,6 +16,12 @@ names. It must share at least one gene with the model.}
 \item{assay}{Character. Assay of \code{newdata} to use. Defaults to the model's
 \code{refAssay}. With \code{"rank"}, the genes are re-ranked within each cell over
 the model genes, as in \code{\link[=PhiSpaceR_1ref]{PhiSpaceR_1ref()}}.}
+
+\item{nfeat}{Integer or \code{NULL}. For a model trained with \code{nfeat} and
+statistics over candidate genes (\code{nfeatPool}): the number of genes per
+phenotype to select among the candidate genes that the query has. If
+\code{NULL}, the training \code{nfeat} is used, and genes are selected again only
+if the query lacks model genes.}
 
 \item{...}{Not used.}
 }
@@ -30,7 +36,12 @@ Score a query with a stored PhiSpace model
 If the query lacks some of the model genes, the model is first restricted
 to the genes that the query has:
 \itemize{
-\item A model with stored statistics (see \code{\link[=trainPhiSpace]{trainPhiSpace()}}) is refitted
+\item A model trained with \code{nfeat} and statistics over candidate genes
+(\code{nfeatPool} in \code{\link[=trainPhiSpace]{trainPhiSpace()}}) selects \code{nfeat} genes per phenotype
+again, among its candidate genes that the query has, with a message. It
+refits the model on these candidate genes, selects the top genes of that
+fit and refits the model on them (see \code{\link[=trainPhiSpace]{trainPhiSpace()}}).
+\item Another model with stored statistics (see \code{\link[=trainPhiSpace]{trainPhiSpace()}}) is refitted
 exactly on these genes, with a message. The scores equal those of a model
 trained on the reference with \code{selectedFeat} set to these genes.
 \item A model without statistics (a \code{"rank"} model, a model trained with

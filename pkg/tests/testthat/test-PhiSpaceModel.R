@@ -77,6 +77,8 @@ test_that("stored statistics are the centred and scaled cross-products", {
     expect_equal(model$stats$XtY, crossprod(Xc, Y), tolerance = 1e-12,
                  ignore_attr = TRUE)
     expect_identical(rownames(model$stats$XtX), genes)
+    expect_equal(model$stats$Xmeans, model$atlas_re$reg_re$Xmeans)
+    expect_equal(model$stats$Xscals, model$atlas_re$reg_re$Xscals)
   }
 })
 
@@ -85,7 +87,7 @@ test_that("a model refitted on the query genes equals a model trained on them", 
                     list(center = TRUE, scale = TRUE),
                     list(center = FALSE, scale = FALSE),
                     list(center = FALSE, scale = TRUE),
-                    list(nfeat = 10),
+                    list(nfeat = 10, nfeatPool = NULL),
                     list(regMethod = "PCA", ncomp = 30),
                     list(regMethod = "PCA", ncomp = 30, scale = TRUE))) {
     if (is.null(args$ncomp)) args$ncomp <- 3
@@ -93,6 +95,7 @@ test_that("a model refitted on the query genes equals a model trained on them", 
                     c(list(ref, phenotypes = "type", refAssay = "log1p"), args))
     keep <- full$selectedFeat[full$selectedFeat %in% shared]
     args$nfeat <- NULL
+    args$nfeatPool <- NULL
     direct <- do.call(trainPhiSpace,
                       c(list(ref, phenotypes = "type", refAssay = "log1p",
                              selectedFeat = keep), args))
@@ -111,6 +114,67 @@ test_that("a model trained on all genes gives the per-query fit", {
                         ncomp = 3)
   expect_message(a <- predict(full, qry), "lacks 5 of the 60 model genes")
   expect_equal(a, one$PhiSpaceScore, tolerance = 1e-10)
+})
+
+test_that("an nfeat model selects genes again among the candidate genes", {
+  # With all genes as candidates, the result is the per-query fit
+  model <- trainPhiSpace(ref, phenotypes = "type", refAssay = "log1p",
+                         ncomp = 3, nfeat = 10, nfeatPool = Inf)
+  expect_true(any(!model$selectedFeat %in% shared))
+  expect_identical(rownames(model$stats$XtX), genes)
+  expect_equal(c(model$nfeat, model$nfeatPool), c(10, Inf))
+  expect_output(print(model), "nfeat = 10 among 60 candidate genes")
+  one <- PhiSpaceR_1ref(ref, qry, phenotypes = "type", refAssay = "log1p",
+                        ncomp = 3, nfeat = 10)
+  expect_message(a <- predict(model, qry),
+                 "selecting 10 genes per phenotype among the 55 of the 60 candidate")
+  expect_equal(a, one$PhiSpaceScore, tolerance = 1e-10)
+
+  # With nfeatPool genes per phenotype: refit on the candidates in the query,
+  # select from that fit, refit on the selection
+  model <- trainPhiSpace(ref, phenotypes = "type", refAssay = "log1p",
+                         ncomp = 3, nfeat = 6, nfeatPool = 15)
+  pool <- genes[genes %in% selectFeat(model$impScores, 15)$selectedFeat]
+  expect_identical(rownames(model$stats$XtX), pool)
+  expect_true(all(model$selectedFeat %in% pool))
+  avail <- pool[pool %in% shared]
+  first <- trainPhiSpace(ref, phenotypes = "type", refAssay = "log1p",
+                         ncomp = 3, selectedFeat = avail)
+  sel <- avail[avail %in% selectFeat(first$impScores, 6)$selectedFeat]
+  direct <- trainPhiSpace(ref, phenotypes = "type", refAssay = "log1p",
+                          ncomp = 3, selectedFeat = sel)
+  expect_message(a <- predict(model, qry),
+                 "lacks 1 of the .* among the 29 of the 32 candidate genes")
+  expect_equal(a, predict(direct, qry), tolerance = 1e-10)
+
+  # A query with every model gene uses the model as it is
+  expect_silent(b <- predict(model, ref[model$selectedFeat, ]))
+  expect_identical(b, predict(model, ref))
+})
+
+test_that("predict selects genes again with nfeat", {
+  model <- trainPhiSpace(ref, phenotypes = "type", refAssay = "log1p",
+                         ncomp = 3, nfeat = 10, genes = shared, nfeatPool = Inf)
+  one <- PhiSpaceR_1ref(ref, qry, phenotypes = "type", refAssay = "log1p",
+                        ncomp = 3, nfeat = 4)
+  expect_message(a <- predict(model, qry, nfeat = 4), "^Selecting 4 genes")
+  expect_equal(a, one$PhiSpaceScore, tolerance = 1e-10)
+
+  model <- trainPhiSpace(ref, phenotypes = "type", refAssay = "log1p",
+                         ncomp = 3, nfeat = 5, nfeatPool = 8)
+  expect_warning(suppressMessages(predict(model, qry, nfeat = 9)),
+                 "larger than the 8 candidate genes")
+  for (m in list(trainPhiSpace(ref, phenotypes = "type", refAssay = "log1p",
+                               ncomp = 3, nfeat = 5, keepStats = FALSE),
+                 trainPhiSpace(ref, phenotypes = "type", refAssay = "log1p",
+                               ncomp = 3))) {
+    expect_error(predict(m, qry, nfeat = 4), "nfeat needs a model trained with nfeat")
+  }
+  for (m in list(trainPhiSpace(ref, phenotypes = "type", refAssay = "log1p",
+                               ncomp = 3, nfeat = 5, nfeatPool = NULL))) {
+    expect_null(m$nfeatPool)
+    expect_error(predict(m, qry, nfeat = 4), "nfeat needs a model trained with nfeat")
+  }
 })
 
 test_that("models without statistics keep the shared coefficients, with a warning", {
@@ -206,4 +270,16 @@ test_that("PhiSpace refits a model once on the genes of all queries", {
                tolerance = 1e-10)
   expect_equal(rd(b[[2]], "PhiSpace_nonNorm"), predict(direct, qry2),
                tolerance = 1e-10)
+
+  # An nfeat model selects its genes once, among the genes of all queries
+  model <- trainPhiSpace(ref, phenotypes = "type", refAssay = "log1p",
+                         ncomp = 3, nfeat = 10, nfeatPool = Inf)
+  a <- PhiSpace(ref, list(qry, qry2), phenotypes = "type", refAssay = "log1p",
+                ncomp = 3, nfeat = 10, storeUnNorm = TRUE)
+  expect_message(b <- PhiSpace(model, list(qry, qry2), storeUnNorm = TRUE),
+                 "among the 54 of the 60 candidate genes")
+  for (i in 1:2) {
+    expect_equal(rd(b[[i]], "PhiSpace_nonNorm"), rd(a[[i]], "PhiSpace_nonNorm"),
+                 tolerance = 1e-10)
+  }
 })

@@ -55,6 +55,15 @@
   without these statistics keep the coefficients of the shared genes and warn
   that the scores are approximate. X'X takes 8 bytes per pair of genes:
   72 MB for 3,000 genes, 3.2 GB for 20,000 genes.
+* A model trained with `nfeat` selects its genes from a fit on all reference
+  genes, whereas `PhiSpace()` selects them among the genes shared with the
+  query. Such a model therefore stores the statistics of the top `nfeatPool`
+  genes per phenotype (default 2,000). If a query lacks some model genes,
+  `predict()` selects `nfeat` genes per phenotype again among these
+  candidate genes, from a refit on the candidates that the query has, and
+  refits the model on them. `predict(nfeat = )` selects another number of
+  genes. To select genes among those of a known query platform, train with
+  `genes`.
 * `PhiSpace()` accepts a `PhiSpaceModel` as the reference, or a list that
   mixes models and reference objects. A model is restricted once to the genes
   shared by all queries, as above; `updateRef = TRUE` is not available for a

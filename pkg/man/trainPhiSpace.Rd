@@ -19,6 +19,7 @@ trainPhiSpace(
   cellTypeThreshold = NULL,
   genes = NULL,
   keepStats = TRUE,
+  nfeatPool = 2000,
   referenceName = NULL,
   species = NULL,
   geneIdType = NULL
@@ -64,6 +65,12 @@ genes (those present in the reference).}
 that refit the model on a subset of its genes. Ignored for the \code{"rank"}
 assay. See Details.}
 
+\item{nfeatPool}{Number or \code{NULL}. With \code{nfeat} and \code{keepStats = TRUE}, the
+statistics are stored for the top \code{nfeatPool} genes per phenotype (at
+least \code{nfeat}), the candidates for selecting genes again when a query
+lacks model genes. \code{Inf} keeps all genes; \code{NULL} keeps only the selected
+genes, which are then refitted without a new selection. See Details.}
+
 \item{referenceName, species, geneIdType}{Character or \code{NULL}. Optional
 descriptions of the reference, stored in the model.}
 }
@@ -80,7 +87,12 @@ A \code{PhiSpaceModel} object: a list with
 \item{nCells}{Number of reference cells used for training.}
 \item{stats}{\code{NULL}, or a list with \code{XtX} (genes x genes) and \code{XtY}
 (genes x phenotypes): the cross-products of the centred (and scaled)
-reference over the model genes, with the uncoded response.}
+reference over the model genes (or over the candidate genes, see
+\code{nfeatPool}), with the uncoded response, and the column means
+\code{Xmeans} and standard deviations \code{Xscals} used.}
+\item{nfeat, nfeatPool}{The \code{nfeat} used for gene selection, or \code{NULL};
+the \code{nfeatPool} of the stored candidate genes, or \code{NULL} if the
+statistics cover only the selected genes.}
 \item{referenceName, species, geneIdType}{As supplied, or \code{NULL}.}
 \item{format_version, phispace_version, created}{Model format version,
 the PhiSpace version that trained the model, and the date.}
@@ -103,8 +115,20 @@ cross-products \eqn{X'X} and \eqn{X'Y} of the centred (and scaled)
 reference over the model genes. \link[=predict.PhiSpaceModel]{predict()} then
 refits the model on the genes that the query has, without the reference
 cells. The refitted model equals a model trained on the reference with
-\code{selectedFeat} set to those genes. Genes are not selected again (\code{nfeat}):
-the refit uses the model genes that the query has.
+\code{selectedFeat} set to those genes.
+
+With \code{nfeat}, the genes are selected by a fit on all reference genes,
+whereas \code{\link[=PhiSpace]{PhiSpace()}} selects them among the genes that the reference shares
+with the query. A model trained with \code{nfeat} therefore stores the
+statistics of a larger set of candidate genes: the top \code{nfeatPool} genes
+per phenotype. If the query lacks some model genes,
+\link[=predict.PhiSpaceModel]{predict()} refits the model on the candidate genes
+that the query has, selects \code{nfeat} genes per phenotype from that fit and
+refits the model on them. The result approximates the \code{\link[=PhiSpace]{PhiSpace()}} fit on
+the reference cells; with all genes as candidates (\code{nfeatPool = Inf}), the
+two are equal. When the query genes are known before training, for example
+a targeted panel, set \code{genes} to them: the model then selects its genes
+among the query genes, as \code{\link[=PhiSpace]{PhiSpace()}} does.
 
 The statistics are not kept for the \code{"rank"} assay. Ranks are computed
 within each cell over the model genes, so removing genes changes the
@@ -114,8 +138,10 @@ warning (see \code{\link[=predict.PhiSpaceModel]{predict.PhiSpaceModel()}}).
 
 \eqn{X'X} has one row and one column per model gene: it takes
 \eqn{8 G^2} bytes for \eqn{G} genes, for example 72 MB for 3,000 genes and
-3.2 GB for 20,000 genes. Use \code{nfeat}, \code{selectedFeat} or \code{genes} to train on
-fewer genes, or \code{keepStats = FALSE}.
+3.2 GB for 20,000 genes. Use \code{nfeat} (with a smaller \code{nfeatPool}),
+\code{selectedFeat} or \code{genes} to train on fewer genes, or \code{keepStats = FALSE}.
+A larger \code{nfeatPool} gives a selection closer to that of \code{\link[=PhiSpace]{PhiSpace()}},
+and a larger model.
 }
 \seealso{
 \code{\link[=predict.PhiSpaceModel]{predict.PhiSpaceModel()}}, \code{\link[=PhiSpace]{PhiSpace()}}, \code{\link[=PhiSpaceR_1ref]{PhiSpaceR_1ref()}}.

@@ -15,8 +15,20 @@
 #' reference over the model genes. [predict()][predict.PhiSpaceModel] then
 #' refits the model on the genes that the query has, without the reference
 #' cells. The refitted model equals a model trained on the reference with
-#' `selectedFeat` set to those genes. Genes are not selected again (`nfeat`):
-#' the refit uses the model genes that the query has.
+#' `selectedFeat` set to those genes.
+#'
+#' With `nfeat`, the genes are selected by a fit on all reference genes,
+#' whereas [PhiSpace()] selects them among the genes that the reference shares
+#' with the query. A model trained with `nfeat` therefore stores the
+#' statistics of a larger set of candidate genes: the top `nfeatPool` genes
+#' per phenotype. If the query lacks some model genes,
+#' [predict()][predict.PhiSpaceModel] refits the model on the candidate genes
+#' that the query has, selects `nfeat` genes per phenotype from that fit and
+#' refits the model on them. The result approximates the [PhiSpace()] fit on
+#' the reference cells; with all genes as candidates (`nfeatPool = Inf`), the
+#' two are equal. When the query genes are known before training, for example
+#' a targeted panel, set `genes` to them: the model then selects its genes
+#' among the query genes, as [PhiSpace()] does.
 #'
 #' The statistics are not kept for the `"rank"` assay. Ranks are computed
 #' within each cell over the model genes, so removing genes changes the
@@ -26,8 +38,10 @@
 #'
 #' \eqn{X'X} has one row and one column per model gene: it takes
 #' \eqn{8 G^2} bytes for \eqn{G} genes, for example 72 MB for 3,000 genes and
-#' 3.2 GB for 20,000 genes. Use `nfeat`, `selectedFeat` or `genes` to train on
-#' fewer genes, or `keepStats = FALSE`.
+#' 3.2 GB for 20,000 genes. Use `nfeat` (with a smaller `nfeatPool`),
+#' `selectedFeat` or `genes` to train on fewer genes, or `keepStats = FALSE`.
+#' A larger `nfeatPool` gives a selection closer to that of [PhiSpace()],
+#' and a larger model.
 #'
 #' @param reference A `SingleCellExperiment` (or `SummarizedExperiment`)
 #'   object. The annotated reference dataset.
@@ -55,6 +69,11 @@
 #' @param keepStats Logical. Whether to store the cross-product statistics
 #'   that refit the model on a subset of its genes. Ignored for the `"rank"`
 #'   assay. See Details.
+#' @param nfeatPool Number or `NULL`. With `nfeat` and `keepStats = TRUE`, the
+#'   statistics are stored for the top `nfeatPool` genes per phenotype (at
+#'   least `nfeat`), the candidates for selecting genes again when a query
+#'   lacks model genes. `Inf` keeps all genes; `NULL` keeps only the selected
+#'   genes, which are then refitted without a new selection. See Details.
 #' @param referenceName,species,geneIdType Character or `NULL`. Optional
 #'   descriptions of the reference, stored in the model.
 #'
@@ -70,7 +89,12 @@
 #'   \item{nCells}{Number of reference cells used for training.}
 #'   \item{stats}{`NULL`, or a list with `XtX` (genes x genes) and `XtY`
 #'     (genes x phenotypes): the cross-products of the centred (and scaled)
-#'     reference over the model genes, with the uncoded response.}
+#'     reference over the model genes (or over the candidate genes, see
+#'     `nfeatPool`), with the uncoded response, and the column means
+#'     `Xmeans` and standard deviations `Xscals` used.}
+#'   \item{nfeat, nfeatPool}{The `nfeat` used for gene selection, or `NULL`;
+#'     the `nfeatPool` of the stored candidate genes, or `NULL` if the
+#'     statistics cover only the selected genes.}
 #'   \item{referenceName, species, geneIdType}{As supplied, or `NULL`.}
 #'   \item{format_version, phispace_version, created}{Model format version,
 #'     the PhiSpace version that trained the model, and the date.}
@@ -94,6 +118,7 @@ trainPhiSpace <- function(
     cellTypeThreshold = NULL,
     genes = NULL,
     keepStats = TRUE,
+    nfeatPool = 2000,
     referenceName = NULL,
     species = NULL,
     geneIdType = NULL
@@ -125,7 +150,8 @@ trainPhiSpace <- function(
     refX = refX, YY = YY, phenoDict = phenoDict, featNames = featNames,
     refAssay = refAssay, regMethod = regMethod, ncomp = ncomp, nfeat = nfeat,
     selectedFeat = selectedFeat, center = center, scale = scale,
-    DRinfo = DRinfo, keepStats = keepStats, referenceName = referenceName,
+    DRinfo = DRinfo, keepStats = keepStats, nfeatPool = nfeatPool,
+    referenceName = referenceName,
     species = species, geneIdType = geneIdType
   )$model
 }
@@ -140,12 +166,22 @@ trainPhiSpace <- function(
 #' @param assay Character. Assay of `newdata` to use. Defaults to the model's
 #'   `refAssay`. With `"rank"`, the genes are re-ranked within each cell over
 #'   the model genes, as in [PhiSpaceR_1ref()].
+#' @param nfeat Integer or `NULL`. For a model trained with `nfeat` and
+#'   statistics over candidate genes (`nfeatPool`): the number of genes per
+#'   phenotype to select among the candidate genes that the query has. If
+#'   `NULL`, the training `nfeat` is used, and genes are selected again only
+#'   if the query lacks model genes.
 #' @param ... Not used.
 #'
 #' @details
 #' If the query lacks some of the model genes, the model is first restricted
 #' to the genes that the query has:
-#' * A model with stored statistics (see [trainPhiSpace()]) is refitted
+#' * A model trained with `nfeat` and statistics over candidate genes
+#'   (`nfeatPool` in [trainPhiSpace()]) selects `nfeat` genes per phenotype
+#'   again, among its candidate genes that the query has, with a message. It
+#'   refits the model on these candidate genes, selects the top genes of that
+#'   fit and refits the model on them (see [trainPhiSpace()]).
+#' * Another model with stored statistics (see [trainPhiSpace()]) is refitted
 #'   exactly on these genes, with a message. The scores equal those of a model
 #'   trained on the reference with `selectedFeat` set to these genes.
 #' * A model without statistics (a `"rank"` model, a model trained with
@@ -158,7 +194,7 @@ trainPhiSpace <- function(
 #'   [normPhiScores()] to normalise them.
 #'
 #' @export
-predict.PhiSpaceModel <- function(object, newdata, assay = NULL, ...){
+predict.PhiSpaceModel <- function(object, newdata, assay = NULL, nfeat = NULL, ...){
 
   .checkPhiSpaceModel(object)
   if(is.null(assay)) assay <- object$refAssay
@@ -171,7 +207,7 @@ predict.PhiSpaceModel <- function(object, newdata, assay = NULL, ...){
   }
   if(is.null(rownames(X))) stop("newdata must have gene names as row names.")
 
-  .predictPhiSpace(object, X, assay)
+  .predictPhiSpace(object, X, assay, nfeat)
 }
 
 
@@ -188,6 +224,10 @@ print.PhiSpaceModel <- function(x, ...){
   cat("  Refits on fewer genes:",
       if(is.null(x$stats)) "approximate (no stored statistics)" else "exact (statistics stored)",
       "\n")
+  if(!is.null(x$nfeatPool)){
+    cat("  Gene selection: nfeat =", x$nfeat, "among", nrow(x$stats$XtX),
+        "candidate genes (nfeatPool =", paste0(x$nfeatPool, ")"), "\n")
+  }
   if(!is.null(x$species) || !is.null(x$geneIdType)){
     cat("  Species:", if(is.null(x$species)) "-" else x$species,
         " Gene IDs:", if(is.null(x$geneIdType)) "-" else x$geneIdType, "\n")
@@ -205,14 +245,20 @@ print.PhiSpaceModel <- function(x, ...){
 ## Fit a model on the genes featNames of the gene by cell matrix refX.
 ## Returns list(model, YrefHat); YrefHat (raw reference scores) only when
 ## scoreReference = TRUE, while the selected reference matrix is in memory.
-## keepStats stores the cross-products for exact refits (not for "rank").
+## keepStats stores the cross-products for exact refits (not for "rank"),
+## over the nfeatPool top genes per phenotype when genes are selected by nfeat.
 .trainPhiSpace <- function(refX, YY, phenoDict, featNames, refAssay, regMethod,
                            ncomp, nfeat, selectedFeat, center, scale, DRinfo,
-                           keepStats = FALSE, referenceName = NULL,
+                           keepStats = FALSE, nfeatPool = NULL,
+                           referenceName = NULL,
                            species = NULL, geneIdType = NULL,
                            scoreReference = FALSE){
 
   if(is.null(ncomp)) ncomp <- ncol(YY)
+  keepStats <- keepStats && refAssay != "rank"
+  byNfeat <- is.null(selectedFeat) && !is.null(nfeat)
+  usePool <- byNfeat && keepStats && !is.null(nfeatPool) && nfeatPool > nfeat
+  statFeat <- NULL
 
   if(!is.null(selectedFeat)){ # if selectedFeat provided
     selectedFeat <- intersect(selectedFeat, featNames)
@@ -232,6 +278,12 @@ print.PhiSpaceModel <- function(x, ...){
         ncomp
       )
       selectedFeat <- selectFeat(impScores, nfeat)$selectedFeat
+      if(usePool){
+        statFeat <- featNames
+        if(nfeatPool < length(featNames)){
+          statFeat <- featNames[featNames %in% selectFeat(impScores, nfeatPool)$selectedFeat]
+        }
+      }
     } else {
       impScores <- NULL
       selectedFeat <- featNames
@@ -254,14 +306,19 @@ print.PhiSpaceModel <- function(x, ...){
     impScores <- .coefSlice(atlas_re$reg_re$coefficients, ncomp)
   }
   stats <- NULL
-  if(keepStats && refAssay != "rank"){
-    statBytes <- 8 * length(selectedFeat)^2
+  if(keepStats){
+    if(is.null(statFeat)) statFeat <- selectedFeat
+    statBytes <- 8 * length(statFeat)^2
     if(statBytes > 1e9){
-      message("Storing X'X for ", length(selectedFeat), " genes (",
-              format(statBytes/1e9, digits = 2), " GB). Use nfeat, ",
+      message("Storing X'X for ", length(statFeat), " genes (",
+              format(statBytes/1e9, digits = 2), " GB). Use nfeat, nfeatPool, ",
               "selectedFeat or genes for fewer genes, or keepStats = FALSE.")
     }
-    stats <- .crossStats(refXsel, YY, atlas_re$reg_re)
+    stats <- if(identical(statFeat, selectedFeat)){
+      .crossStats(refXsel, YY, center, scale)
+    } else {
+      .crossStats(.cellsByGenes(refX, statFeat), YY, center, scale)
+    }
   }
   YrefHat <- NULL
   if(scoreReference){
@@ -281,6 +338,8 @@ print.PhiSpaceModel <- function(x, ...){
       responseNames = colnames(YY),
       refAssay = refAssay,
       nCells = nrow(YY),
+      nfeat = if(byNfeat) nfeat,
+      nfeatPool = if(usePool) nfeatPool,
       stats = stats,
       referenceName = referenceName,
       species = species,
@@ -298,10 +357,10 @@ print.PhiSpaceModel <- function(x, ...){
 
 ## Raw scores of the gene by cell matrix X. assayName decides re-ranking,
 ## as the query assay name does in PhiSpaceR_1ref(). A model with genes that
-## X lacks is first restricted to the genes of X.
-.predictPhiSpace <- function(model, X, assayName){
+## X lacks is first restricted to the genes of X (see .modelForGenes()).
+.predictPhiSpace <- function(model, X, assayName, nfeat = NULL){
 
-  model <- .modelForGenes(model, rownames(X))
+  model <- .modelForGenes(model, rownames(X), nfeat)
   genes <- model$selectedFeat
 
   phenotype(
@@ -312,20 +371,32 @@ print.PhiSpaceModel <- function(x, ...){
 }
 
 
-## The model restricted to the model genes present in queryGenes, with a
+## The model restricted to the genes in queryGenes. A model trained with
+## nfeat and statistics over candidate genes (nfeatPool) selects nfeat genes
+## per phenotype again among its candidate genes in queryGenes (when the
+## query lacks model genes, or when nfeat is given) and is refitted on them.
+## Otherwise the model is restricted to its genes in queryGenes, with a
 ## message (exact refit) or a warning (coefficients of the shared genes only).
-.modelForGenes <- function(model, queryGenes){
+.modelForGenes <- function(model, queryGenes, nfeat = NULL){
 
   genes <- model$selectedFeat
   shared <- genes[genes %in% queryGenes]
   nMissing <- length(genes) - length(shared)
-  if(nMissing == 0) return(model)
-  if(length(shared) == 0) stop("The query shares none of the ", length(genes), " model genes.")
+  canReselect <- !is.null(model$stats) && !is.null(model$nfeatPool)
+  if(!is.null(nfeat) && !canReselect){
+    stop("nfeat needs a model trained with nfeat, nfeatPool and stored ",
+         "statistics (trainPhiSpace() with keepStats = TRUE, not on the ",
+         "\"rank\" assay).")
+  }
+  if(nMissing == 0 && is.null(nfeat)) return(model)
 
   lacks <- paste0("The query lacks ", nMissing, " of the ", length(genes),
                   " model genes (for example ",
                   paste(utils::head(setdiff(genes, shared), 3), collapse = ", "),
                   ")")
+  if(canReselect) return(.reselectPhiSpaceModel(model, queryGenes, nfeat, lacks, nMissing))
+  if(length(shared) == 0) stop("The query shares none of the ", length(genes), " model genes.")
+
   if(!is.null(model$stats)){
     message(lacks, "; refitting the model on the ", length(shared), " shared genes.")
   } else {
@@ -346,22 +417,50 @@ print.PhiSpaceModel <- function(x, ...){
 }
 
 
-## The model on genes, a subset of model$selectedFeat in model order. With
-## stored statistics the model is refitted on these genes, as if trained with
-## selectedFeat = genes. Without them, the coefficients of these genes are
-## kept unchanged.
+## The model refitted on nfeat genes per phenotype, selected among the
+## candidate genes (the statistics genes) in queryGenes by the coefficients of
+## a refit on all of them, as PhiSpaceR_1ref() selects among the shared genes.
+.reselectPhiSpaceModel <- function(model, queryGenes, nfeat, lacks, nMissing){
+
+  pool <- rownames(model$stats$XtX)
+  avail <- pool[pool %in% queryGenes]
+  if(length(avail) == 0){
+    stop("The query shares none of the ", length(pool), " candidate genes of the model.")
+  }
+  if(is.null(nfeat)){
+    nfeat <- model$nfeat
+  } else if(nfeat > model$nfeatPool){
+    warning("nfeat = ", nfeat, " is larger than the ", model$nfeatPool,
+            " candidate genes per phenotype of the model (nfeatPool); genes ",
+            "are selected among the candidate genes only.", call. = FALSE)
+  }
+  message(if(nMissing > 0) paste0(lacks, "; s") else "S",
+          "electing ", nfeat, " genes per phenotype among the ", length(avail),
+          " of the ", length(pool), " candidate genes that the query has, ",
+          "and refitting the model.")
+
+  first <- .subsetPhiSpaceModel(model, avail)
+  sel <- selectFeat(first$impScores, min(nfeat, length(avail)))$selectedFeat
+  .subsetPhiSpaceModel(first, avail[avail %in% sel])
+}
+
+
+## The model on genes. With stored statistics, genes is a subset of the
+## statistics genes and the model is refitted on them, as if trained with
+## selectedFeat = genes. Without them, genes is a subset of
+## model$selectedFeat and the coefficients of these genes are kept unchanged.
 .subsetPhiSpaceModel <- function(model, genes){
 
   ar <- model$atlas_re
   reg <- ar$reg_re
   ncomp <- ar$ncomp
-  idx <- match(genes, model$selectedFeat)
 
   if(!is.null(model$stats)){
     if(length(genes) < ncomp){
       stop("Only ", length(genes), " model genes are shared with the query, ",
            "fewer than the ", ncomp, " components of the model.")
     }
+    idx <- match(genes, rownames(model$stats$XtX))
     S <- model$stats$XtX[idx, idx, drop = FALSE]
     XtY <- model$stats$XtY[idx, , drop = FALSE]
     if(ar$regMethod == "PLS"){
@@ -380,16 +479,20 @@ print.PhiSpaceModel <- function(x, ...){
       B <- V %*% (crossprod(V, XtY)/e$values[seq_len(ncomp)])
     }
     B <- matrix(B, length(genes), ncol(XtY), dimnames = list(genes, colnames(XtY)))
-    stats <- list(XtX = S, XtY = XtY)
+    stats <- list(XtX = S, XtY = XtY, Xmeans = model$stats$Xmeans[idx],
+                  Xscals = model$stats$Xscals[idx])
+    reg$Xmeans <- stats$Xmeans
+    reg$Xscals <- stats$Xscals
   } else {
+    idx <- match(genes, model$selectedFeat)
     B <- .coefSlice(reg$coefficients, ncomp)[idx, , drop = FALSE]
     stats <- NULL
+    if(!is.null(reg$Xmeans)) reg$Xmeans <- reg$Xmeans[idx]
+    if(!is.null(reg$Xscals)) reg$Xscals <- reg$Xscals[idx]
   }
 
   reg$coefficients <- array(B, c(dim(B), 1),
                             dimnames = c(dimnames(B), list(paste(ncomp, "comps"))))
-  if(!is.null(reg$Xmeans)) reg$Xmeans <- reg$Xmeans[idx]
-  if(!is.null(reg$Xscals)) reg$Xscals <- reg$Xscals[idx]
   reg$scores <- NULL
   reg$loadings <- NULL
   ar$reg_re <- reg
@@ -403,21 +506,24 @@ print.PhiSpaceModel <- function(x, ...){
 }
 
 
-## Cross-products of the centred and scaled cell by gene matrix X, with the
-## centring and scaling of the fit reg_re: X'X and X'Y.
-.crossStats <- function(X, YY, reg_re){
+## Cross-products of the centred and scaled cell by gene matrix X, X'X and
+## X'Y, with the column means and standard deviations used, computed as the
+## PLS and PCA fits compute them.
+.crossStats <- function(X, YY, center, scale){
 
   X <- .fit_matrix(X)
   YY <- as.matrix(YY)
-  mu <- if(is.null(reg_re$Xmeans)) rep(0, ncol(X)) else reg_re$Xmeans
-  s <- if(is.null(reg_re$Xscals)) rep(1, ncol(X)) else reg_re$Xscals
+  Xmeans <- if(center) colMeans(X)
+  Xscals <- if(scale) .colSds(X)
+  mu <- if(center) Xmeans else rep(0, ncol(X))
+  s <- if(scale) Xscals else rep(1, ncol(X))
 
   XtX <- (.crossprodBlocks(X) - nrow(X) * tcrossprod(mu))/tcrossprod(s)
   XtY <- (as.matrix(crossprod(X, YY)) - outer(mu, colSums(YY)))/s
   dimnames(XtX) <- list(colnames(X), colnames(X))
   dimnames(XtY) <- list(colnames(X), colnames(YY))
 
-  list(XtX = XtX, XtY = XtY)
+  list(XtX = XtX, XtY = XtY, Xmeans = Xmeans, Xscals = Xscals)
 }
 
 
