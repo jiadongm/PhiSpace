@@ -48,6 +48,9 @@
   query; train with `genes =` set to the query genes (for example a spatial
   panel) when the query lacks some of them. `PhiSpaceR_1ref()` now uses the
   same code and also returns its model (`model`); its scores are unchanged.
+* `PhiSpace()` accepts a `PhiSpaceModel` as the reference, or a list that
+  mixes models and reference objects. Models are applied without refitting;
+  `updateRef = TRUE` is not available for a model.
 
 ## Memory and speed
 

@@ -85,3 +85,36 @@ test_that("predict refuses newer model formats", {
   model$format_version <- 99L
   expect_error(predict(model, qry), "format version 99")
 })
+
+test_that("PhiSpace accepts a model and gives the scores of a reference run", {
+  model <- trainPhiSpace(ref, phenotypes = "type", refAssay = "log1p",
+                         ncomp = 3, nfeat = 10, genes = shared)
+  rd <- SingleCellExperiment::reducedDim
+  a <- PhiSpace(ref, qry, phenotypes = "type", refAssay = "log1p", ncomp = 3,
+                nfeat = 10, storeUnNorm = TRUE)
+  b <- PhiSpace(model, qry, storeUnNorm = TRUE)
+  expect_identical(rd(b, "PhiSpace"), rd(a, "PhiSpace"))
+  expect_identical(rd(b, "PhiSpace_nonNorm"), rd(a, "PhiSpace_nonNorm"))
+
+  # A list of queries
+  qry2 <- qry[, 1:20]
+  a <- PhiSpace(ref, list(qry, qry2), phenotypes = "type", refAssay = "log1p",
+                ncomp = 3, nfeat = 10)
+  b <- PhiSpace(model, list(qry, qry2))
+  expect_identical(rd(b[[2]], "PhiSpace"), rd(a[[2]], "PhiSpace"))
+
+  expect_error(PhiSpace(model, qry, updateRef = TRUE), "needs the reference cells")
+})
+
+test_that("PhiSpace mixes models and references in a list", {
+  ref2 <- sim_sce(genes, 70, 4, "t")
+  model2 <- trainPhiSpace(ref2, phenotypes = "type", refAssay = "log1p",
+                          ncomp = 3, genes = shared)
+  rd <- SingleCellExperiment::reducedDim
+  a <- PhiSpace(list(one = ref, two = ref2), qry, phenotypes = "type",
+                refAssay = "log1p", ncomp = 3)
+  b <- PhiSpace(list(one = ref, two = model2), qry, phenotypes = "type",
+                refAssay = "log1p", ncomp = 3)
+  expect_identical(rd(b, "PhiSpace"), rd(a, "PhiSpace"))
+  expect_true("A(two)" %in% colnames(rd(b, "PhiSpace")))
+})

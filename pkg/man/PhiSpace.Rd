@@ -28,7 +28,12 @@ PhiSpace(
 )
 }
 \arguments{
-\item{reference}{The references. A \code{SingleCellExperiment} (SCE) object or a list of SCE objects. Each must contain an assay named by \code{refAssay}.}
+\item{reference}{The references. A \code{SingleCellExperiment} (SCE) object, a \code{PhiSpaceModel} from
+\code{\link[=trainPhiSpace]{trainPhiSpace()}}, or a list of either (models and SCE objects can be mixed). Each SCE must contain an
+assay named by \code{refAssay}. A model is applied as it is: the training arguments (\code{phenotypes},
+\code{response}, \code{refAssay}, \code{regMethod}, \code{ncomp}, \code{nfeat}, \code{selectedFeat}, \code{center}, \code{scale}, \code{DRinfo},
+\code{cellTypeThreshold} and the fallback arguments) are used only for SCE references, and every query must
+contain all the model genes.}
 
 \item{query}{The queries. An SCE object or a list of SCE object. Each must contain an assay named by \code{queryAssay}.}
 
@@ -38,7 +43,8 @@ PhiSpace(
 
 \item{refAssay}{Character. Which assay in reference to use to train PhiSpace.}
 
-\item{queryAssay}{Character. Which assay in query to use to predict.}
+\item{queryAssay}{Character. Which assay in query to use to predict. If \code{NULL}, \code{refAssay} for an SCE
+reference and the model's training assay for a \code{PhiSpaceModel}.}
 
 \item{regMethod}{Character. Regression method: one of "PLS" and "PCA".}
 

@@ -3,12 +3,18 @@
 #' PhiSpace annotates a query dataset or a list of query datasets, given an annotated bulk or single-cell
 #' RNA-seq references. PhiSpace can simultaneously model multiple layers of cell phenotypes, e.g. cell type and disease condtion.
 #'
-#' @param reference The references. A `SingleCellExperiment` (SCE) object or a list of SCE objects. Each must contain an assay named by `refAssay`.
+#' @param reference The references. A `SingleCellExperiment` (SCE) object, a `PhiSpaceModel` from
+#'   [trainPhiSpace()], or a list of either (models and SCE objects can be mixed). Each SCE must contain an
+#'   assay named by `refAssay`. A model is applied as it is: the training arguments (`phenotypes`,
+#'   `response`, `refAssay`, `regMethod`, `ncomp`, `nfeat`, `selectedFeat`, `center`, `scale`, `DRinfo`,
+#'   `cellTypeThreshold` and the fallback arguments) are used only for SCE references, and every query must
+#'   contain all the model genes.
 #' @param query The queries. An SCE object or a list of SCE object. Each must contain an assay named by `queryAssay`.
 #' @param phenotypes Which phenotypes (e.g. "cell type") to predict. If `NULL`, then have to specify `response`.
 #' @param response Named matrix. Rows correpond to cells (columns) in reference; columns correspond to phenotypes. If not `NULL`, then will override `phenotypes`.
 #' @param refAssay Character. Which assay in reference to use to train PhiSpace.
-#' @param queryAssay Character. Which assay in query to use to predict.
+#' @param queryAssay Character. Which assay in query to use to predict. If `NULL`, `refAssay` for an SCE
+#'   reference and the model's training assay for a `PhiSpaceModel`.
 #' @param regMethod Character. Regression method: one of "PLS" and "PCA".
 #' @param reducedDimName Name of reducedDim layer to store PhiSpace scores, i.e. PhiSpace scores will be stored in reducedDim(query, reducedDimName); default is "PhiSpace".
 #' @param ncomp Integer. Number of components. If `NULL`, will use the default, i.e. same as the total number of phenotypes.
@@ -85,8 +91,9 @@ PhiSpace <- function(
   fallback <- match.arg(fallback)
   fallback_score <- match.arg(fallback_score)
 
-  # Check if multiple references are provided
-  if(is.list(reference)){
+  # Check if multiple references are provided. A PhiSpaceModel is a list but
+  # is one reference.
+  if(is.list(reference) && !inherits(reference, "PhiSpaceModel")){
 
     # Check if references are named
     if(is.null(names(reference))){
@@ -103,7 +110,9 @@ PhiSpace <- function(
       refDataName <- names(reference)[ii]
       refSingle <- reference[[refDataName]]
 
-      PhiRes <- PhiSpaceR_1ref(
+      PhiRes <- if(inherits(refSingle, "PhiSpaceModel")){
+        .PhiSpace_fromModel(refSingle, query, queryAssay)
+      } else PhiSpaceR_1ref(
         reference = refSingle,
         query = query,
         phenotypes = phenotypes,
@@ -171,7 +180,10 @@ PhiSpace <- function(
 
   } else { # If single reference was provided
 
-    PhiRes <- PhiSpaceR_1ref(
+    if(inherits(reference, "PhiSpaceModel")){
+      if(updateRef) stop("updateRef = TRUE needs the reference cells; it is not supported for a PhiSpaceModel.")
+      PhiRes <- .PhiSpace_fromModel(reference, query, queryAssay)
+    } else PhiRes <- PhiSpaceR_1ref(
       reference = reference,
       query = query,
       phenotypes = phenotypes,
@@ -231,4 +243,28 @@ PhiSpace <- function(
 
 
 
+}
+
+
+## Scores of one query or a list of queries from a stored model, in the
+## shape that PhiSpaceR_1ref() returns them.
+.PhiSpace_fromModel <- function(model, query, queryAssay = NULL){
+
+  .checkPhiSpaceModel(model)
+  if(is.null(queryAssay)) queryAssay <- model$refAssay
+  if(!inherits(query, "list")) query <- list(query)
+  allAssayNames <- Reduce(intersect, lapply(query, assayNames))
+  if(!(queryAssay %in% allAssayNames)) stop("queryAssay needs to be present in every query.")
+
+  PhiSpaceScore_l <- lapply(
+    query,
+    function(q) .predictPhiSpace(model, assay(q, queryAssay), queryAssay)
+  )
+  PhiSpaceNorm_l <- lapply(PhiSpaceScore_l, normPhiScores)
+  if(length(PhiSpaceScore_l) == 1){
+    PhiSpaceScore_l <- PhiSpaceScore_l[[1]]
+    PhiSpaceNorm_l <- PhiSpaceNorm_l[[1]]
+  }
+
+  list(PhiSpaceScore = PhiSpaceScore_l, PhiSpaceNorm = PhiSpaceNorm_l)
 }
