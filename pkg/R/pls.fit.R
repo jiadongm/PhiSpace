@@ -41,43 +41,15 @@ pls.fit <-
 
     XtY <- (as.matrix(crossprod(X, Y)) - outer(mu, colSums(Y)))/s
 
-    if (DRinfo) TT <- matrix(0, nrow = nobj, ncol = ncomp)
-    R <- P <- matrix(0, nrow = npred, ncol = ncomp)
-    tQ <- matrix(0, nrow = ncomp, ncol = nresp)
-    B <- array(0, c(npred, nresp, length(keepComps)))
-    Bcum <- matrix(0, nrow = npred, ncol = nresp)
-
-    for (a in 1:ncomp) {
-      if (nresp == 1) {
-        w.a <- XtY/sqrt(sum(XtY^2))
-      } else {
-        if (nresp < npred) {
-          q <- eigen(crossprod(XtY), symmetric = TRUE)$vectors[, 1]
-          w.a <- XtY %*% q
-          w.a <- w.a/sqrt(sum(w.a^2))
-        } else {
-          w.a <- eigen(tcrossprod(XtY), symmetric = TRUE)$vectors[, 1]
-        }
-      }
-      w.a <- as.numeric(w.a)
-      r.a <- w.a
-      if (a > 1) {
-        r.a <- r.a - as.numeric(R[, 1:(a - 1), drop = FALSE] %*%
-                                  crossprod(P[, 1:(a - 1), drop = FALSE], w.a))
-      }
-      t.a <- Xr(r.a)
-      tsq <- sum(t.a^2)
-      p.a <- Xtt(t.a)/tsq
-      q.a <- as.numeric(crossprod(XtY, r.a))/tsq
-      XtY <- XtY - (tsq * p.a) %o% q.a
-      R[, a] <- r.a
-      P[, a] <- p.a
-      tQ[a, ] <- q.a
-      Bcum <- Bcum + r.a %o% q.a
-      k <- match(a, keepComps)
-      if (!is.na(k)) B[, , k] <- Bcum
-      if (DRinfo) TT[, a] <- t.a
+    # Scores t = X r and loadings numerator X't for a weight vector r
+    project <- function(r) {
+      t <- Xr(r)
+      list(t = t, tsq = sum(t^2), Xtt = Xtt(t))
     }
+    fit <- .kernelpls(XtY, project, ncomp, keepComps, nobj = if (DRinfo) nobj)
+    B <- fit$B
+    P <- fit$P
+    TT <- fit$TT
     prednames <- dnX[[2]]
     respnames <- dnY[[2]]
     compnames <- paste0("comp", 1:ncomp)
@@ -96,3 +68,53 @@ pls.fit <-
     }
 
   }
+
+
+# The kernel PLS loop. XtY is X'Y for the centred and scaled X and Y.
+# project(r) returns list(t, tsq, Xtt): the scores t = X r (or NULL), their
+# sum of squares t't = r'X'X r, and X't = X'X r. Scores are kept when nobj is
+# not NULL. Returns the coefficients B (npred x nresp x length(keepComps)),
+# the loadings P and the scores TT.
+.kernelpls <- function(XtY, project, ncomp, keepComps, nobj = NULL)
+{
+  npred <- nrow(XtY)
+  nresp <- ncol(XtY)
+  keepTT <- !is.null(nobj)
+  if (keepTT) TT <- matrix(0, nrow = nobj, ncol = ncomp)
+  R <- P <- matrix(0, nrow = npred, ncol = ncomp)
+  B <- array(0, c(npred, nresp, length(keepComps)))
+  Bcum <- matrix(0, nrow = npred, ncol = nresp)
+
+  for (a in 1:ncomp) {
+    if (nresp == 1) {
+      w.a <- XtY/sqrt(sum(XtY^2))
+    } else {
+      if (nresp < npred) {
+        q <- eigen(crossprod(XtY), symmetric = TRUE)$vectors[, 1]
+        w.a <- XtY %*% q
+        w.a <- w.a/sqrt(sum(w.a^2))
+      } else {
+        w.a <- eigen(tcrossprod(XtY), symmetric = TRUE)$vectors[, 1]
+      }
+    }
+    w.a <- as.numeric(w.a)
+    r.a <- w.a
+    if (a > 1) {
+      r.a <- r.a - as.numeric(R[, 1:(a - 1), drop = FALSE] %*%
+                                crossprod(P[, 1:(a - 1), drop = FALSE], w.a))
+    }
+    pr <- project(r.a)
+    tsq <- pr$tsq
+    p.a <- pr$Xtt/tsq
+    q.a <- as.numeric(crossprod(XtY, r.a))/tsq
+    XtY <- XtY - (tsq * p.a) %o% q.a
+    R[, a] <- r.a
+    P[, a] <- p.a
+    Bcum <- Bcum + r.a %o% q.a
+    k <- match(a, keepComps)
+    if (!is.na(k)) B[, , k] <- Bcum
+    if (keepTT) TT[, a] <- pr$t
+  }
+
+  list(B = B, P = P, TT = if (keepTT) TT)
+}
