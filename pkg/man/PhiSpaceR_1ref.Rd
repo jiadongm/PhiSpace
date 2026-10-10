@@ -99,6 +99,9 @@ dataset(s). A single matrix if one query was provided; a list of matrices if mul
 \item{scale}{Logical. Whether scaling was applied. \code{NA} when the \code{scoreCells} fallback is used.}
 \item{atlas_re}{List. Internal model object from \code{SuperPC()}, containing regression results and
 preprocessing parameters needed for prediction. \code{NULL} when the \code{scoreCells} fallback is used.}
+\item{model}{A \code{PhiSpaceModel} (see \code{\link[=trainPhiSpace]{trainPhiSpace()}}) trained on the genes shared with the
+queries. It can be saved and used with \code{\link[=predict.PhiSpaceModel]{predict.PhiSpaceModel()}}. Absent when the
+\code{scoreCells} fallback is used.}
 \item{fallback}{List. Present only when the \code{scoreCells} fallback is used. It records the method,
 the score type (\code{fallback_score}), the phenotype column and its number of classes,
 \code{fallback_min_classes}, and the \code{scoreCells()} metadata.}

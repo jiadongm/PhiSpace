@@ -62,6 +62,9 @@
 #'   \item{scale}{Logical. Whether scaling was applied. `NA` when the `scoreCells` fallback is used.}
 #'   \item{atlas_re}{List. Internal model object from `SuperPC()`, containing regression results and
 #'     preprocessing parameters needed for prediction. `NULL` when the `scoreCells` fallback is used.}
+#'   \item{model}{A `PhiSpaceModel` (see [trainPhiSpace()]) trained on the genes shared with the
+#'     queries. It can be saved and used with [predict.PhiSpaceModel()]. Absent when the
+#'     `scoreCells` fallback is used.}
 #'   \item{fallback}{List. Present only when the `scoreCells` fallback is used. It records the method,
 #'     the score type (`fallback_score`), the phenotype column and its number of classes,
 #'     `fallback_min_classes`, and the `scoreCells()` metadata.}
@@ -117,13 +120,7 @@ PhiSpaceR_1ref <- function(
   fallback_score <- match.arg(fallback_score)
   if(!inherits(query, "list")) query <- list(query)
 
-  # Validate cellTypeThreshold
-  if(!is.null(cellTypeThreshold)){
-    if(!(length(cellTypeThreshold) == 1 && is.numeric(cellTypeThreshold) &&
-         cellTypeThreshold == as.integer(cellTypeThreshold) && cellTypeThreshold > 0)){
-      stop("cellTypeThreshold must be a positive integer or NULL.")
-    }
-  }
+  .validate_cellTypeThreshold(cellTypeThreshold)
 
   # Check if refAssay is in reference
   if(is.null(queryAssay)) queryAssay <- refAssay
@@ -156,26 +153,7 @@ PhiSpaceR_1ref <- function(
 
     # Phenotypes has to be specified
     if(is.null(phenotypes)) stop("phenotypes and response cannot both be NULL.")
-    if(sum(is.na(colData(reference)[,phenotypes]))) stop("phenotypes cannot contain NAs.")
-
-    # Filter rare cell types if cellTypeThreshold is set
-    if(!is.null(cellTypeThreshold)){
-      for(ph in phenotypes){
-        cellTypeCounts <- table(colData(reference)[, ph])
-        rareCellTypes <- names(cellTypeCounts[cellTypeCounts < cellTypeThreshold])
-        if(length(rareCellTypes) > 0){
-          message(
-            "Removing cell types with fewer than ", cellTypeThreshold,
-            " cells in '", ph, "': ",
-            paste(rareCellTypes, " (n=", cellTypeCounts[rareCellTypes], ")",
-                  sep = "", collapse = ", ")
-          )
-          keepCells <- !(as.character(colData(reference)[, ph]) %in% rareCellTypes)
-          reference <- reference[, keepCells]
-        }
-      }
-      if(ncol(reference) == 0) stop("No cells remain after filtering rare cell types.")
-    }
+    reference <- .filterRareTypes(reference, phenotypes, cellTypeThreshold)
 
     fallback_class_counts <- vapply(
       phenotypes,
@@ -200,16 +178,9 @@ PhiSpaceR_1ref <- function(
       )
     }
 
-    YY <- codeY(reference, phenotypes)
-    phenoDict <-
-      data.frame(
-        labs = colnames(YY),
-        phenotypeCategory =
-          rep(phenotypes,
-              apply(as.data.frame(colData(reference)[,phenotypes]), 2,
-                    function(x) length(unique(x)))
-          )
-      )
+    coded <- .codePhenotypes(reference, phenotypes)
+    YY <- coded$YY
+    phenoDict <- coded$phenoDict
   }
 
   ## Common genes. Only the needed assays are extracted (gene x cell); genes
@@ -221,75 +192,21 @@ PhiSpaceR_1ref <- function(
   featNames <- Reduce(intersect, featNames)
   featNames <- intersect(rownames(refX), featNames)
 
-  ## Build atlas
-  if(is.null(ncomp)) ncomp <- ncol(YY)
-
-  # Define selectedFeat
-  if(!is.null(selectedFeat)){ # if selectedFeat provided
-
-    selectedFeat <- intersect(selectedFeat, featNames)
-    if(length(selectedFeat) == 0) stop("Reference and query don't share any selected genes.")
-
-    impScores <- NULL
-
-  } else {
-
-    if(!is.null(nfeat)){ # if nfeat has been specified
-      impScores <- .coefSlice(
-        mvr(
-          .cellsByGenes(refX, featNames),
-          YY,
-          ncomp,
-          method = regMethod,
-          center = center, scale = scale,
-          keepComps = ncomp
-        )$coefficients,
-        ncomp
-      )
-      selectedFeat <- selectFeat(impScores, nfeat)$selectedFeat
-    } else {
-
-      impScores <- NULL
-      selectedFeat <- featNames
-    }
-
-  }
-
-
-  refXsel <- .cellsByGenes(refX, selectedFeat)
-  atlas_re <- SuperPC(
-    reference = refXsel,
-    YY = YY,
-    ncomp = ncomp,
-    selectedFeat = selectedFeat,
-    assayName = refAssay,
-    regMethod = regMethod,
-    center = center,
-    scale = scale,
-    DRinfo = DRinfo
+  ## Build atlas on the shared genes
+  trained <- .trainPhiSpace(
+    refX = refX, YY = YY, phenoDict = phenoDict, featNames = featNames,
+    refAssay = refAssay, regMethod = regMethod, ncomp = ncomp, nfeat = nfeat,
+    selectedFeat = selectedFeat, center = center, scale = scale,
+    DRinfo = DRinfo, scoreReference = TRUE
   )
+  model <- trained$model
+  YrefHat <- trained$YrefHat
+  rm(trained)
 
-  if(is.null(impScores)){
-
-    impScores <- .coefSlice(atlas_re$reg_re$coefficients, ncomp)
-  }
-
-  YrefHat <- phenotype(
-    phenoAssay = refXsel,
-    atlas_re = atlas_re,
-    assayName = refAssay
-  )
-  rm(refXsel)
   ## Project query
   PhiSpaceScore_l <- lapply(
     queryX,
-    function(x){
-      phenotype(
-        phenoAssay = .cellsByGenes(x, selectedFeat),
-        atlas_re = atlas_re,
-        assayName = queryAssay
-      )
-    }
+    function(x) .predictPhiSpace(model, x, queryAssay)
   )
   if(length(PhiSpaceScore_l) == 1) PhiSpaceScore_l <- PhiSpaceScore_l[[1]]
 
@@ -303,17 +220,18 @@ PhiSpaceR_1ref <- function(
 
   return(
     list(
-      ncomp = ncomp,
-      impScores = impScores,
+      ncomp = model$atlas_re$ncomp,
+      impScores = model$impScores,
       phenoDict = phenoDict,
-      selectedFeat = selectedFeat,
+      selectedFeat = model$selectedFeat,
       YrefHat = YrefHat,
       YrefHatNorm = YrefHatNorm,
       PhiSpaceScore = PhiSpaceScore_l,
       PhiSpaceNorm = PhiSpaceNorm_l,
       center = center,
       scale = scale,
-      atlas_re = atlas_re
+      atlas_re = model$atlas_re,
+      model = model
     )
   )
 }

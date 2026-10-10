@@ -38,6 +38,17 @@
   about 1e-14, apart from the signs of components. The CosMx niches and the
   CITE-seq result checks are unchanged.
 
+## New features
+
+* New `trainPhiSpace()` fits a PhiSpace model on a reference and returns it as
+  a `PhiSpaceModel` object, which can be saved and applied later to queries
+  with `predict()`, without the reference cells. The model records the
+  training assay, the PhiSpace version and, optionally, the reference name,
+  species and gene ID type. `predict()` requires every model gene in the
+  query; train with `genes =` set to the query genes (for example a spatial
+  panel) when the query lacks some of them. `PhiSpaceR_1ref()` now uses the
+  same code and also returns its model (`model`); its scores are unchanged.
+
 ## Memory and speed
 
 * `mvr()` and `phenotype()` no longer convert a sparse predictor matrix to a
