@@ -99,6 +99,8 @@ jobs:
         run: Rscript --vanilla scripts/build-cosmx.R
       - name: Build function reference
         run: Rscript --vanilla scripts/build-reference.R
+      - name: Build home and citation pages
+        run: Rscript --vanilla scripts/build-home.R
       - name: Upload website for review
         uses: actions/upload-artifact@v6
         with:

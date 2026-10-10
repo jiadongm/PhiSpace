@@ -6,8 +6,12 @@ the Actions tab. Stereo-seq, Visium, Getting Started, PerturbSeq and CosMx are
 rebuilt from fresh results, and BridgeAnnotation and CITE-seq are rebuilt from
 verified cached results. The function reference (`reference/`) is then rebuilt
 from `pkg/man` by `scripts/build-reference.R`, which also drops pages of removed
-topics and updates the reference entries of `sitemap.xml`. The other pages and
-shared assets are copied from the committed `docs/` website.
+topics and updates the reference entries of `sitemap.xml`. The home page
+(`index.html`), the authors and citation page (`authors.html`) and `404.html`
+are rebuilt from `pkg/README.md`, `pkg/DESCRIPTION` and `pkg/inst/CITATION` by
+`scripts/build-home.R`, which fails if either page lacks a DOI from
+`pkg/inst/CITATION`. The other pages and shared assets are copied from the
+committed `docs/` website.
 
 A second workflow, `.github/workflows/R-CMD-check.yaml` (**R CMD check**), runs
 `R CMD check --no-manual --ignore-vignettes` on the same pushes and pull
@@ -46,6 +50,7 @@ Rscript --vanilla scripts/build-cite-seq.R
 Rscript --vanilla scripts/build-perturbseq.R
 Rscript --vanilla scripts/build-cosmx.R
 Rscript --vanilla scripts/build-reference.R
+Rscript --vanilla scripts/build-home.R
 ```
 
 The Stereo-seq script downloads the public archive, extracts only five required
@@ -74,6 +79,7 @@ Rscript --vanilla scripts/build-cite-seq.R
 Rscript --vanilla scripts/build-perturbseq.R
 Rscript --vanilla scripts/build-cosmx.R
 Rscript --vanilla scripts/build-reference.R
+Rscript --vanilla scripts/build-home.R
 ```
 
 Optional variables:

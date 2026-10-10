@@ -446,6 +446,11 @@ Done on 2026-10-07 with this procedure:
   pages of functions that moved to vizOmics or were removed (for example
   `align_clusters`, `matrixPlot`, `plotSankey`) and added `piScore` and
   `scoreCells`. Examples are not run; every example is in `\dontrun{}`.
+  The last step rebuilds `index.html`, `authors.html` and `404.html` from
+  `pkg/README.md`, `pkg/DESCRIPTION` and `pkg/inst/CITATION`
+  (`scripts/build-home.R`, added 2026-10-10). Before that, these pages came
+  from committed `docs/`, so the live site kept the bioRxiv links and the
+  generic package citation after `5a24395`.
   This is important: omitting an automated article from a later deployment
   would copy its old committed HTML and revert the live page.
 - The runner is pinned to `ubuntu-24.04`, because `ubuntu-latest` moves to
@@ -477,6 +482,7 @@ Rscript --vanilla scripts/build-cite-seq.R
 Rscript --vanilla scripts/build-perturbseq.R
 Rscript --vanilla scripts/build-cosmx.R
 Rscript --vanilla scripts/build-reference.R
+Rscript --vanilla scripts/build-home.R
 ```
 
 See `WEBSITE.md` for variables and deployment details. As the suite grows,
