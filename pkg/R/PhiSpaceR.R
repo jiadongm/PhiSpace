@@ -106,13 +106,17 @@ PhiSpace <- function(
 
     sc_list <- scUnnorm_list <- vector("list", length(reference))
     names(sc_list) <- names(reference)
+    # Stored models score each query together, in one pass
+    isModel <- vapply(reference, inherits, logical(1), "PhiSpaceModel")
+    modelRes <- vector("list", length(reference))
+    if(any(isModel)) modelRes[isModel] <- .PhiSpace_fromModels(reference[isModel], query, queryAssay)
     for(ii in 1:length(reference)){
 
       refDataName <- names(reference)[ii]
-      refSingle <- reference[[refDataName]]
+      refSingle <- reference[[ii]]
 
-      PhiRes <- if(inherits(refSingle, "PhiSpaceModel")){
-        .PhiSpace_fromModel(refSingle, query, queryAssay)
+      PhiRes <- if(isModel[ii]){
+        modelRes[[ii]]
       } else PhiSpaceR_1ref(
         reference = refSingle,
         query = query,
@@ -183,7 +187,7 @@ PhiSpace <- function(
 
     if(inherits(reference, "PhiSpaceModel")){
       if(updateRef) stop("updateRef = TRUE needs the reference cells; it is not supported for a PhiSpaceModel.")
-      PhiRes <- .PhiSpace_fromModel(reference, query, queryAssay)
+      PhiRes <- .PhiSpace_fromModels(list(reference), query, queryAssay)[[1]]
     } else PhiRes <- PhiSpaceR_1ref(
       reference = reference,
       query = query,
@@ -247,28 +251,41 @@ PhiSpace <- function(
 }
 
 
-## Scores of one query or a list of queries from a stored model, in the
-## shape that PhiSpaceR_1ref() returns them.
-.PhiSpace_fromModel <- function(model, query, queryAssay = NULL){
+## Scores of one query or a list of queries from a list of stored models,
+## one element per model in the shape that PhiSpaceR_1ref() returns. Models
+## that use the same query assay score each query in one pass.
+.PhiSpace_fromModels <- function(models, query, queryAssay = NULL){
 
-  .checkPhiSpaceModel(model)
-  if(is.null(queryAssay)) queryAssay <- model$refAssay
   if(!inherits(query, "list")) query <- list(query)
   allAssayNames <- Reduce(intersect, lapply(query, assayNames))
-  if(!(queryAssay %in% allAssayNames)) stop("queryAssay needs to be present in every query.")
-  # Restrict the model once, to the genes shared by all queries, as an SCE
-  # reference is fitted on them
-  model <- .modelForGenes(model, Reduce(intersect, lapply(query, rownames)))
-
-  PhiSpaceScore_l <- lapply(
-    query,
-    function(q) .predictPhiSpace(model, assay(q, queryAssay), queryAssay)
-  )
-  PhiSpaceNorm_l <- lapply(PhiSpaceScore_l, normPhiScores)
-  if(length(PhiSpaceScore_l) == 1){
-    PhiSpaceScore_l <- PhiSpaceScore_l[[1]]
-    PhiSpaceNorm_l <- PhiSpaceNorm_l[[1]]
+  commonGenes <- Reduce(intersect, lapply(query, rownames))
+  assayUsed <- character(length(models))
+  for(i in seq_along(models)){
+    .checkPhiSpaceModel(models[[i]])
+    assayUsed[i] <- if(is.null(queryAssay)) models[[i]]$refAssay else queryAssay
+    if(!(assayUsed[i] %in% allAssayNames)) stop("queryAssay needs to be present in every query.")
+    # Restrict each model once, to the genes shared by all queries, as an SCE
+    # reference is fitted on them
+    models[[i]] <- .modelForGenes(models[[i]], commonGenes)
   }
 
-  list(PhiSpaceScore = PhiSpaceScore_l, PhiSpaceNorm = PhiSpaceNorm_l)
+  # Raw scores: one list per query, one element per model
+  scores <- lapply(query, function(q){
+    out <- vector("list", length(models))
+    for(a in unique(assayUsed)){
+      idx <- which(assayUsed == a)
+      out[idx] <- .scoreModels(models[idx], assay(q, a), a)
+    }
+    out
+  })
+
+  lapply(seq_along(models), function(i){
+    PhiSpaceScore_l <- lapply(scores, `[[`, i)
+    PhiSpaceNorm_l <- lapply(PhiSpaceScore_l, normPhiScores)
+    if(length(PhiSpaceScore_l) == 1){
+      PhiSpaceScore_l <- PhiSpaceScore_l[[1]]
+      PhiSpaceNorm_l <- PhiSpaceNorm_l[[1]]
+    }
+    list(PhiSpaceScore = PhiSpaceScore_l, PhiSpaceNorm = PhiSpaceNorm_l)
+  })
 }

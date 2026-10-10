@@ -26,7 +26,7 @@ test_that("trainPhiSpace and predict give the PhiSpaceR_1ref scores", {
                      c(list(ref, phenotypes = "type", refAssay = "log1p",
                             ncomp = 3, genes = shared), args))
     expect_s3_class(model, "PhiSpaceModel")
-    expect_identical(predict(model, qry), one$PhiSpaceScore)
+    expect_equal(predict(model, qry), one$PhiSpaceScore, tolerance = 1e-12)
     expect_identical(model$atlas_re, one$atlas_re)
     expect_identical(model$selectedFeat, one$selectedFeat)
     expect_identical(model$impScores, one$impScores)
@@ -149,7 +149,7 @@ test_that("an nfeat model selects genes again among the candidate genes", {
 
   # A query with every model gene uses the model as it is
   expect_silent(b <- predict(model, ref[model$selectedFeat, ]))
-  expect_identical(b, predict(model, ref))
+  expect_equal(b, predict(model, ref), tolerance = 1e-12)
 })
 
 test_that("predict selects genes again with nfeat", {
@@ -231,15 +231,16 @@ test_that("PhiSpace accepts a model and gives the scores of a reference run", {
   a <- PhiSpace(ref, qry, phenotypes = "type", refAssay = "log1p", ncomp = 3,
                 nfeat = 10, storeUnNorm = TRUE)
   b <- PhiSpace(model, qry, storeUnNorm = TRUE)
-  expect_identical(rd(b, "PhiSpace"), rd(a, "PhiSpace"))
-  expect_identical(rd(b, "PhiSpace_nonNorm"), rd(a, "PhiSpace_nonNorm"))
+  expect_equal(rd(b, "PhiSpace"), rd(a, "PhiSpace"), tolerance = 1e-12)
+  expect_equal(rd(b, "PhiSpace_nonNorm"), rd(a, "PhiSpace_nonNorm"),
+               tolerance = 1e-12)
 
   # A list of queries
   qry2 <- qry[, 1:20]
   a <- PhiSpace(ref, list(qry, qry2), phenotypes = "type", refAssay = "log1p",
                 ncomp = 3, nfeat = 10)
   b <- PhiSpace(model, list(qry, qry2))
-  expect_identical(rd(b[[2]], "PhiSpace"), rd(a[[2]], "PhiSpace"))
+  expect_equal(rd(b[[2]], "PhiSpace"), rd(a[[2]], "PhiSpace"), tolerance = 1e-12)
 
   expect_error(PhiSpace(model, qry, updateRef = TRUE), "needs the reference cells")
 })
@@ -253,7 +254,7 @@ test_that("PhiSpace mixes models and references in a list", {
                 refAssay = "log1p", ncomp = 3)
   b <- PhiSpace(list(one = ref, two = model2), qry, phenotypes = "type",
                 refAssay = "log1p", ncomp = 3)
-  expect_identical(rd(b, "PhiSpace"), rd(a, "PhiSpace"))
+  expect_equal(rd(b, "PhiSpace"), rd(a, "PhiSpace"), tolerance = 1e-12)
   expect_true("A(two)" %in% colnames(rd(b, "PhiSpace")))
 })
 
@@ -282,4 +283,65 @@ test_that("PhiSpace refits a model once on the genes of all queries", {
     expect_equal(rd(b[[i]], "PhiSpace_nonNorm"), rd(a[[i]], "PhiSpace_nonNorm"),
                  tolerance = 1e-10)
   }
+})
+
+test_that("several models score a query in one pass, as phenotype() does", {
+  X <- SummarizedExperiment::assay(qry, "log1p")
+  configs <- list(list(), list(scale = TRUE), list(center = FALSE),
+                  list(center = FALSE, scale = TRUE),
+                  list(regMethod = "PCA", ncomp = 4),
+                  list(nfeat = 5, nfeatPool = NULL))
+  models <- lapply(seq_along(configs), function(i) {
+    r <- sim_sce(genes, 70, 10 + i, paste0("m", i))
+    args <- configs[[i]]
+    if (is.null(args$ncomp)) args$ncomp <- 3
+    do.call(trainPhiSpace, c(list(r, phenotypes = "type", refAssay = "log1p",
+                                  genes = sample(shared, 40)), args))
+  })
+  separate <- lapply(models, function(m)
+    phenotype(.cellsByGenes(X, m$selectedFeat), m$atlas_re, "log1p"))
+  for (Xq in list(X, as.matrix(X))) {
+    together <- .scoreModels(models, Xq, "log1p")
+    for (i in seq_along(models)) {
+      expect_equal(together[[i]], separate[[i]], tolerance = 1e-12)
+    }
+  }
+  expect_equal(.rowSds(X), apply(as.matrix(X), 1, sd), tolerance = 1e-12)
+
+  # A model with few of the query genes, in another order
+  few <- trainPhiSpace(ref, phenotypes = "type", refAssay = "log1p", ncomp = 3,
+                       selectedFeat = rev(shared[1:12]), scale = TRUE)
+  expected <- phenotype(.cellsByGenes(X, few$selectedFeat), few$atlas_re, "log1p")
+  for (Xq in list(X, as.matrix(X))) {
+    expect_equal(.scoreModels(list(few), Xq, "log1p")[[1]], expected,
+                 tolerance = 1e-12)
+  }
+
+  # PhiSpace() with a list of models gives the scores of separate calls
+  names(models) <- paste0("M", seq_along(models))
+  rd <- SingleCellExperiment::reducedDim
+  together <- rd(PhiSpace(models, qry, storeUnNorm = TRUE), "PhiSpace_nonNorm")
+  for (n in names(models)) {
+    one <- rd(PhiSpace(models[[n]], qry, storeUnNorm = TRUE), "PhiSpace_nonNorm")
+    colnames(one) <- paste0(colnames(one), "(", n, ")")
+    expect_equal(together[, colnames(one)], one, tolerance = 1e-12)
+  }
+})
+
+test_that("models with different assays score in one call", {
+  rref <- RankTransf(ref, "counts")
+  rqry <- RankTransf(qry, "counts")
+  rank_model <- trainPhiSpace(rref, phenotypes = "type", refAssay = "rank",
+                              ncomp = 3, genes = shared)
+  log_model <- trainPhiSpace(ref, phenotypes = "type", refAssay = "log1p",
+                             ncomp = 3, genes = shared)
+  rd <- SingleCellExperiment::reducedDim
+  b <- rd(PhiSpace(list(r = rank_model, l = log_model), rqry, storeUnNorm = TRUE),
+          "PhiSpace_nonNorm")
+  a <- predict(rank_model, rqry)
+  colnames(a) <- paste0(colnames(a), "(r)")
+  expect_identical(b[, 1:3], a)
+  a <- predict(log_model, rqry)
+  colnames(a) <- paste0(colnames(a), "(l)")
+  expect_equal(b[, 4:6], a, tolerance = 1e-12)
 })

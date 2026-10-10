@@ -71,6 +71,20 @@
 
 ## Memory and speed
 
+* `PhiSpace()` scores a query with all `PhiSpaceModel` references in one
+  pass: the query matrix is multiplied once by the coefficients of all
+  models, without selecting the model genes from the query or transposing
+  it. `predict()` uses the same computation for one model. Models on the
+  `"rank"` assay, and queries that are neither a sparse `Matrix` nor a base
+  matrix, are scored one model at a time, as before. Scores agree with the
+  previous computation to about 1e-15. With the four CosMx lung models
+  (98,002 cells, 960 genes), `PhiSpace()` took 1.1 s instead of 3.6 s. With
+  eight synthetic models (300,000 cells, 20,000 genes, 40 cell types per
+  model), it took 48 s instead of 69 s, with the same peak R memory
+  (9.4 GB). With one model and a whole-transcriptome query (PerturbSeq,
+  23,384 genes), the time was unchanged and peak R memory fell from 940 MB
+  to 366 MB.
+
 * `mvr()` and `phenotype()` no longer convert a sparse predictor matrix to a
   dense one. Centring and scaling are applied implicitly, inside the matrix
   products. On a simulated 20,000 x 8,000 sparse matrix (10% non-zero, 20

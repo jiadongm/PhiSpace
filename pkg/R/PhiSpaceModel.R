@@ -361,13 +361,78 @@ print.PhiSpaceModel <- function(x, ...){
 .predictPhiSpace <- function(model, X, assayName, nfeat = NULL){
 
   model <- .modelForGenes(model, rownames(X), nfeat)
-  genes <- model$selectedFeat
+  .scoreModels(list(model), X, assayName)[[1]]
+}
 
-  phenotype(
-    phenoAssay = .cellsByGenes(X, genes),
-    atlas_re = model$atlas_re,
-    assayName = assayName
-  )
+
+## Raw scores (cells x responses) of the gene by cell matrix X from each of
+## models, which use only genes of X. As phenotype() with byQuery centring,
+## but a sparse or dense X is multiplied once by the coefficients of all
+## models, stacked and padded with zeros to the genes of X: X is not subset
+## or transposed, which took most of the time of phenotype(). With four
+## CosMx models (98,002 cells, 960 genes) this took 0.24 s instead of
+## 2.98 s. "rank" models, which re-rank the model genes
+## within each cell, and other matrix classes use phenotype() per model.
+.scoreModels <- function(models, X, assayName){
+
+  if(assayName == "rank" || !(inherits(X, "sparseMatrix") || is.matrix(X))){
+    return(lapply(models, function(m){
+      phenotype(.cellsByGenes(X, m$selectedFeat), m$atlas_re, assayName)
+    }))
+  }
+
+  X <- .fit_matrix(X)
+  n <- ncol(X)
+  ars <- lapply(models, `[[`, "atlas_re")
+  center <- vapply(ars, function(ar) ar$center, logical(1))
+  scale <- vapply(ars, function(ar) ar$scale, logical(1))
+
+  # Gene means and standard deviations over the query cells
+  mu <- if(any(center)) Matrix::rowMeans(X)
+  sdC <- if(any(center & scale)) .rowSds(X, mu)
+  sdU <- if(any(!center & scale)) sqrt(Matrix::rowSums(X^2)/(n - 1)) # as scale() without centring
+
+  Bs <- lapply(ars, function(ar) .coefSlice(ar$reg_re$coefficients, ar$ncomp))
+  nResp <- vapply(Bs, ncol, integer(1))
+  last <- cumsum(nResp)
+  Ball <- matrix(0, nrow(X), sum(nResp),
+                 dimnames = list(NULL, unlist(lapply(Bs, colnames))))
+  offset <- numeric(sum(nResp))
+  for(i in seq_along(models)){
+    rows <- match(models[[i]]$selectedFeat, rownames(X))
+    cols <- seq_len(nResp[i]) + last[i] - nResp[i]
+    B <- Bs[[i]]
+    if(scale[i]) B <- B/(if(center[i]) sdC else sdU)[rows]
+    Ball[rows, cols] <- B
+    off <- if(center[i]) as.numeric(crossprod(mu[rows], B)) else rep(0, nResp[i])
+    Ymeans <- ars[[i]]$reg_re$Ymeans
+    if(!is.null(Ymeans)) off <- off - Ymeans
+    offset[cols] <- off
+  }
+
+  Y <- as.matrix(Matrix::crossprod(X, Ball))
+  rownames(Y) <- colnames(X)
+  lapply(seq_along(models), function(i){
+    cols <- seq_len(nResp[i]) + last[i] - nResp[i]
+    sweep(Y[, cols, drop = FALSE], 2, offset[cols])
+  })
+}
+
+
+## Row standard deviations of a gene by cell matrix, as .colSds() computes
+## column standard deviations.
+.rowSds <- function(X, means = Matrix::rowMeans(X)){
+
+  if(inherits(X, "CsparseMatrix")){
+    dev2 <- X
+    dev2@x <- (X@x - means[X@i + 1L])^2
+    ss <- Matrix::rowSums(dev2) + (ncol(X) - tabulate(X@i + 1L, nrow(X))) * means^2
+    out <- sqrt(ss/(ncol(X) - 1))
+  } else {
+    out <- apply(X, 1, stats::sd)
+  }
+  names(out) <- rownames(X)
+  out
 }
 
 
