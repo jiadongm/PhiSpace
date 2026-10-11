@@ -270,11 +270,16 @@ PhiSpace <- function(
   }
 
   # Raw scores: one list per query, one element per model
-  scores <- lapply(query, function(q){
+  scores <- lapply(seq_along(query), function(j){
     out <- vector("list", length(models))
     for(a in unique(assayUsed)){
       idx <- which(assayUsed == a)
-      out[idx] <- .scoreModels(models[idx], assay(q, a), a)
+      X <- assay(query[[j]], a)
+      for(i in idx){
+        .checkQueryValues(models[[i]], X, a,
+                          label = if(length(query) > 1) paste("Query", j) else "The query")
+      }
+      out[idx] <- .scoreModels(models[idx], X, a)
     }
     out
   })

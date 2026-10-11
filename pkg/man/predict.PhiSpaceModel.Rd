@@ -50,4 +50,26 @@ of these genes and drops the others, with a warning. These scores are
 approximate: the error grows with the share of the coefficients that the
 missing genes hold, which the warning reports.
 }
+
+The query must be preprocessed as the reference was. Before scoring, the
+query values over the model genes are compared with the reference values
+recorded in the model (in up to 2,000 evenly spaced cells), and a warning
+is given if
+\itemize{
+\item the non-zero values are integers in one and not in the other (for
+example raw counts against log-transformed values);
+\item one has negative values and the other has none (for example centred or
+scaled values);
+\item the 99th percentiles of the absolute non-zero values differ by more
+than a factor of 10;
+\item the model was trained on the \code{"rank"} assay and the query assay is not
+\code{"rank"}, or the reverse. Only an assay named \code{"rank"} is ranked again
+within each cell.
+}
+
+The check cannot detect every difference: for example, values normalised
+to different library sizes can pass it. Changes that act on all genes
+alike, such as the base of the logarithm, do not change the normalised
+scores, because the query is centred and each score is scaled by
+\code{\link[=normPhiScores]{normPhiScores()}}.
 }

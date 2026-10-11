@@ -22,7 +22,8 @@ trainPhiSpace(
   nfeatPool = 2000,
   referenceName = NULL,
   species = NULL,
-  geneIdType = NULL
+  geneIdType = NULL,
+  preprocessing = NULL
 )
 }
 \arguments{
@@ -73,6 +74,12 @@ genes, which are then refitted without a new selection. See Details.}
 
 \item{referenceName, species, geneIdType}{Character or \code{NULL}. Optional
 descriptions of the reference, stored in the model.}
+
+\item{preprocessing}{Character or \code{NULL}. Optional description of how
+\code{refAssay} was computed, for example \code{"logTransf(use_log1p = TRUE)"}.
+Queries must be preprocessed in the same way; the description is printed
+with the model and in the warnings of the query check (see
+\code{\link[=predict.PhiSpaceModel]{predict.PhiSpaceModel()}}).}
 }
 \value{
 A \code{PhiSpaceModel} object: a list with
@@ -93,7 +100,12 @@ reference over the model genes (or over the candidate genes, see
 \item{nfeat, nfeatPool}{The \code{nfeat} used for gene selection, or \code{NULL};
 the \code{nfeatPool} of the stored candidate genes, or \code{NULL} if the
 statistics cover only the selected genes.}
-\item{referenceName, species, geneIdType}{As supplied, or \code{NULL}.}
+\item{referenceName, species, geneIdType, preprocessing}{As supplied, or
+\code{NULL}.}
+\item{valueProfile}{A summary of the reference values over the model
+genes, used to check queries: whether all non-zero values are
+integers, the share of negative values and the 99th percentile of the
+absolute non-zero values, in up to 2,000 evenly spaced cells.}
 \item{format_version, phispace_version, created}{Model format version,
 the PhiSpace version that trained the model, and the date.}
 }

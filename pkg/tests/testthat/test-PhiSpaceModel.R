@@ -345,3 +345,47 @@ test_that("models with different assays score in one call", {
   colnames(a) <- paste0(colnames(a), "(l)")
   expect_equal(b[, 4:6], a, tolerance = 1e-12)
 })
+
+test_that("predict warns when the query looks preprocessed differently", {
+  model <- trainPhiSpace(ref, phenotypes = "type", refAssay = "log1p",
+                         ncomp = 3, genes = shared,
+                         preprocessing = "log1p of counts")
+  expect_false(model$valueProfile$integer)
+  expect_output(print(model), "Preprocessing: log1p of counts")
+  X <- SummarizedExperiment::assay(qry, "log1p")
+  expect_silent(predict(model, X))
+  expect_silent(predict(model, X / log(2)))  # log2: scores change by a factor
+  expect_warning(predict(model, qry, assay = "counts"),
+                 "integers \\(raw counts\\?\\).*\\(log1p of counts\\)")
+  expect_warning(predict(model, X - 1), "negative")
+  expect_warning(predict(model, X * 100), "99th percentile")
+
+  # Only an assay named "rank" is ranked again
+  rref <- RankTransf(ref, "counts")
+  rqry <- RankTransf(qry, "counts")
+  rank_model <- trainPhiSpace(rref, phenotypes = "type", refAssay = "rank",
+                              ncomp = 3, genes = shared)
+  expect_silent(predict(rank_model, rqry))
+  expect_warning(PhiSpace(rank_model, rqry, queryAssay = "log1p"),
+                 "trained on the \"rank\" assay and the query assay is \"log1p\"")
+  expect_warning(predict(model, rqry, assay = "rank"), "only an assay named")
+
+  # A list of queries names the query
+  q2 <- qry
+  SummarizedExperiment::assay(q2, "log1p") <- SummarizedExperiment::assay(q2, "counts")
+  expect_warning(PhiSpace(model, list(qry, q2)), "^Query 2 may be preprocessed")
+
+  # Models without a value profile are not checked
+  model$valueProfile <- NULL
+  expect_silent(predict(model, qry, assay = "counts"))
+})
+
+test_that("the error for no shared genes hints at gene IDs and species", {
+  model <- trainPhiSpace(ref, phenotypes = "type", refAssay = "log1p", ncomp = 3)
+  upper <- qry
+  rownames(upper) <- toupper(rownames(upper))
+  expect_error(predict(model, upper), "match when case is ignored")
+  ens <- qry
+  rownames(ens) <- sprintf("ENSG%011d", seq_len(nrow(ens)))
+  expect_error(predict(model, ens), "Ensembl IDs")
+})

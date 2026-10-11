@@ -76,6 +76,11 @@
 #'   genes, which are then refitted without a new selection. See Details.
 #' @param referenceName,species,geneIdType Character or `NULL`. Optional
 #'   descriptions of the reference, stored in the model.
+#' @param preprocessing Character or `NULL`. Optional description of how
+#'   `refAssay` was computed, for example `"logTransf(use_log1p = TRUE)"`.
+#'   Queries must be preprocessed in the same way; the description is printed
+#'   with the model and in the warnings of the query check (see
+#'   [predict.PhiSpaceModel()]).
 #'
 #' @return A `PhiSpaceModel` object: a list with
 #' \describe{
@@ -95,7 +100,12 @@
 #'   \item{nfeat, nfeatPool}{The `nfeat` used for gene selection, or `NULL`;
 #'     the `nfeatPool` of the stored candidate genes, or `NULL` if the
 #'     statistics cover only the selected genes.}
-#'   \item{referenceName, species, geneIdType}{As supplied, or `NULL`.}
+#'   \item{referenceName, species, geneIdType, preprocessing}{As supplied, or
+#'     `NULL`.}
+#'   \item{valueProfile}{A summary of the reference values over the model
+#'     genes, used to check queries: whether all non-zero values are
+#'     integers, the share of negative values and the 99th percentile of the
+#'     absolute non-zero values, in up to 2,000 evenly spaced cells.}
 #'   \item{format_version, phispace_version, created}{Model format version,
 #'     the PhiSpace version that trained the model, and the date.}
 #' }
@@ -121,7 +131,8 @@ trainPhiSpace <- function(
     nfeatPool = 2000,
     referenceName = NULL,
     species = NULL,
-    geneIdType = NULL
+    geneIdType = NULL,
+    preprocessing = NULL
 ){
 
   regMethod <- match.arg(regMethod)
@@ -152,7 +163,7 @@ trainPhiSpace <- function(
     selectedFeat = selectedFeat, center = center, scale = scale,
     DRinfo = DRinfo, keepStats = keepStats, nfeatPool = nfeatPool,
     referenceName = referenceName,
-    species = species, geneIdType = geneIdType
+    species = species, geneIdType = geneIdType, preprocessing = preprocessing
   )$model
 }
 
@@ -189,6 +200,26 @@ trainPhiSpace <- function(
 #'   of these genes and drops the others, with a warning. These scores are
 #'   approximate: the error grows with the share of the coefficients that the
 #'   missing genes hold, which the warning reports.
+#'
+#' The query must be preprocessed as the reference was. Before scoring, the
+#' query values over the model genes are compared with the reference values
+#' recorded in the model (in up to 2,000 evenly spaced cells), and a warning
+#' is given if
+#' * the non-zero values are integers in one and not in the other (for
+#'   example raw counts against log-transformed values);
+#' * one has negative values and the other has none (for example centred or
+#'   scaled values);
+#' * the 99th percentiles of the absolute non-zero values differ by more
+#'   than a factor of 10;
+#' * the model was trained on the `"rank"` assay and the query assay is not
+#'   `"rank"`, or the reverse. Only an assay named `"rank"` is ranked again
+#'   within each cell.
+#'
+#' The check cannot detect every difference: for example, values normalised
+#' to different library sizes can pass it. Changes that act on all genes
+#' alike, such as the base of the logarithm, do not change the normalised
+#' scores, because the query is centred and each score is scaled by
+#' [normPhiScores()].
 #'
 #' @return A cell by phenotype matrix of raw PhiSpace scores. Use
 #'   [normPhiScores()] to normalise them.
@@ -232,6 +263,7 @@ print.PhiSpaceModel <- function(x, ...){
     cat("  Species:", if(is.null(x$species)) "-" else x$species,
         " Gene IDs:", if(is.null(x$geneIdType)) "-" else x$geneIdType, "\n")
   }
+  if(!is.null(x$preprocessing)) cat("  Preprocessing:", x$preprocessing, "\n")
   cat("  Trained with PhiSpace", x$phispace_version, "on", x$created, "\n")
   invisible(x)
 }
@@ -252,7 +284,7 @@ print.PhiSpaceModel <- function(x, ...){
                            keepStats = FALSE, nfeatPool = NULL,
                            referenceName = NULL,
                            species = NULL, geneIdType = NULL,
-                           scoreReference = FALSE){
+                           preprocessing = NULL, scoreReference = FALSE){
 
   if(is.null(ncomp)) ncomp <- ncol(YY)
   keepStats <- keepStats && refAssay != "rank"
@@ -344,6 +376,8 @@ print.PhiSpaceModel <- function(x, ...){
       referenceName = referenceName,
       species = species,
       geneIdType = geneIdType,
+      preprocessing = preprocessing,
+      valueProfile = .valueProfile(refXsel),
       format_version = .PhiSpaceModel_format,
       phispace_version = as.character(utils::packageVersion("PhiSpace")),
       created = format(Sys.Date())
@@ -361,7 +395,87 @@ print.PhiSpaceModel <- function(x, ...){
 .predictPhiSpace <- function(model, X, assayName, nfeat = NULL){
 
   model <- .modelForGenes(model, rownames(X), nfeat)
+  .checkQueryValues(model, X, assayName)
   .scoreModels(list(model), X, assayName)[[1]]
+}
+
+
+## Summary of the values of a cell by gene matrix, in up to maxCells evenly
+## spaced cells (no random numbers), to compare a query with the reference.
+.valueProfile <- function(X, maxCells = 2000){
+
+  idx <- unique(round(seq(1, nrow(X), length.out = min(nrow(X), maxCells))))
+  v <- X[idx, , drop = FALSE]
+  v <- if(inherits(v, "sparseMatrix")) methods::as(v, "CsparseMatrix")@x else as.vector(as.matrix(v))
+  nz <- v[v != 0 & !is.na(v)]
+  list(
+    nCells = length(idx),
+    integer = length(nz) > 0 && all(abs(nz - round(nz)) < 1e-8),
+    negative = sum(nz < 0)/(length(idx) * ncol(X)),
+    q99 = if(length(nz) > 0) unname(stats::quantile(abs(nz), 0.99)) else 0
+  )
+}
+
+
+## Warn if the gene by cell query X looks preprocessed differently from the
+## reference of model (see predict.PhiSpaceModel()). Models without a
+## valueProfile (trained before it was added) are not checked.
+.checkQueryValues <- function(model, X, assayName, label = "The query"){
+
+  ref <- model$valueProfile
+  if(is.null(ref)) return(invisible(NULL))
+  why <- character(0)
+  if((model$refAssay == "rank") != (assayName == "rank")){
+    why <- c(why, paste0("the model was trained on the \"", model$refAssay,
+                         "\" assay and the query assay is \"", assayName,
+                         "\"; only an assay named \"rank\" is ranked again within each cell"))
+  }
+  if(model$refAssay != "rank" && assayName != "rank"){
+    idx <- unique(round(seq(1, ncol(X), length.out = min(ncol(X), 2000))))
+    qry <- .valueProfile(.cellsByGenes(X[, idx, drop = FALSE], model$selectedFeat))
+    if(ref$integer != qry$integer){
+      why <- c(why, if(qry$integer){
+        "the non-zero query values are all integers (raw counts?), the reference values are not"
+      } else "the non-zero reference values are all integers, the query values are not")
+    }
+    if((ref$negative > 0) != (qry$negative > 0)){
+      why <- c(why, paste0(format(100 * qry$negative, digits = 2),
+                           "% of the query values and ",
+                           format(100 * ref$negative, digits = 2),
+                           "% of the reference values are negative"))
+    }
+    ratio <- qry$q99/ref$q99
+    if(is.finite(ratio) && (ratio > 10 || ratio < 0.1)){
+      why <- c(why, paste0("the 99th percentile of the absolute non-zero values is ",
+                           format(qry$q99, digits = 3), " in the query and ",
+                           format(ref$q99, digits = 3), " in the reference"))
+    }
+  }
+  if(length(why) > 0){
+    warning(label, " may be preprocessed differently from the reference of the model",
+            if(!is.null(model$referenceName)) paste0(" (", model$referenceName, ")"),
+            ": ", paste(why, collapse = "; "), ". Preprocess the query as the reference",
+            if(!is.null(model$preprocessing)) paste0(" (", model$preprocessing, ")"),
+            ".", call. = FALSE)
+  }
+  invisible(why)
+}
+
+
+## A hint for a query that shares no genes with a model: gene IDs of another
+## type, or of another species.
+.geneIdHint <- function(modelGenes, queryGenes){
+
+  isEns <- function(g) mean(grepl("^ENS[A-Z]*G[0-9]+", g))
+  if(abs(isEns(modelGenes) - isEns(queryGenes)) > 0.5){
+    return(" One set of genes uses Ensembl IDs and the other does not.")
+  }
+  if(any(toupper(modelGenes) %in% toupper(queryGenes))){
+    return(paste0(" Some genes match when case is ignored (for example ",
+                  modelGenes[toupper(modelGenes) %in% toupper(queryGenes)][1],
+                  "): check that the species are the same."))
+  }
+  ""
 }
 
 
@@ -460,7 +574,10 @@ print.PhiSpaceModel <- function(x, ...){
                   paste(utils::head(setdiff(genes, shared), 3), collapse = ", "),
                   ")")
   if(canReselect) return(.reselectPhiSpaceModel(model, queryGenes, nfeat, lacks, nMissing))
-  if(length(shared) == 0) stop("The query shares none of the ", length(genes), " model genes.")
+  if(length(shared) == 0){
+    stop("The query shares none of the ", length(genes), " model genes.",
+         .geneIdHint(genes, queryGenes))
+  }
 
   if(!is.null(model$stats)){
     message(lacks, "; refitting the model on the ", length(shared), " shared genes.")
@@ -490,7 +607,8 @@ print.PhiSpaceModel <- function(x, ...){
   pool <- rownames(model$stats$XtX)
   avail <- pool[pool %in% queryGenes]
   if(length(avail) == 0){
-    stop("The query shares none of the ", length(pool), " candidate genes of the model.")
+    stop("The query shares none of the ", length(pool), " candidate genes of the model.",
+         .geneIdHint(pool, queryGenes))
   }
   if(is.null(nfeat)){
     nfeat <- model$nfeat

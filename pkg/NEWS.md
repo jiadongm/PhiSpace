@@ -64,6 +64,18 @@
   refits the model on them. `predict(nfeat = )` selects another number of
   genes. To select genes among those of a known query platform, train with
   `genes`.
+* `predict()` and `PhiSpace()` check that a query looks preprocessed like
+  the model's reference. The model records a summary of the reference
+  values over its genes (`valueProfile`), and a warning is given if the
+  query's non-zero values are integers and the reference's are not (or the
+  reverse), if only one of them has negative values, if their 99th
+  percentiles differ by more than a factor of 10, or if only one of the
+  model and the query assay is `"rank"`. On the PerturbSeq and CosMx data,
+  raw counts and centred and scaled values were detected; the five
+  vignette queries gave no warning. `trainPhiSpace()` gains a
+  `preprocessing` description, printed with the model. When a query shares
+  no gene with a model, the error says whether one side uses Ensembl IDs
+  or whether the genes match when case is ignored (another species).
 * `PhiSpace()` accepts a `PhiSpaceModel` as the reference, or a list that
   mixes models and reference objects. A model is restricted once to the genes
   shared by all queries, as above; `updateRef = TRUE` is not available for a
