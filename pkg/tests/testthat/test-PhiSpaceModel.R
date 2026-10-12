@@ -54,6 +54,27 @@ test_that("a saved model gives the same scores", {
   expect_output(print(model), "3 phenotypes, 55 genes, 80 reference cells")
 })
 
+test_that("the model records the reference cells per label", {
+  ref2 <- ref
+  ref2$batch <- rep(c("b1", "b2"), c(30, 50))
+  model <- trainPhiSpace(ref2, phenotypes = c("type", "batch"),
+                         refAssay = "log1p", ncomp = 3)
+  sizes <- c(table(ref2$type)[unique(ref2$type)], b1 = 30, b2 = 50)
+  expect_identical(model$classSizes, setNames(as.integer(sizes), model$phenoDict$labs))
+  expect_identical(names(model$classSizes), model$responseNames)
+  t3 <- table(ref2$type)
+  expect_output(print(model), paste0(
+    "Cells per label \\(type\\): 3 labels, smallest ", min(t3), " \\(",
+    names(t3)[which.min(t3)], "\\), largest ", max(t3)))
+  expect_output(print(model),
+                "Cells per label \\(batch\\): 2 labels, smallest 30 \\(b1\\), largest 50 \\(b2\\)")
+  # Kept when the model is refitted on fewer genes; absent with response
+  expect_message(sub <- .modelForGenes(model, shared), "refitting")
+  expect_identical(sub$classSizes, model$classSizes)
+  Y <- codeY(ref, "type")
+  expect_null(trainPhiSpace(ref, response = Y, refAssay = "log1p", ncomp = 3)$classSizes)
+})
+
 test_that("predict accepts a gene by cell matrix and another assay", {
   model <- trainPhiSpace(ref, phenotypes = "type", refAssay = "log1p",
                          ncomp = 3, genes = shared)

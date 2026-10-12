@@ -92,6 +92,9 @@ A \code{PhiSpaceModel} object: a list with
 \item{responseNames}{Names of the score columns.}
 \item{refAssay}{The training assay.}
 \item{nCells}{Number of reference cells used for training.}
+\item{classSizes}{Number of reference cells in each phenotype label, in
+the order of \code{phenoDict}, or \code{NULL} if \code{response} was given. Labels with
+few cells give less reliable scores.}
 \item{stats}{\code{NULL}, or a list with \code{XtX} (genes x genes) and \code{XtY}
 (genes x phenotypes): the cross-products of the centred (and scaled)
 reference over the model genes (or over the candidate genes, see

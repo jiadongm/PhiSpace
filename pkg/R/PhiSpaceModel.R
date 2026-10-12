@@ -92,6 +92,9 @@
 #'   \item{responseNames}{Names of the score columns.}
 #'   \item{refAssay}{The training assay.}
 #'   \item{nCells}{Number of reference cells used for training.}
+#'   \item{classSizes}{Number of reference cells in each phenotype label, in
+#'     the order of `phenoDict`, or `NULL` if `response` was given. Labels with
+#'     few cells give less reliable scores.}
 #'   \item{stats}{`NULL`, or a list with `XtX` (genes x genes) and `XtY`
 #'     (genes x phenotypes): the cross-products of the centred (and scaled)
 #'     reference over the model genes (or over the candidate genes, see
@@ -250,6 +253,14 @@ print.PhiSpaceModel <- function(x, ...){
       if(!is.null(x$referenceName)) paste0("(", x$referenceName, ")"), "\n")
   cat(" ", length(x$responseNames), "phenotypes,", length(x$selectedFeat),
       "genes,", x$nCells, "reference cells\n")
+  if(!is.null(x$classSizes)){
+    for(ph in unique(x$phenoDict$phenotypeCategory)){
+      n <- x$classSizes[x$phenoDict$phenotypeCategory == ph]
+      cat("  Cells per label (", ph, "): ", length(n), " labels, smallest ",
+          min(n), " (", names(n)[which.min(n)], "), largest ", max(n), " (",
+          names(n)[which.max(n)], ")\n", sep = "")
+    }
+  }
   cat("  Assay:", x$refAssay, " Method:", ar$regMethod, " ncomp:", ar$ncomp,
       " center:", ar$center, " scale:", ar$scale, "\n")
   cat("  Refits on fewer genes:",
@@ -370,6 +381,8 @@ print.PhiSpaceModel <- function(x, ...){
       responseNames = colnames(YY),
       refAssay = refAssay,
       nCells = nrow(YY),
+      classSizes =
+        if(!is.null(phenoDict)) stats::setNames(as.integer(colSums(YY > 0)), colnames(YY)),
       nfeat = if(byNfeat) nfeat,
       nfeatPool = if(usePool) nfeatPool,
       stats = stats,

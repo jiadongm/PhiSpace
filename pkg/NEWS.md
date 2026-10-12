@@ -76,6 +76,10 @@
   `preprocessing` description, printed with the model. When a query shares
   no gene with a model, the error says whether one side uses Ensembl IDs
   or whether the genes match when case is ignored (another species).
+* A `PhiSpaceModel` trained with `phenotypes` records the number of
+  reference cells in each label (`classSizes`). `print()` shows, for each
+  phenotype, the number of labels and the smallest and largest label with
+  their cell counts. Labels with few cells give less reliable scores.
 * `PhiSpace()` accepts a `PhiSpaceModel` as the reference, or a list that
   mixes models and reference objects. A model is restricted once to the genes
   shared by all queries, as above; `updateRef = TRUE` is not available for a
