@@ -450,7 +450,11 @@ Done on 2026-10-07 with this procedure:
   `pkg/README.md`, `pkg/DESCRIPTION` and `pkg/inst/CITATION`
   (`scripts/build-home.R`, added 2026-10-10). Before that, these pages came
   from committed `docs/`, so the live site kept the bioRxiv links and the
-  generic package citation after `5a24395`.
+  generic package citation after `5a24395`. Since 2026-10-12 it also
+  rebuilds `articles/index.html` from `pkg/_pkgdown.yml` and the article
+  entries of `sitemap.xml`, and fails if a listed article was not built; a
+  new article therefore needs only its build step and its `_pkgdown.yml`
+  entry.
   This is important: omitting an automated article from a later deployment
   would copy its old committed HTML and revert the live page.
 - The runner is pinned to `ubuntu-24.04`, because `ubuntu-latest` moves to

@@ -10,8 +10,11 @@ topics and updates the reference entries of `sitemap.xml`. The home page
 (`index.html`), the authors and citation page (`authors.html`) and `404.html`
 are rebuilt from `pkg/README.md`, `pkg/DESCRIPTION` and `pkg/inst/CITATION` by
 `scripts/build-home.R`, which fails if either page lacks a DOI from
-`pkg/inst/CITATION`. The other pages and shared assets are copied from the
-committed `docs/` website.
+`pkg/inst/CITATION`. The same script rebuilds the articles index
+(`articles/index.html`) from `pkg/_pkgdown.yml` and lists every article in
+`sitemap.xml`; it fails if an article in `pkg/_pkgdown.yml` was not built, so
+it must run after the articles. The other pages and shared assets are copied
+from the committed `docs/` website.
 
 A second workflow, `.github/workflows/R-CMD-check.yaml` (**R CMD check**), runs
 `R CMD check --no-manual --ignore-vignettes` on the same pushes and pull
