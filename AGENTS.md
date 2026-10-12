@@ -11,7 +11,7 @@ PhiSpace/
 ├── pkg/                    # R package source
 │   ├── R/                  # R source files
 │   ├── man/                # roxygen2-generated documentation
-│   ├── vignettes/          # 7 vignettes (Rmd)
+│   ├── vignettes/          # 8 vignettes (Rmd)
 │   ├── DESCRIPTION         # Package metadata
 │   └── NAMESPACE           # Exports/imports (auto-generated)
 ├── docs/                   # pkgdown website
@@ -90,6 +90,7 @@ working explicit vignette is the oracle for evaluating a wrapper.
 | done | `PerturbSeq.Rmd` | Compatibility-complete; automated and live | qs2 migration and new public folder; private `utils.R`; celldex reference shipped as an input |
 | done | `CITE-seq.Rmd` | Compatibility-complete; automated from cached results; live | Private paths; fresh RNA branch saved the wrong object name; fresh build needs about 65 GB RAM |
 | done | `CosMx.Rmd` | Compatibility-complete; automated and live | qs2 migration in the existing Dropbox folder; five download links replaced by one folder link |
+| new | `StoredModels.Rmd` | Added 2026-10-12 (MODEL-PLAN step 6); automated, fresh | Uses the CosMx inputs; trains `trainPhiSpace()` models and compares them with the per-query fit |
 
 The order may change for scientific priority, but `getting_started` should
 normally be next because it exercises the public `PhiSpace()` interface and
@@ -485,6 +486,7 @@ Rscript --vanilla scripts/build-getting-started.R
 Rscript --vanilla scripts/build-cite-seq.R
 Rscript --vanilla scripts/build-perturbseq.R
 Rscript --vanilla scripts/build-cosmx.R
+Rscript --vanilla scripts/build-stored-models.R
 Rscript --vanilla scripts/build-reference.R
 Rscript --vanilla scripts/build-home.R
 ```

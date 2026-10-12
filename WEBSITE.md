@@ -2,8 +2,8 @@
 
 The root workflow `.github/workflows/vignettes-pages.yaml` checks pull requests
 and builds and publishes pushes to `main`. It also supports a manual run from
-the Actions tab. Stereo-seq, Visium, Getting Started, PerturbSeq and CosMx are
-rebuilt from fresh results, and BridgeAnnotation and CITE-seq are rebuilt from
+the Actions tab. Stereo-seq, Visium, Getting Started, PerturbSeq, CosMx and
+Stored models are rebuilt from fresh results, and BridgeAnnotation and CITE-seq are rebuilt from
 verified cached results. The function reference (`reference/`) is then rebuilt
 from `pkg/man` by `scripts/build-reference.R`, which also drops pages of removed
 topics and updates the reference entries of `sitemap.xml`. The home page
@@ -52,9 +52,16 @@ Rscript --vanilla scripts/build-getting-started.R
 Rscript --vanilla scripts/build-cite-seq.R
 Rscript --vanilla scripts/build-perturbseq.R
 Rscript --vanilla scripts/build-cosmx.R
+Rscript --vanilla scripts/build-stored-models.R
 Rscript --vanilla scripts/build-reference.R
 Rscript --vanilla scripts/build-home.R
 ```
+
+The Stored models script (`StoredModels.Rmd`) has no data folder of its own:
+it verifies the CosMx inputs (`scripts/cosmx-inputs.tsv`, cache
+`Test/cosmx-inputs`) and stages the four lung fibrosis references and
+Lung5_Rep1. It trains its models in every build (about 2.5 minutes and 9 GB
+locally).
 
 The Stereo-seq script downloads the public archive, extracts only five required
 inputs, and checks their SHA-256 hashes. These include the helper R script and
@@ -81,6 +88,7 @@ Rscript --vanilla scripts/build-getting-started.R
 Rscript --vanilla scripts/build-cite-seq.R
 Rscript --vanilla scripts/build-perturbseq.R
 Rscript --vanilla scripts/build-cosmx.R
+Rscript --vanilla scripts/build-stored-models.R
 Rscript --vanilla scripts/build-reference.R
 Rscript --vanilla scripts/build-home.R
 ```

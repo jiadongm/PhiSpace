@@ -215,6 +215,42 @@ result_metrics$CosMx <- function(output_dir) {
   m
 }
 
+result_metrics$StoredModels <- function(output_dir) {
+  res <- qs2::qs_read(file.path(output_dir, "StoredModels_results.qs2"), validate_checksum = TRUE)
+  m <- list()
+  # Models trained with nfeat = 500 on the four whole-transcriptome references.
+  # Gene counts come from rankings of coefficients and allow a small tolerance.
+  for (lineage in names(res$model_genes)) {
+    m[[paste0(lineage, "_model_genes")]] <- res$model_genes[[lineage]]
+    m[[paste0(lineage, "_candidate_genes")]] <- res$candidate_genes[[lineage]]
+  }
+  # Normalised scores of Lung5_Rep1 from PhiSpace(models, query).
+  scores <- res$scores_model
+  suffix <- sub("^.*\\(([^()]+)\\)$", "\\1", colnames(scores))
+  m$lineages <- paste(unique(suffix), collapse = ",")
+  m$n_cells <- nrow(scores)
+  m$celltypes_sha256 <- digest::digest(colnames(scores), algo = "sha256")
+  m$cells_sha256 <- digest::digest(rownames(scores), algo = "sha256")
+  for (lineage in unique(suffix)) {
+    sc <- scores[, suffix == lineage, drop = FALSE]
+    m[[paste0(lineage, "_score_mean")]] <- mean(sc)
+    m[[paste0(lineage, "_score_sd")]] <- sd(as.vector(sc))
+  }
+  # Agreement with the per-query fit of the CosMx vignette.
+  for (i in seq_len(nrow(res$agreement))) {
+    a <- res$agreement[i, ]
+    m[[paste0(a$model, "_median_cor")]] <- a$median_cor
+    m[[paste0(a$model, "_same_top_label")]] <- a$same_top_label
+  }
+  m$min_cor <- min(res$cors)
+  m$niche_ari <- res$niche_ari
+  sizes <- sort(as.vector(table(res$niches_model)))
+  for (i in seq_along(sizes)) m[[sprintf("niche_size_rank%d", i)]] <- sizes[[i]]
+  # Panel models reproduce the per-query fit; the expected value 0 has a tolerance.
+  m$panel_max_abs_diff <- res$panel_max_abs_diff
+  m
+}
+
 format_metrics <- function(metrics) {
   vapply(metrics, function(x) {
     if (length(x) != 1) stop("Each result metric must be a single value.")

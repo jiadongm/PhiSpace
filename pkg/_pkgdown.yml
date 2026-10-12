@@ -26,6 +26,10 @@ articles:
       - Visium
       - CosMx
       - StereoSeq
+  - title: "Stored PhiSpace models"
+    desc: "Training a model once and applying it to new queries without the reference."
+    contents:
+      - StoredModels
 
 navbar:
   title: "PhiSpace"

@@ -1,0 +1,41 @@
+metric	value	tolerance
+immu_model_genes	2218	20
+immu_candidate_genes	5958	50
+epi_model_genes	1914	20
+epi_candidate_genes	5600	50
+endo_model_genes	1313	20
+endo_candidate_genes	4537	50
+mesen_model_genes	1533	20
+mesen_candidate_genes	4954	50
+lineages	immu,epi,endo,mesen	
+n_cells	98002	0
+celltypes_sha256	f121fc4e61744dc5ce900299c643544c4528406665c89668498e0d860d4697b1	
+cells_sha256	fa5143936d73e34fc441862e9660aec33311c50e74e8c2412f70ad9726e3a447	
+immu_score_mean	0.0113151726557442	1.2e-06
+immu_score_sd	0.124489075883467	1.2e-06
+epi_score_mean	0.00857888621891811	1.5e-06
+epi_score_sd	0.154164333967937	1.5e-06
+endo_score_mean	0.00289592352357384	1.5e-06
+endo_score_sd	0.152813912949367	1.5e-06
+mesen_score_mean	0.00323322766055356	1.5e-06
+mesen_score_sd	0.149817678486975	1.5e-06
+immu_median_cor	0.999535180047497	1e-05
+immu_same_top_label	0.971439358380441	1e-04
+epi_median_cor	0.999492900802	1e-05
+epi_same_top_label	0.963041570580192	1e-04
+endo_median_cor	0.998032792804897	1e-05
+endo_same_top_label	0.95575600497949	1e-04
+mesen_median_cor	0.999296683000818	1e-05
+mesen_same_top_label	0.966031305483562	1e-04
+min_cor	0.99574107782777	1e-05
+niche_ari	0.967133451007936	0.005
+niche_size_rank1	2224	23
+niche_size_rank2	5885	59
+niche_size_rank3	7764	78
+niche_size_rank4	9215	93
+niche_size_rank5	10370	104
+niche_size_rank6	10395	104
+niche_size_rank7	11283	113
+niche_size_rank8	11505	116
+niche_size_rank9	29361	294
+panel_max_abs_diff	0	1e-08
