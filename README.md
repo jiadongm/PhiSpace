@@ -7,9 +7,12 @@
 </p>
 
 
+The PhiSpace R package moved to [github.com/mao-lab-org/PhiSpace](https://github.com/mao-lab-org/PhiSpace) on 12 October 2026. Report issues and follow development there. This repository keeps the papers' analysis code (`sourceCode_PhiSpaceMultiomics/`, `sourceCode_PhiSpaceST/`) and posters. Its `pkg/` folder is the package as of the move and is no longer updated.
+
+
 ## Vignettes
 
-[PhiSpace pkgdown site](https://jiadongm.github.io/PhiSpace/) 
+[PhiSpace pkgdown site](https://mao-lab-org.github.io/PhiSpace/) 
 
 [A workflow for spatial transcriptomics featuring SpaNorm, PhiSpace and jazzPanda](https://github.com/bhuvad/CosMxSpatialAnalysisWorkshop)
 
@@ -21,7 +24,7 @@
 if(!requireNamespace("BiocManager", quietly = TRUE)) {
   install.packages("BiocManager")
 }
-BiocManager::install('jiadongm/PhiSpace/pkg')
+BiocManager::install('mao-lab-org/PhiSpace')
 ```
 
 
