@@ -702,6 +702,59 @@ Step 5 (2026-10-09), quadratic-memory guards:
   arguments") because `.fit_dwd()` treated kerndwd's primal coefficients
   as dual ones.
 
+## Stored Models and Several References
+
+The plan, decisions and step records are in `../MODEL-PLAN.md` (outside the
+clone). Read it before changing `PhiSpace()`, `PhiSpaceR_1ref()`,
+`SuperPC()`, `phenotype()` or `R/PhiSpaceModel.R`. The work was done from
+2026-10-09 to 2026-10-12; every commit below is pushed.
+
+What exists:
+
+- `trainPhiSpace()` returns a `PhiSpaceModel` (S3 list, `format_version` 1):
+  the PLS fit, selected genes, importance scores, phenotype labels and
+  their reference cell counts (`classSizes`), and optional descriptions
+  (`referenceName`, `species`, `geneIdType`, `preprocessing`). `predict()`
+  scores a query and `PhiSpace()` accepts a model, or a list mixing models
+  and references. `PhiSpaceR_1ref()` trains through the same code and
+  returns its `model`; its scores did not change (all seven vignettes,
+  within 1e-12).
+- Missing genes (decisions M1-M3, M5 in the plan): the model stores the
+  centred cross-products X'X and X'Y (`keepStats = TRUE`, not for `"rank"`).
+  A query that lacks model genes gets an exact refit on the genes it has.
+  A model trained with `nfeat` stores them for a candidate pool, the top
+  `nfeatPool` genes per phenotype (default 2,000), and selects `nfeat`
+  genes again among the candidates that the query has (two-stage: refit on
+  the candidates, select, refit). Models without statistics drop the
+  missing genes' coefficients and warn. X'X costs 8 bytes per gene pair.
+- Several models score a query in one sparse product (`.scoreModels()`):
+  CosMx with four models 3.6 s -> 1.1 s; PerturbSeq peak 940 -> 366 MB.
+- `predict()` and `PhiSpace()` warn when a query looks preprocessed unlike
+  the reference (integer values, negative values, 99th percentile ratio
+  above 10, `"rank"` mismatch), from a `valueProfile` stored in the model.
+  Errors for queries sharing no gene hint at Ensembl IDs or species.
+
+Validation against the per-query fit (normalised scores; top label = the
+highest-scoring phenotype of a cell):
+
+| Data | Model | Same top label | Other |
+| --- | --- | --- | --- |
+| CosMx, Visium | fixed genes | 100% | max difference 2e-10 |
+| PerturbSeq | `nfeat = 500`, pool 2,000 | 88% (74% without pool) | model 772 MB |
+| StereoSeq | `nfeat = 500`, pool 2,000 | 95% (89% without pool) | niche ARI 0.96 |
+| CosMx (vignette) | `nfeat = 500`, pool 2,000 | 96-97% per model | niche ARI 0.97 |
+
+The `StoredModels` vignette (2026-10-12) shows the workflow on the CosMx
+data (see Current Automation). Commits: `bb900ee`, `9eed296`, `096466d`,
+`be88470`, `15da70f`, `0ef35c8`, `f3ee659`, `7ae1491`, `9890ebd`,
+`453ce28`.
+
+Deferred by the user (2026-10-12): blockwise scoring of queries larger
+than memory (plan step 3), and a separate package of pre-trained models
+(step 5, after decision M4: which references and where to host them; it
+would add a `provenance` argument). Parallel training of several
+references was not started.
+
 ## Build & Development Commands
 
 All commands should be run from the repo root. The package source is in `pkg/`.
