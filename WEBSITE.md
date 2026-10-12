@@ -1,5 +1,11 @@
 # Automatic vignette publishing
 
+On 2026-10-12 the website moved with the package to
+`github.com/mao-lab-org/PhiSpace` and is now built there. This repository
+publishes only redirect pages (`redirects/`, written by
+`scripts/build-redirects.R`) with `.github/workflows/pages-redirect.yaml`. The
+rest of this file describes the build as it was before the move.
+
 The root workflow `.github/workflows/vignettes-pages.yaml` checks pull requests
 and builds and publishes pushes to `main`. It also supports a manual run from
 the Actions tab. Stereo-seq, Visium, Getting Started, PerturbSeq, CosMx and
